@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<application
+		android:allowBackup="true"
+		android:icon="@mipmap/appicon"
+		android:roundIcon="@mipmap/appicon_round"
+		android:supportsRtl="true"
+		android:label="仙灵">
+
+		<!-- Shizuku client side. The provider is how Shizuku hands this app the binder for its service
+		     and delivers the permission result; without it every Shizuku call fails. -->
+		<provider
+			android:name="rikka.shizuku.ShizukuProvider"
+			android:authorities="com.fairyai.assistant.shizuku"
+			android:multiprocess="false"
+			android:enabled="true"
+			android:exported="true"
+			android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+	</application>
+
+	<!-- Network -->
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+
+	<!-- Microphone (ASR) -->
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+	<!-- Bluetooth (PC sync) -->
+	<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+	<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+	<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+
+	<!-- Location (needed for BLE scan on Android 12+) -->
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+	<!-- Overlay (floating bubble) -->
+	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+	<!-- Foreground service (persistent notification) -->
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+	<!-- Reminders: the system drops alarms on reboot, so the app has to be told to put them back.
+	     SCHEDULE_EXACT_ALARM is declared because a reminder that arrives an hour late is a broken
+	     reminder; when the user has not granted it, AndroidReminderAlarm falls back to the inexact
+	     alarm and the reminders screen says so. -->
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+	<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+	<!-- LocalSend (multicast, WiFi) -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+</manifest>

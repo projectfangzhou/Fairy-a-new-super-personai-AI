@@ -1,0 +1,337 @@
+<Window x:Class="MyAiAssistant.Windows.FairyCodeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="仙灵 · Fairy Code" Height="800" Width="1240" MinHeight="620" MinWidth="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#08080A" Foreground="#E8E8ED"
+        FontFamily="Microsoft YaHei UI, Segoe UI">
+
+    <Window.Resources>
+        <!-- Flat sidebar action: icon + label, no chrome until hovered. -->
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#C9C9D2"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="8,7"/>
+            <Setter Property="Margin" Value="0,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Chrome" Background="{TemplateBinding Background}" CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="#17171C"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#5A5A66"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Small pill used for state, counts and the model name. -->
+        <Style x:Key="Pill" TargetType="Border">
+            <Setter Property="Background" Value="#17171C"/>
+            <Setter Property="BorderBrush" Value="#26262E"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="8,2"/>
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#8A8A96"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#6F6F7C"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,0,0,2"/>
+        </Style>
+
+        <Style x:Key="GhostButton" TargetType="Button">            <Setter Property="Background" Value="#1C1C22"/>
+            <Setter Property="Foreground" Value="#D6D6E0"/>
+            <Setter Property="BorderBrush" Value="#2C2C35"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Thin dark scrollbar: the default light one reads as a bright stripe on this surface. -->
+        <Style x:Key="ThinScrollBar" TargetType="ScrollBar">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Background="#2A2A33" CornerRadius="4" Margin="2,0"/>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ScrollBar" BasedOn="{StaticResource ThinScrollBar}"/>
+    </Window.Resources>
+
+    <Grid Background="#08080A" TextElement.Foreground="#E8E8ED">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="248"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="312"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ======== Sidebar: actions, then the sessions this machine has run ======== -->
+        <Border Grid.Column="0" Background="#0C0C0F" BorderBrush="#1B1B21" BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="16,16,12,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="仙灵 · Fairy Code" FontSize="15" FontWeight="SemiBold"
+                               Foreground="#F4F4F8" VerticalAlignment="Center"/>
+                    <Button x:Name="NewTaskButton" Grid.Column="1" Style="{StaticResource NavButton}"
+                            Padding="6,4" ToolTip="新建任务（结束当前会话）">
+                        <Path Data="M12 5v14 M5 12h14" Stroke="#B3A6F7" StrokeThickness="1.6"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="14" Height="14"
+                              Stretch="Uniform"/>
+                    </Button>
+                </Grid>
+
+                <StackPanel Grid.Row="1" Margin="10,0,10,8">
+                    <Button x:Name="PendingNavButton" Style="{StaticResource NavButton}" ToolTip="跳到第一个待确认项">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Path Grid.Column="0" Data="M6 9a6 6 0 1 1 12 0v3.5l1.6 3.2H4.4L6 12.5z M10 18.5a2 2 0 0 0 4 0"
+                                  Stroke="#8A8A96" StrokeThickness="1.4" StrokeLineJoin="Round" Width="15" Height="15"
+                                  Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="待审批" Margin="9,0,0,0" FontSize="13" VerticalAlignment="Center"/>
+                            <Border x:Name="PendingBadge" Grid.Column="2" Style="{StaticResource Pill}" Visibility="Collapsed">
+                                <TextBlock x:Name="PendingNavCount" Text="0" FontSize="10.5" Foreground="#F0B0A8"
+                                           FontFamily="Cascadia Mono, Consolas"/>
+                            </Border>
+                        </Grid>
+                    </Button>
+
+                    <Button x:Name="StopButton" Style="{StaticResource NavButton}" IsEnabled="False" ToolTip="停止当前会话">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M7.5 7.5h9v9h-9z" Stroke="#8A8A96" StrokeThickness="1.4" Width="15" Height="15"
+                                  Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="停止" Margin="9,0,0,0" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button x:Name="ClearButton" Style="{StaticResource NavButton}" ToolTip="清空当前对话显示">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="M4 16.5l7.5-7.5 5 5-4.5 4.5H7z M13 20.5h7" Stroke="#8A8A96" StrokeThickness="1.4"
+                                  StrokeLineJoin="Round" Width="15" Height="15" Stretch="Uniform" VerticalAlignment="Center"/>
+                            <TextBlock Text="清屏" Margin="9,0,0,0" FontSize="13" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <Grid Grid.Row="2" Margin="16,10,16,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="会话" Style="{StaticResource SectionTitle}"/>
+                    <TextBlock x:Name="SessionCount" Grid.Column="1" Text="0" Style="{StaticResource SectionTitle}"
+                               FontFamily="Cascadia Mono, Consolas"/>
+                </Grid>
+
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" Padding="0,0,2,0">
+                    <StackPanel x:Name="SessionList" Margin="8,0,8,8"/>
+                </ScrollViewer>
+
+                <Border Grid.Row="4" Background="#0A0A0D" BorderBrush="#1B1B21" BorderThickness="0,1,0,0"
+                        Padding="14,10">
+                    <StackPanel>
+                        <TextBlock x:Name="SidebarStatus" Text="待命" Foreground="#C9C9D2" FontSize="12"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="SidebarModel" Text="引擎未启动" Foreground="#6F6F7C" FontSize="10.5"
+                                   Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ======== Centre: the conversation and the prompt ======== -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Padding="20,14,20,10" BorderBrush="#16161B" BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="HeaderTitle" Grid.Column="0" Text="新会话" FontSize="15" FontWeight="SemiBold"
+                               Foreground="#F1F1F6" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                    <Border Grid.Column="1" Style="{StaticResource Pill}" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="HeaderState" Text="待命" FontSize="11" Foreground="#9C9CA8"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <ScrollViewer x:Name="Scroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,4,0,4">
+                <StackPanel x:Name="TranscriptHost" Margin="20,10,20,18"/>
+            </ScrollViewer>
+
+            <Border Grid.Row="2" Margin="18,0,18,10" Background="#141417" BorderBrush="#26262E"
+                    BorderThickness="1" CornerRadius="14" Padding="14,12,14,10">
+                <StackPanel>
+                    <TextBox x:Name="InputBox" MinHeight="26" MaxHeight="120" Padding="0" BorderThickness="0"
+                             Background="Transparent" Foreground="#ECECF2" CaretBrush="#B3A6F7"
+                             FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top"
+                             ToolTip="Enter 发送，Shift+Enter 换行"/>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Style="{StaticResource Pill}" Background="#1B1B22">
+                            <TextBlock x:Name="ModelPill" Text="引擎未检测" FontSize="11" Foreground="#A9A9B8"
+                                       FontFamily="Cascadia Mono, Consolas"/>
+                        </Border>
+
+                        <TextBlock Grid.Column="1" Text="Enter 发送 · Shift+Enter 换行" Foreground="#5C5C68"
+                                   FontSize="10.5" VerticalAlignment="Center" Margin="10,0,0,0"/>
+
+                        <Button x:Name="SendButton" Grid.Column="2" Width="30" Height="30" Padding="0"
+                                Background="#EDEDF3" Foreground="#0C0C0F" BorderThickness="0" Cursor="Hand"
+                                ToolTip="发送">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                                        <TextBlock Text="↑" FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="StatusText" Grid.Row="3" Text="未连接" Foreground="#5C5C68" FontSize="10.5"
+                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
+        </Grid>
+
+        <!-- ======== Right panel: the session it is attached to, and what it touched ======== -->
+        <Border Grid.Column="2" Background="#0C0C0F" BorderBrush="#1B1B21" BorderThickness="1,0,0,0">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="14,16,14,16">
+
+                    <TextBlock Text="会话" Style="{StaticResource SectionTitle}"/>
+                    <Border Background="#121216" BorderBrush="#1F1F26" BorderThickness="1" CornerRadius="10"
+                            Padding="11,9" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="任务" Style="{StaticResource FieldLabel}"/>
+                            <TextBlock x:Name="PanelTaskId" Text="—" Foreground="#D6D6E0" FontSize="11.5"
+                                       FontFamily="Cascadia Mono, Consolas" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="状态" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
+                            <TextBlock x:Name="PanelState" Text="待命" Foreground="#D6D6E0" FontSize="11.5"/>
+                            <TextBlock Text="引擎 / 模型" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
+                            <TextBlock x:Name="PanelModel" Text="未启动" Foreground="#D6D6E0" FontSize="11.5"
+                                       FontFamily="Cascadia Mono, Consolas" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="工作区" Style="{StaticResource SectionTitle}"/>
+                    <TextBox x:Name="WorkspaceBox" Padding="8,6" Margin="0,0,0,14" MaxHeight="64"
+                             Background="#121216" Foreground="#D6D6E0" BorderBrush="#1F1F26" BorderThickness="1"
+                             FontFamily="Cascadia Mono, Consolas" FontSize="11" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             ToolTip="工作区：必须是一个已存在的目录"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="待审批" Style="{StaticResource SectionTitle}"/>
+                        <Border x:Name="PendingPanelBadge" Grid.Column="1" Style="{StaticResource Pill}">
+                            <TextBlock x:Name="PendingPanelCount" Text="0" FontSize="10.5" Foreground="#F0B0A8"
+                                       FontFamily="Cascadia Mono, Consolas"/>
+                        </Border>
+                    </Grid>
+                    <StackPanel x:Name="PendingList" Margin="0,0,0,14"/>
+                    <TextBlock x:Name="PendingEmpty" Text="没有待确认的动作。" Foreground="#5C5C68" FontSize="11"
+                               Margin="0,0,0,14"/>
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="工具调用" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock x:Name="ToolCount" Grid.Column="1" Text="0" Style="{StaticResource SectionTitle}"
+                                   FontFamily="Cascadia Mono, Consolas"/>
+                    </Grid>
+                    <StackPanel x:Name="ToolList"/>
+                    <TextBlock x:Name="ToolEmpty" Text="本次会话还没有调用工具。" Foreground="#5C5C68" FontSize="11"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

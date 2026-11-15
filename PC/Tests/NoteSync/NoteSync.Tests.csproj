@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>NoteSync.Tests</AssemblyName>
+    <RootNamespace>NoteSync.Tests</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The shipping note store and the phone-facing bridge, not reimplementations. -->
+    <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
+    <Compile Include="../../Services/NoteService.cs" Link="Production/NoteService.cs" />
+    <Compile Include="../../Services/PairedNoteBridge.cs" Link="Production/PairedNoteBridge.cs" />
+    <Compile Include="../../Services/SummarySync.cs" Link="Production/SummarySync.cs" />
+    <!-- SummarySync.cs mentions the notification models; that is the whole dependency. -->
+    <Compile Include="../../Services/Notifications/NotificationModels.cs" Link="Production/Notifications/NotificationModels.cs" />
+    <Compile Include="../../Services/Notifications/SystemNotificationPolicy.cs" Link="Production/Notifications/SystemNotificationPolicy.cs" />
+  </ItemGroup>
+</Project>

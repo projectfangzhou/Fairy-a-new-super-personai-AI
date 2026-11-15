@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Only the transport-independent pieces: the WebRTC surface needs WPF and is covered by Tests/WebRtc. -->
+    <Compile Include="../../Services/Transfer/TransferFrames.cs" Link="Transfer/TransferFrames.cs" />
+    <Compile Include="../../Services/Transfer/TransferReceiver.cs" Link="Transfer/TransferReceiver.cs" />
+    <Compile Include="../../Services/Transfer/TransferSignal.cs" Link="Transfer/TransferSignal.cs" />
+    <Compile Include="../../Services/Transfer/SignalEnvelope.cs" Link="Transfer/SignalEnvelope.cs" />
+    <Compile Include="../../Services/Transfer/SignalMailbox.cs" Link="Transfer/SignalMailbox.cs" />
+    <Compile Include="../../Services/Transfer/ITransferChannel.cs" Link="Transfer/ITransferChannel.cs" />
+    <Compile Include="../../Services/Transfer/TransferSession.cs" Link="Transfer/TransferSession.cs" />
+  </ItemGroup>
+</Project>

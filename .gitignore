@@ -1,0 +1,27 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+packages/
+msbuild-logs/
+TestResults/
+*.binlog
+*.log
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# Signing material and secrets never belong in the repository
+*.jks
+*.keystore
+*.pfx
+*.p12
+*.snk
+*password*.txt
+
+# Built installers and packages
+*.apk
+*.aab
+PC/Installer/Output/

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:FairyAI_Android.ViewModels"
+             xmlns:models="clr-namespace:FairyAI_Android.Models"
+             x:Class="FairyAI_Android.Pages.ChatPage"
+             x:DataType="vm:MainViewModel"
+             Title="仙灵">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#05070C" Offset="0.0"/>
+            <GradientStop Color="#0A0D12" Offset="0.5"/>
+            <GradientStop Color="#0F131C" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="0">
+
+        <!-- Header with avatar and status -->
+        <Grid Grid.Row="0" 
+              Padding="20,16"
+              BackgroundColor="#161D2B">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Avatar -->
+            <Border Grid.Column="0"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    StrokeShape="RoundRectangle 22"
+                    BackgroundColor="#38BDF8"
+                    StrokeThickness="0">
+                <Label Text="✨" 
+                       FontSize="24"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"/>
+            </Border>
+            
+            <!-- Name and status -->
+            <VerticalStackLayout Grid.Column="1" 
+                                 Spacing="2" 
+                                 Margin="12,0,0,0"
+                                 VerticalOptions="Center">
+                <Label Text="Fairy" 
+                       FontSize="16" 
+                       FontAttributes="Bold"
+                       TextColor="#E9E9E9"/>
+                <Label Text="{Binding StatusText}" 
+                       FontSize="12"
+                       TextColor="#6EE7B7"/>
+            </VerticalStackLayout>
+            
+            <!-- Export button -->
+            <Button Grid.Column="2"
+                    Text="⤓"
+                    FontSize="20"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    Margin="0,0,8,0"
+                    BackgroundColor="#1E2636"
+                    TextColor="#9CA3AF"
+                    CornerRadius="22"
+                    Clicked="OnExportClicked"/>
+
+            <!-- Settings button -->
+            <Button Grid.Column="3"
+                    Text="⚙"
+                    FontSize="20"
+                    WidthRequest="44"
+                    HeightRequest="44"
+                    BackgroundColor="#1E2636"
+                    TextColor="#9CA3AF"
+                    CornerRadius="22"
+                    Clicked="OnSettingsClicked"/>
+        </Grid>
+
+        <!-- Messages -->
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Messages}"
+                        SelectionMode="None"
+                        VerticalOptions="Fill"
+                        Margin="16,16,16,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:ChatMessage">
+                    <Grid Padding="0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- User message (right) -->
+                        <Border Grid.Column="1"
+                                BackgroundColor="#38BDF8"
+                                StrokeShape="RoundRectangle 16"
+                                StrokeThickness="0"
+                                Padding="16,12"
+                                MaximumWidthRequest="280"
+                                IsVisible="{Binding IsUser}"
+                                HorizontalOptions="End">
+                            <Border.Shadow>
+                                <Shadow Brush="#000000" 
+                                        Opacity="0.15" 
+                                        Radius="12" 
+                                        Offset="0,4"/>
+                            </Border.Shadow>
+                            <Label Text="{Binding Content}"
+                                   TextColor="#0A0D12"
+                                   FontSize="15"
+                                   LineHeight="1.5"/>
+                        </Border>
+
+                        <!-- Assistant message (left) -->
+                        <Border Grid.Column="0"
+                                BackgroundColor="#161D2B"
+                                StrokeShape="RoundRectangle 16"
+                                StrokeThickness="0"
+                                Padding="16,12"
+                                MaximumWidthRequest="280"
+                                IsVisible="{Binding IsAssistant}"
+                                HorizontalOptions="Start">
+                            <Border.Shadow>
+                                <Shadow Brush="#000000" 
+                                        Opacity="0.2" 
+                                        Radius="12" 
+                                        Offset="0,4"/>
+                            </Border.Shadow>
+                            <Label FormattedText="{Binding Content, Converter={StaticResource MarkdownText}}"
+                                   TextColor="#E9E9E9"
+                                   FontSize="15"
+                                   LineHeight="1.5"/>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Wake word indicator -->
+        <Border Grid.Row="2"
+                BackgroundColor="#1E2636"
+                Padding="16,8"
+                IsVisible="{Binding IsWakeWordActive}">
+            <HorizontalStackLayout Spacing="12">
+                <Border WidthRequest="8" 
+                        HeightRequest="8" 
+                        BackgroundColor="#6EE7B7"
+                        StrokeShape="RoundRectangle 4"
+                        VerticalOptions="Center">
+                    <Border.Triggers>
+                        <DataTrigger TargetType="Border" 
+                                     Binding="{Binding IsWakeWordActive}" 
+                                     Value="True">
+                            <!-- Pulse animation can be added here -->
+                        </DataTrigger>
+                    </Border.Triggers>
+                </Border>
+                <Label Text="🎙 唤醒词监听中..." 
+                       TextColor="#6EE7B7" 
+                       FontSize="13"
+                       VerticalOptions="Center"/>
+                <Label Text="{Binding WakeWordText}" 
+                       TextColor="#9CA3AF" 
+                       FontSize="12"
+                       LineBreakMode="TailTruncation" 
+                       MaxLines="1" 
+                       HorizontalOptions="FillAndExpand"
+                       VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+        </Border>
+
+        <!-- Input bar -->
+        <Grid Grid.Row="3" 
+              Padding="16,12,16,20" 
+              ColumnDefinitions="*,Auto,Auto" 
+              ColumnSpacing="12"
+              BackgroundColor="#0F131C">
+            
+            <!-- Text input -->
+            <Border Grid.Column="0"
+                    BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 24"
+                    StrokeThickness="0"
+                    Padding="16,0">
+                <Entry Text="{Binding UserInput}"
+                       Placeholder="输入消息..."
+                       PlaceholderColor="#6B7280"
+                       TextColor="#E9E9E9"
+                       BackgroundColor="Transparent"
+                       FontSize="15"
+                       VerticalOptions="Center"
+                       ReturnCommand="{Binding SendMessageCommand}"/>
+            </Border>
+            
+            <!-- Voice input button -->
+            <Border Grid.Column="1"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    BackgroundColor="#1E2636"
+                    StrokeShape="RoundRectangle 24"
+                    StrokeThickness="0">
+                <Button Text="🎤" 
+                        FontSize="22"
+                        BackgroundColor="Transparent"
+                        TextColor="#9CA3AF"
+                        Command="{Binding StartListeningCommand}"
+                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+            </Border>
+            
+            <!-- Send button -->
+            <Border Grid.Column="2"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    BackgroundColor="#38BDF8"
+                    StrokeShape="RoundRectangle 24"
+                    StrokeThickness="0">
+                <Border.Shadow>
+                    <Shadow Brush="#38BDF8" 
+                            Opacity="0.4" 
+                            Radius="16" 
+                            Offset="0,4"/>
+                </Border.Shadow>
+                <Button Text="➤" 
+                        FontSize="22"
+                        BackgroundColor="Transparent"
+                        TextColor="#0A0D12"
+                        Command="{Binding SendMessageCommand}"
+                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+            </Border>
+        </Grid>
+    </Grid>
+
+</ContentPage>

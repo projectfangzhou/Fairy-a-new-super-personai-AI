@@ -1,0 +1,55 @@
+<Window x:Class="MyAiAssistant.Windows.FloatingOrbWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Fairy"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Width="48" Height="48"
+        Top="8"
+        Cursor="Hand"
+        Loaded="OnLoaded">
+
+    <Grid MouseLeftButtonDown="OnOrbClicked">
+        <!-- Outer glow ring -->
+        <Ellipse Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#607b68ee" Offset="0"/>
+                    <GradientStop Color="#007b68ee" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+            <Ellipse.RenderTransform>
+                <ScaleTransform x:Name="GlowScale" ScaleX="1" ScaleY="1"/>
+            </Ellipse.RenderTransform>
+        </Ellipse>
+
+        <!-- Core orb -->
+        <Ellipse Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="#bb7b68ee" Offset="0"/>
+                    <GradientStop Color="#553a2a6e" Offset="0.7"/>
+                    <GradientStop Color="#001a1a2e" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <!-- Green active dot (shown when island is open) -->
+        <Ellipse x:Name="ActiveDot" Width="8" Height="8"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Fill="#40e0d0" Visibility="Collapsed">
+            <Ellipse.Effect>
+                <DropShadowEffect Color="#40e0d0" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+            </Ellipse.Effect>
+        </Ellipse>
+
+        <!-- Center dot (shown when inactive) -->
+        <Ellipse x:Name="InactiveDot" Width="6" Height="6"
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Fill="#ddbbccff"/>
+    </Grid>
+</Window>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+
+  <!--
+    示例图标：说明交付格式。真实图标请按同样规范命名（见聊天里的图标清单）。
+    要点：
+      1. viewBox 必须是 0 0 24 24，图形画在中间 20x20 范围内（四周留 2px）。
+      2. 只用描边，不要填充：stroke-width 1.5，stroke-linecap/linejoin 都用 round，fill="none"。
+      3. 单色，不要渐变、阴影、透明度、多色；颜色由程序控制，文件里的 stroke 值会被忽略。
+      4. 所有形状转成 path；有 transform 的请先烘焙进坐标（程序不会应用 transform）。
+      5. 不要包含文字或 <text>。
+    文件名：control-center.svg / chat.svg / terminal.svg / fairy-code.svg /
+            model-library.svg / settings.svg
+    这个文件叫 example.svg，不会被加载，可以留着当模板。
+  -->
+
+  <g fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3.5 L13.8 8.6 L19 10.4 L13.8 12.2 L12 17.3 L10.2 12.2 L5 10.4 L10.2 8.6 Z"/>
+    <circle cx="12" cy="20" r="1.1"/>
+  </g>
+</svg>

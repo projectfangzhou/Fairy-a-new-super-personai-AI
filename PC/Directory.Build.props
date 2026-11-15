@@ -1,0 +1,11 @@
+<Project>
+  <!-- Single source of truth for the version of this repository.
+       release/3.0 uses 3.0.0-alpha.N; a milestone that passes acceptance bumps N,
+       and only milestone 6 may produce a stable version. -->
+  <PropertyGroup>
+    <Version>3.0.0-alpha.1</Version>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.0</FileVersion>
+    <InformationalVersion>3.0.0-alpha.1</InformationalVersion>
+  </PropertyGroup>
+</Project>

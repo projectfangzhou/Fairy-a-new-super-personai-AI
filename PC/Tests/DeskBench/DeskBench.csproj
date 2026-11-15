@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>DeskBench</AssemblyName>
+    <RootNamespace>DeskBench</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The shipping PC code, not a reimplementation: the phone talks to the same server the app runs. -->
+    <Compile Include="../../Services/LanSyncService.cs" Link="Production/LanSyncService.cs" />
+    <Compile Include="../../Services/ConfigManager.cs" Link="Production/ConfigManager.cs" />
+    <Compile Include="../../Services/ApiKeyProtector.cs" Link="Production/ApiKeyProtector.cs" />
+    <Compile Include="../../Services/ISyncService.cs" Link="Production/ISyncService.cs" />
+    <Compile Include="../../Services/PairedTaskBridge.cs" Link="Production/PairedTaskBridge.cs" />
+    <Compile Include="../../Services/SummarySync.cs" Link="Production/SummarySync.cs" />
+    <Compile Include="../../Services/CustomPlatformConfig.cs" Link="Production/CustomPlatformConfig.cs" />
+    <!-- Only the account record: ConfigManager mentions it, the registry would drag in the bot code. -->
+    <Compile Include="../../Services/Messaging/MessagingAccountModels.cs" Link="Production/Messaging/MessagingAccountModels.cs" />
+    <Compile Include="../../Services/Messaging/MessagingModels.cs" Link="Production/Messaging/MessagingModels.cs" />
+    <Compile Include="../../Services/AgentControl/*.cs" LinkBase="Production/AgentControl" />
+    <Compile Include="../../Services/Permissions/*.cs" LinkBase="Production/Permissions" />
+    <Compile Include="../../Services/Notifications/NotificationModels.cs" Link="Production/Notifications/NotificationModels.cs" />
+    <Compile Include="../../Services/Notifications/SystemNotificationPolicy.cs" Link="Production/Notifications/SystemNotificationPolicy.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Kestrel instead of HttpListener: .NET 8's HttpListener will not start in this environment. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

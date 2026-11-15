@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Services/Permissions/*.cs" LinkBase="Permissions" />
+    <Compile Include="../../Services/AgentControl/*.cs" LinkBase="AgentControl" />
+    <Compile Include="../../Services/Dashboard/DashboardApi.cs" Link="Dashboard/DashboardApi.cs" />
+    <Compile Include="../../Services/Dashboard/SettingsModels.cs" Link="Dashboard/SettingsModels.cs" />
+    <Compile Include="../../Services/Messaging/MessagingAccount.cs" Link="Messaging/MessagingAccount.cs" />
+    <Compile Include="../../Services/Messaging/MessagingAccountModels.cs" Link="Messaging/MessagingAccountModels.cs" />
+    <Compile Include="../../Services/Messaging/MessagingModels.cs" Link="Messaging/MessagingModels.cs" />
+    <Compile Include="../../Services/Messaging/MessagingPlatformRegistry.cs" Link="Messaging/MessagingPlatformRegistry.cs" />
+    <Compile Include="../../Services/Messaging/TelegramAdapter.cs" Link="Messaging/TelegramAdapter.cs" />
+    <Compile Include="../../Services/Messaging/QQOfficialClient.cs" Link="Messaging/QQOfficialClient.cs" />
+    <Compile Include="../../Services/Bots/CliRunner.cs" Link="Bots/CliRunner.cs" />
+    <Compile Include="../../Services/Bots/QQBotIntegration.cs" Link="Bots/QQBotIntegration.cs" />
+    <Compile Include="../../Services/Bots/BotSetupResult.cs" Link="Bots/BotSetupResult.cs" />
+    <Compile Include="../../Services/FairyCode/*.cs" LinkBase="FairyCode"
+             Exclude="../../Services/FairyCode/ConfigFairyCodeModelSource.cs" />
+    <Compile Include="../../Services/Http/*.cs" LinkBase="Http" />
+    <Compile Include="../../Services/LocalSendSettingsModels.cs" Link="LocalSendSettingsModels.cs" />
+    <Compile Include="../../Services/PairingSettingsModels.cs" Link="PairingSettingsModels.cs" />
+    <Compile Include="../../Services/TransferSettingsModels.cs" Link="TransferSettingsModels.cs" />
+    <Compile Include="../../Services/HomeAssistantSettingsModels.cs" Link="HomeAssistantSettingsModels.cs" />
+    <Compile Include="../../Services/SummarySyncSettingsModels.cs" Link="SummarySyncSettingsModels.cs" />
+    <Compile Include="../../Services/Screen/ScreenSessionModels.cs" Link="Screen/ScreenSessionModels.cs" />
+    <Compile Include="../../Services/Screen/ScreenSession.cs" Link="Screen/ScreenSession.cs" />
+    <Compile Include="../../Services/Screen/ScreenControlAvailability.cs" Link="Screen/ScreenControlAvailability.cs" />
+    <Compile Include="../../Services/Mcp/McpModels.cs" Link="Mcp/McpModels.cs" />
+    <Compile Include="../../Services/HomeAssistant/HomeAssistantModels.cs" Link="HomeAssistant/HomeAssistantModels.cs" />
+    <Compile Include="../../Services/Notifications/*.cs" LinkBase="Notifications" />
+    <Compile Include="../../Services/Pairing/Base32.cs" Link="Pairing/Base32.cs" />
+    <Compile Include="../../Services/Pairing/PairingModels.cs" Link="Pairing/PairingModels.cs" />
+    <Compile Include="../../Services/LocalSendPeersModels.cs" Link="LocalSendPeersModels.cs" />
+    <Compile Include="../../Services/ConfigManager.cs" Link="ConfigManager.cs" />
+    <Compile Include="../../Services/CustomPlatformConfig.cs" Link="CustomPlatformConfig.cs" />
+    <Compile Include="../../Services/ApiKeyProtector.cs" Link="ApiKeyProtector.cs" />
+    <Compile Include="../../Services/WebDashboardService.cs" Link="Dashboard/WebDashboardService.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Services/Screen/ScreenCapability.cs" Link="Production/ScreenCapability.cs" />
+    <Compile Include="../../Services/Screen/ScreenTargetPolicy.cs" Link="Production/ScreenTargetPolicy.cs" />
+    <Compile Include="../../Services/Screen/ShizukuBridge.cs" Link="Production/ShizukuBridge.cs" />
+    <Compile Include="../../Services/Screen/ScreenGate.cs" Link="Production/ScreenGate.cs" />
+    <Compile Include="../../Services/Performance/FrameMeter.cs" Link="Production/FrameMeter.cs" />
+    <Compile Include="../../Services/Performance/PerformanceMonitor.cs" Link="Production/PerformanceMonitor.cs" />
+  </ItemGroup>
+</Project>

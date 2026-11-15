@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:FairyAI_Android.Pages"
+             x:Class="FairyAI_Android.Pages.NotesPage"
+             Title="笔记与提醒">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#05070C" Offset="0.0"/>
+            <GradientStop Color="#0A0D12" Offset="0.5"/>
+            <GradientStop Color="#0F131C" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <!-- Reminders: the part that has to keep working when the app is closed -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="提醒"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+                    <Label x:Name="ReminderStatusLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <Entry x:Name="ReminderTitleEntry"
+                           Placeholder="提醒什么，例如「开会」"
+                           PlaceholderColor="#6B7280"
+                           TextColor="#E9E9E9"
+                           BackgroundColor="#0E141E"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <DatePicker x:Name="ReminderDatePicker"
+                                    Grid.Column="0"
+                                    TextColor="#E9E9E9"
+                                    BackgroundColor="#0E141E"
+                                    Format="yyyy-MM-dd"/>
+                        <TimePicker x:Name="ReminderTimePicker"
+                                    Grid.Column="1"
+                                    TextColor="#E9E9E9"
+                                    BackgroundColor="#0E141E"
+                                    Format="HH:mm"/>
+                    </Grid>
+
+                    <Picker x:Name="ReminderRepeatPicker"
+                            TextColor="#E9E9E9"
+                            BackgroundColor="#0E141E"
+                            TitleColor="#6B7280"/>
+
+                    <Button Text="添加提醒"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            FontSize="14"
+                            CornerRadius="12"
+                            HeightRequest="42"
+                            Clicked="OnAddReminderClicked"/>
+
+                    <CollectionView x:Name="ReminderList"
+                                    SelectionMode="None"
+                                    HeightRequest="200">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="pages:ReminderRow">
+                                <Border BackgroundColor="#0E141E"
+                                        StrokeShape="RoundRectangle 12"
+                                        StrokeThickness="0"
+                                        Padding="12"
+                                        Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding Title}"
+                                                   TextColor="#E9E9E9"
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"/>
+                                            <Label Text="{Binding When}"
+                                                   TextColor="#9CA3AF"
+                                                   FontSize="11"/>
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1"
+                                                Text="取消"
+                                                BackgroundColor="#2A1F2F"
+                                                TextColor="#E58E8E"
+                                                FontSize="12"
+                                                CornerRadius="10"
+                                                HeightRequest="34"
+                                                Padding="12,0"
+                                                CommandParameter="{Binding Id}"
+                                                Clicked="OnCancelReminderClicked"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Notes -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="笔记"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+                    <Label x:Name="NoteStatusLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                        <Entry x:Name="NoteSearchEntry"
+                               Grid.Column="0"
+                               Placeholder="搜索笔记"
+                               PlaceholderColor="#6B7280"
+                               TextColor="#E9E9E9"
+                               BackgroundColor="#0E141E"/>
+                        <Button Grid.Column="1"
+                                Text="搜索"
+                                BackgroundColor="#1F2937"
+                                TextColor="#E9E9E9"
+                                FontSize="12"
+                                CornerRadius="10"
+                                HeightRequest="38"
+                                Padding="12,0"
+                                Clicked="OnSearchNotesClicked"/>
+                        <Button Grid.Column="2"
+                                Text="全部"
+                                BackgroundColor="#1F2937"
+                                TextColor="#9CA3AF"
+                                FontSize="12"
+                                CornerRadius="10"
+                                HeightRequest="38"
+                                Padding="12,0"
+                                Clicked="OnShowAllNotesClicked"/>
+                    </Grid>
+
+                    <Entry x:Name="NoteTitleEntry"
+                           Placeholder="标题（可留空）"
+                           PlaceholderColor="#6B7280"
+                           TextColor="#E9E9E9"
+                           BackgroundColor="#0E141E"/>
+                    <Editor x:Name="NoteBodyEditor"
+                            Placeholder="正文"
+                            PlaceholderColor="#6B7280"
+                            TextColor="#E9E9E9"
+                            BackgroundColor="#0E141E"
+                            HeightRequest="88"/>
+
+                    <Button Text="保存笔记"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            FontSize="14"
+                            CornerRadius="12"
+                            HeightRequest="42"
+                            Clicked="OnSaveNoteClicked"/>
+
+                    <CollectionView x:Name="NoteList"
+                                    SelectionMode="None"
+                                    HeightRequest="300">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="pages:NoteRow">
+                                <Border BackgroundColor="#0E141E"
+                                        StrokeShape="RoundRectangle 12"
+                                        StrokeThickness="0"
+                                        Padding="12"
+                                        Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding Title}"
+                                                   TextColor="#E9E9E9"
+                                                   FontSize="14"
+                                                   FontAttributes="Bold"/>
+                                            <Label Text="{Binding Meta}"
+                                                   TextColor="#6B7280"
+                                                   FontSize="10"/>
+                                            <Label Text="{Binding Snippet}"
+                                                   TextColor="#9CA3AF"
+                                                   FontSize="12"/>
+                                        </VerticalStackLayout>
+                                        <Button Grid.Column="1"
+                                                Text="删除"
+                                                BackgroundColor="#2A1F2F"
+                                                TextColor="#E58E8E"
+                                                FontSize="12"
+                                                CornerRadius="10"
+                                                HeightRequest="34"
+                                                Padding="12,0"
+                                                CommandParameter="{Binding Id}"
+                                                Clicked="OnDeleteNoteClicked"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="笔记和提醒都只存在这台手机上：笔记写在本机文件里，提醒用系统闹钟，应用关闭也会响（可能晚几分钟）。"
+                   TextColor="#6B7280"
+                   FontSize="11"
+                   Margin="4,0,4,10"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

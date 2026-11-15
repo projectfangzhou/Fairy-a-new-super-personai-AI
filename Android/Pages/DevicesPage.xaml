@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:svc="clr-namespace:FairyAI_Android.Services"
+             x:Class="FairyAI_Android.Pages.DevicesPage"
+             Title="设备连接">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#05070C" Offset="0.0"/>
+            <GradientStop Color="#0A0D12" Offset="0.5"/>
+            <GradientStop Color="#0F131C" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <!-- Pairing with a PC -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="连接到电脑"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+                    <Label Text="配对后，电脑会下发一个只用于这台手机的令牌。电脑可以在任何时候撤销它。"
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="设备名称" TextColor="#9CA3AF" FontSize="12"/>
+                        <Border BackgroundColor="#0F131C" StrokeShape="RoundRectangle 12" Padding="12,0">
+                            <Entry x:Name="DeviceNameEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="FairyAI-Android"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="中继服务器 URL" TextColor="#9CA3AF" FontSize="12"/>
+                        <Border BackgroundColor="#0F131C" StrokeShape="RoundRectangle 12" Padding="12,0">
+                            <Entry x:Name="RelayUrlEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="http://your-relay-server.com/sync"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button x:Name="StartLocalSendBtn"
+                            Text="启动本地同步服务"
+                            BackgroundColor="#38BDF8"
+                            TextColor="#0A0D12"
+                            CornerRadius="12"
+                            HeightRequest="44"
+                            Clicked="OnStartLocalSend"/>
+
+                    <Button x:Name="DiscoverDevicesBtn"
+                            Text="搜索设备"
+                            BackgroundColor="#1E2636"
+                            TextColor="#E9E9E9"
+                            CornerRadius="12"
+                            HeightRequest="44"
+                            Clicked="OnDiscoverDevices"/>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="手动添加设备" TextColor="#9CA3AF" FontSize="12"/>
+                        <Border BackgroundColor="#0F131C" StrokeShape="RoundRectangle 12" Padding="12,0">
+                            <Entry x:Name="RemoteDeviceEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="IP:端口"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                        <Button Text="添加"
+                                BackgroundColor="#6EE7B7"
+                                TextColor="#0A0D12"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Clicked="OnAddRemoteDevice"/>
+                    </VerticalStackLayout>
+
+                    <!-- Without a template the list prints the CLR type name instead of the device. -->
+                    <CollectionView x:Name="DevicesList"
+                                    HeightRequest="150"
+                                    SelectionMode="Single">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="svc:DeviceInfo">
+                                <Grid Padding="4,10" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <Label Grid.Row="0" Grid.Column="0"
+                                           Text="{Binding DeviceName}"
+                                           TextColor="#E9E9E9"
+                                           FontSize="14"/>
+                                    <Label Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding IsPaired, StringFormat='已配对'}"
+                                           TextColor="#6EE7B7"
+                                           FontSize="11"
+                                           IsVisible="{Binding IsPaired}"/>
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                           Text="{Binding Endpoint}"
+                                           TextColor="#6B7280"
+                                           FontSize="11"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="配对码" TextColor="#9CA3AF" FontSize="12"/>
+                        <Border BackgroundColor="#0F131C" StrokeShape="RoundRectangle 12" Padding="12,0">
+                            <Entry x:Name="PairingCodeEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="6 位配对码"
+                                   MaxLength="6"
+                                   Keyboard="Numeric"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Grid.Column="0"
+                                Text="配对"
+                                BackgroundColor="#38BDF8"
+                                TextColor="#0A0D12"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Clicked="OnPairDevice"/>
+                        <Button Grid.Column="1"
+                                Text="同步配置"
+                                BackgroundColor="#6EE7B7"
+                                TextColor="#0A0D12"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Clicked="OnSyncDevice"/>
+                    </Grid>
+
+                    <Button Text="保存连接设置"
+                            BackgroundColor="#1E2636"
+                            TextColor="#E9E9E9"
+                            CornerRadius="12"
+                            HeightRequest="44"
+                            Clicked="OnSaveConnectionClicked"/>
+
+                    <Label x:Name="LocalSendStatus"
+                           Text=""
+                           TextColor="#6EE7B7"
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Task summary from the paired PC -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="电脑任务摘要"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+                    <Label Text="开启后，已配对的电脑会把任务状态摘要同步到这台手机：只有任务名、状态和时间，不含任务内容、输出或文件。电脑那边也要允许，两边都开才会同步。"
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <Switch x:Name="SummarySyncSwitch" Toggled="OnSummarySyncToggled"/>
+                        <Label x:Name="SummarySyncStateLabel"
+                               Text="未开启"
+                               TextColor="#9CA3AF"
+                               FontSize="12"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <Button Text="立即检查一次"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            FontSize="14"
+                            CornerRadius="12"
+                            HeightRequest="42"
+                            Clicked="OnSummarySyncCheckClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Notes with the paired PC -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="笔记同步"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+                    <Label Text="把笔记和已配对的电脑互相抄一份：哪边改得晚就以哪边为准，手机上删掉的笔记也会在电脑上删掉。走和任务摘要同一条已认证的通道。"
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <Switch x:Name="NotesSyncSwitch" Toggled="OnNotesSyncToggled"/>
+                        <Label x:Name="NotesSyncStateLabel"
+                               Text="未开启"
+                               TextColor="#9CA3AF"
+                               FontSize="12"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <Button Text="立即同步"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            FontSize="14"
+                            CornerRadius="12"
+                            HeightRequest="42"
+                            Clicked="OnNotesSyncNowClicked"/>
+
+                    <Label x:Name="NotesSyncResultLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Phone-local screen interaction -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="手机屏幕操作（Shizuku）"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+
+                    <Label Text="让仙灵在这台手机上点击、滑动、输入。需要系统里的 Shizuku 授权；没装或没授权时只有这些能力不可用，聊天与其他功能照常。"
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <Label x:Name="ScreenStatusLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <Switch x:Name="ScreenEnabledSwitch" Toggled="OnScreenEnabledToggled"/>
+                        <Label Text="允许手机屏幕操作"
+                               TextColor="#E9E9E9"
+                               FontSize="13"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <VerticalStackLayout x:Name="GrantList" Spacing="4"/>
+
+                    <Label Text="每一项都要单独允许；即使允许了，每一次操作也会先问你一次。"
+                           TextColor="#6B7280"
+                           FontSize="11"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <Button Grid.Column="0"
+                                Text="打开 Shizuku"
+                                BackgroundColor="#1F2937"
+                                TextColor="#E9E9E9"
+                                FontSize="14"
+                                CornerRadius="12"
+                                HeightRequest="42"
+                                Clicked="OnOpenShizuku"/>
+                        <Button Grid.Column="1"
+                                Text="检查链路"
+                                BackgroundColor="#1F2937"
+                                TextColor="#E9E9E9"
+                                FontSize="14"
+                                CornerRadius="12"
+                                HeightRequest="42"
+                                Clicked="OnCheckScreenChain"/>
+                    </Grid>
+
+                    <Label x:Name="ScreenResultLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Looking at the screen: capture + vision model. Same gate as the block above. -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="识屏（视觉）"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+
+                    <Label Text="截一张当前屏幕，交给视觉模型说明上面有什么。全屏截图走上面那套授权并会再问你一次；没有全屏权限时只能截到仙灵自己的窗口，结果里会写明是哪一种。"
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <Label x:Name="VisionStateLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+
+                    <Button Text="看看这一屏"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            FontSize="14"
+                            CornerRadius="12"
+                            HeightRequest="42"
+                            Clicked="OnLookAtScreenClicked"/>
+
+                    <Label x:Name="VisionResultLabel"
+                           Text=""
+                           TextColor="#E9E9E9"
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

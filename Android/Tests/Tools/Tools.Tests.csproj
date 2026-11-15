@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Models/ChatMessage.cs" Link="Production/ChatMessage.cs" />
+    <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
+    <Compile Include="../../Services/Tools/ToolProtocol.cs" Link="Production/Tools/ToolProtocol.cs" />
+    <Compile Include="../../Services/Tools/UtilityTools.cs" Link="Production/Tools/UtilityTools.cs" />
+    <Compile Include="../../Services/Tools/PhoneScreenTools.cs" Link="Production/Tools/PhoneScreenTools.cs" />
+    <!-- The screen gate, so a phone tool's refusal text can be asserted for real. -->
+    <Compile Include="../../Services/Screen/ScreenCapability.cs" Link="Production/Screen/ScreenCapability.cs" />
+    <Compile Include="../../Services/Screen/ScreenTargetPolicy.cs" Link="Production/Screen/ScreenTargetPolicy.cs" />
+    <Compile Include="../../Services/Screen/ShizukuBridge.cs" Link="Production/Screen/ShizukuBridge.cs" />
+    <Compile Include="../../Services/Screen/ScreenGate.cs" Link="Production/Screen/ScreenGate.cs" />
+    <Compile Include="../../Services/Search/WebSearchBackends.cs" Link="Production/Search/WebSearchBackends.cs" />
+    <Compile Include="../../Services/Markdown/MarkdownFormatter.cs" Link="Production/Markdown/MarkdownFormatter.cs" />
+    <Compile Include="../../Services/Usage/TokenLedger.cs" Link="Production/Usage/TokenLedger.cs" />
+  </ItemGroup>
+</Project>

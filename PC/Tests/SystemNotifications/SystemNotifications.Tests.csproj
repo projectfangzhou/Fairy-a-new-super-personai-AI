@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Services/Notifications/NotificationModels.cs" Link="Notifications/NotificationModels.cs" />
+    <Compile Include="../../Services/Notifications/NotificationCenter.cs" Link="Notifications/NotificationCenter.cs" />
+    <Compile Include="../../Services/Notifications/SystemNotificationChannel.cs" Link="Notifications/SystemNotificationChannel.cs" />
+    <Compile Include="../../Services/Notifications/SystemNotificationPolicy.cs" Link="Notifications/SystemNotificationPolicy.cs" />
+    <Compile Include="../../Services/Notifications/SystemNotificationRelay.cs" Link="Notifications/SystemNotificationRelay.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+# The vendored Pi Agent runtime is verified by SHA-256 (ThirdParty/PiAgent/manifest.json).
+# Git must never rewrite its line endings: a checkout that turns LF into CRLF would change the
+# bytes and make the runtime fail its own integrity check on someone else's machine.
+ThirdParty/PiAgent/** -text
+
+# PowerShell scripts are read by Windows PowerShell 5.1, which treats a BOM-less file as ANSI.
+# Keep them CRLF and let the write path own the encoding.
+*.ps1 text eol=crlf

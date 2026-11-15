@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+    <Compile Include="../../Services/SignedUpdateManifest.cs" Link="Production/SignedUpdateManifest.cs" />
+    <Compile Include="../../Services/SignedUpdateService.cs" Link="Production/SignedUpdateService.cs" />
+    <Compile Include="../../Services/PinnedUpdateKey.cs" Link="Production/PinnedUpdateKey.cs" />
+  </ItemGroup>
+</Project>

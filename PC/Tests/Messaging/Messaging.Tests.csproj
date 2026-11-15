@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Services/Messaging/*.cs" LinkBase="Messaging" />
+    <Compile Include="../../Services/Bots/*.cs" LinkBase="Bots" />
+    <Compile Include="../../Services/Permissions/*.cs" LinkBase="Permissions" />
+    <Compile Include="../../Services/Localization/*.cs" LinkBase="Localization" />
+    <Compile Include="../../Services/ConfigManager.cs" Link="ConfigManager.cs" />
+    <Compile Include="../../Services/CustomPlatformConfig.cs" Link="CustomPlatformConfig.cs" />
+    <Compile Include="../../Services/ApiKeyProtector.cs" Link="ApiKeyProtector.cs" />
+  </ItemGroup>
+</Project>

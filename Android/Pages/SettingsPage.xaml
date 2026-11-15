@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FairyAI_Android.Pages.SettingsPage"
+             Title="设置">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#05070C" Offset="0.0"/>
+            <GradientStop Color="#0A0D12" Offset="0.5"/>
+            <GradientStop Color="#0F131C" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- AI Personality Card -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="🤖 AI 人格" 
+                           TextColor="#E9E9E9" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="角色名称" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="PersonalityNameEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Text="Fairy"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="系统提示词" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,8">
+                            <Editor x:Name="PersonalityPromptEditor" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9" 
+                                    HeightRequest="120" 
+                                    FontSize="13"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="语言" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="LanguagePicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <CheckBox x:Name="EnableEmotionCheckBox" 
+                                  IsChecked="True"
+                                  Color="#38BDF8"/>
+                        <Label Text="启用情感表达" 
+                               TextColor="#E9E9E9" 
+                               FontSize="14" 
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- LLM Card -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="🧠 大语言模型" 
+                           TextColor="#E9E9E9" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="供应商" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="LLMProviderPicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <HorizontalStackLayout Spacing="4">
+                            <Label Text="模型名称" TextColor="#9CA3AF" FontSize="13"/>
+                            <Label Text="*" TextColor="#EF4444" FontSize="13"/>
+                        </HorizontalStackLayout>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="LLMModelNameEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="例: kimi-k2.6 / gpt-4o-mini"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="API Key" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="LLMApiKeyEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   IsPassword="True" 
+                                   Placeholder="输入 API Key"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Vision model: what 识屏 uses -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="视觉模型（识屏用）" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="VisionBaseUrlEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="接口地址，例: https://…/v1/chat/completions"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="VisionModelNameEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="模型名称，例: gpt-4o-mini / mimo-vl"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="VisionApiKeyEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   IsPassword="True"
+                                   Placeholder="API Key"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                        <Label x:Name="VisionSettingsStatus"
+                               Text=""
+                               TextColor="#6B7280"
+                               FontSize="11"/>
+
+                        <Button Text="测一下能不能看图"
+                                BackgroundColor="#1F2937"
+                                TextColor="#E9E9E9"
+                                FontSize="13"
+                                CornerRadius="10"
+                                HeightRequest="40"
+                                Clicked="OnProbeVisionClicked"/>
+
+                        <Label x:Name="VisionProbeStatus"
+                               Text=""
+                               TextColor="#9CA3AF"
+                               FontSize="11"/>
+                    </VerticalStackLayout>
+
+                    <!-- Fallback LLM -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="备用 LLM 供应商" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="FallbackLLMProviderPicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="备用 API Key" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="FallbackLLMApiKeyEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   IsPassword="True" 
+                                   Placeholder="输入备用 API Key"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- TTS Card -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="🎵 语音合成" 
+                           TextColor="#E9E9E9" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="TTS 供应商" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="TTSProviderPicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"
+                                    SelectedIndexChanged="OnTTSProviderChanged"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <HorizontalStackLayout Spacing="4">
+                            <Label Text="模型名称" TextColor="#9CA3AF" FontSize="13"/>
+                            <Label Text="*" TextColor="#EF4444" FontSize="13"/>
+                        </HorizontalStackLayout>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="TTSModelNameEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="例: mimo-tts-v2.5 / tts-1"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="音色" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="TTSVoicePicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="API Key" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="TTSApiKeyEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   IsPassword="True" 
+                                   Placeholder="输入 TTS API Key"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Voice Clone Section -->
+                    <VerticalStackLayout Spacing="12" Margin="0,8,0,0">
+                        <Label Text="GPT-SoVITS 语音克隆" 
+                               TextColor="#6EE7B7" 
+                               FontSize="15" 
+                               FontAttributes="Bold"/>
+                        
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="VoiceClonePathEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="参考音频路径 (WAV/MP3)"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="VoiceClonePromptEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="声音描述 (可选)"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="VoiceCloneLangPicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <Button Text="测试语音" 
+                            BackgroundColor="#38BDF8" 
+                            TextColor="#0A0D12"
+                            CornerRadius="12"
+                            HeightRequest="44"
+                            Clicked="OnTestTts"/>
+                    <Label x:Name="TtsStatus" 
+                           Text="" 
+                           TextColor="#6EE7B7" 
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Wake Word Card -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="🎙️ 唤醒词" 
+                           TextColor="#E9E9E9" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    
+                    <Label Text="说出唤醒词后 AI 自动开始聆听指令" 
+                           TextColor="#9CA3AF" 
+                           FontSize="13"/>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <CheckBox x:Name="WakeWordEnabledCheckBox" 
+                                  IsChecked="False"
+                                  Color="#38BDF8"/>
+                        <Label Text="启用唤醒词" 
+                               TextColor="#E9E9E9" 
+                               FontSize="14" 
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="唤醒词" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="WakeWordEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="默认: 小精灵"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="备用唤醒词 (逗号分隔)" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="WakeWordAltEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="例: 小助手,Fairy"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <CheckBox x:Name="WakeWordTtsCheckBox" 
+                                  IsChecked="True"
+                                  Color="#38BDF8"/>
+                        <Label Text="唤醒后语音回应" 
+                               TextColor="#E9E9E9" 
+                               FontSize="14" 
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="回应语" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="WakeWordFeedbackEntry" 
+                                   BackgroundColor="Transparent" 
+                                   TextColor="#E9E9E9" 
+                                   Placeholder="回应语: 我在"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Connections and permissions moved out of settings -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="🔗 连接与权限"
+                           TextColor="#E9E9E9"
+                           FontSize="18"
+                           FontAttributes="Bold"/>
+                    <Label Text="配对电脑、读取电脑任务摘要、允许手机屏幕操作，都挪到了「看板 → 设备连接」。这里只保留外观、模型与语音这些偏好。"
+                           TextColor="#9CA3AF"
+                           FontSize="13"/>
+                    <Button Text="打开设备连接"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            CornerRadius="12"
+                            HeightRequest="44"
+                            Clicked="OnOpenDevices"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Advanced Features Card -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="16">
+                    <Label Text="⚡ 高级功能" 
+                           TextColor="#E9E9E9" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    
+                    <!-- Performance -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="性能模式" TextColor="#9CA3AF" FontSize="13"/>
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12">
+                            <Picker x:Name="PerformanceModePicker" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <HorizontalStackLayout Spacing="12">
+                        <CheckBox x:Name="ContextCompressionCheckBox" 
+                                  IsChecked="True"
+                                  Color="#38BDF8"/>
+                        <Label Text="上下文自动压缩 (256K)" 
+                               TextColor="#E9E9E9" 
+                               FontSize="14" 
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <!-- Knowledge Base -->
+                    <VerticalStackLayout Spacing="12" Margin="0,8,0,0">
+                        <Label Text="📚 知识库" 
+                               TextColor="#6EE7B7" 
+                               FontSize="15" 
+                               FontAttributes="Bold"/>
+                        <Button Text="导入文档 (PPT/Word/PDF)" 
+                                BackgroundColor="#1E2636" 
+                                TextColor="#E9E9E9"
+                                CornerRadius="12"
+                                HeightRequest="44"
+                                Clicked="OnImportDocument"/>
+                        <Label x:Name="KnowledgeStatus" 
+                               Text="" 
+                               TextColor="#6EE7B7" 
+                               FontSize="12"/>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Save Button -->
+            <Button Text="保存配置" 
+                    BackgroundColor="#38BDF8" 
+                    TextColor="#0A0D12"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    CornerRadius="16"
+                    HeightRequest="52"
+                    Margin="0,8,0,16"
+                    Clicked="OnSaveClicked">
+                <Button.Shadow>
+                    <Shadow Brush="#38BDF8" 
+                            Opacity="0.4" 
+                            Radius="16" 
+                            Offset="0,4"/>
+                </Button.Shadow>
+            </Button>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

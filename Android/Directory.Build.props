@@ -1,0 +1,20 @@
+<Project>
+  <!-- Single source of truth for the version of this repository.
+       release/3.0 uses 3.0.0-alpha.N; a milestone that passes acceptance bumps N,
+       and only milestone 6 may produce a stable version. -->
+  <PropertyGroup>
+    <Version>3.0.0-alpha.1</Version>
+    <ApplicationDisplayVersion>3.0.0-alpha.1</ApplicationDisplayVersion>
+    <ApplicationVersion>3000001</ApplicationVersion>
+  </PropertyGroup>
+
+  <!-- Android release signing is supplied by the environment, never committed.
+       AndroidKeyStore must be true or the build silently falls back to debug signing. -->
+  <PropertyGroup Condition="'$(ANDROID_KEYSTORE_PATH)' != ''">
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyStore>$(ANDROID_KEYSTORE_PATH)</AndroidSigningKeyStore>
+    <AndroidSigningStorePass>$(ANDROID_KEYSTORE_PASSWORD)</AndroidSigningStorePass>
+    <AndroidSigningKeyAlias>$(ANDROID_KEY_ALIAS)</AndroidSigningKeyAlias>
+    <AndroidSigningKeyPass>$(ANDROID_KEY_PASSWORD)</AndroidSigningKeyPass>
+  </PropertyGroup>
+</Project>

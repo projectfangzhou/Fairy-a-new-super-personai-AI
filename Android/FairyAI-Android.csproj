@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+
+		<OutputType>Exe</OutputType>
+		<RootNamespace>FairyAI_Android</RootNamespace>
+		<UseMaui>true</UseMaui>
+		<SingleProject>true</SingleProject>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<MauiXamlInflator>XamlC</MauiXamlInflator>
+
+		<!-- The Shizuku binding's generated interop is compiled through this project, and it is unsafe. -->
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		
+		<!-- NuGet ���� -->
+		<RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+		<RestorePackagesPath>$(MSBuildProjectDirectory)\packages</RestorePackagesPath>
+
+		<!-- Display name -->
+		<ApplicationTitle>仙灵</ApplicationTitle>
+
+		<!-- App Identifier -->
+		<ApplicationId>com.fairyai.assistant</ApplicationId>
+		<ApplicationIdGuid>3A4B5C6D-7E8F-9A0B-1C2D-3E4F5A6B7C8D</ApplicationIdGuid>
+
+		<!-- Versions -->
+
+		<AndroidSupportedAbis>arm64-v8a;x86_64</AndroidSupportedAbis>
+		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+		<!-- API 24 is the floor the official Shizuku client library declares; it is also the floor
+		     Shizuku itself runs on, so 23 would only be a theoretical lower bound. -->
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">14.2</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- App Icon -->
+		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#7b68ee" />
+
+		<!-- Splash Screen -->
+		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#7b68ee" BaseSize="128,128" />
+
+		<!-- Images -->
+		<MauiImage Include="Resources\Images\*" />
+
+		<!-- Custom Fonts -->
+		<MauiFont Include="Resources\Fonts\*" />
+
+		<!-- Raw Assets -->
+		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+		<PackageReference Include="QRCoder" Version="1.6.0" />
+		<PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+		<Compile Remove="Tests\**\*.cs" />
+		<!-- The binding project lives under this one; its generated interop and AssemblyInfo must not be
+		     compiled again by the app. -->
+		<Compile Remove="Dependencies\ShizukuApi\**\*.cs" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<!-- Official Shizuku client library (Apache-2.0), bound from the published AARs. -->
+		<ProjectReference Include="Dependencies\ShizukuApi\ShizukuApi.csproj" />
+	</ItemGroup>
+
+</Project>
+
+

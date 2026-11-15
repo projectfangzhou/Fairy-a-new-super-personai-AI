@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Notes and reminders: the whole feature, minus the MAUI page. -->
+    <Compile Include="../../Services/Storage/JsonListFile.cs" Link="Production/Storage/JsonListFile.cs" />
+    <Compile Include="../../Services/Notes/NoteModels.cs" Link="Production/Notes/NoteModels.cs" />
+    <Compile Include="../../Services/Notes/NoteSearch.cs" Link="Production/Notes/NoteSearch.cs" />
+    <Compile Include="../../Services/Notes/NoteStore.cs" Link="Production/Notes/NoteStore.cs" />
+    <Compile Include="../../Services/Notes/NoteSyncWire.cs" Link="Production/Notes/NoteSyncWire.cs" />
+    <Compile Include="../../Services/Notes/NoteSyncState.cs" Link="Production/Notes/NoteSyncState.cs" />
+    <Compile Include="../../Services/Notes/NoteSyncClient.cs" Link="Production/Notes/NoteSyncClient.cs" />
+    <Compile Include="../../Services/NoteSyncService.cs" Link="Production/NoteSyncService.cs" />
+    <Compile Include="../../Services/Reminders/ReminderModels.cs" Link="Production/Reminders/ReminderModels.cs" />
+    <Compile Include="../../Services/Reminders/ReminderSchedule.cs" Link="Production/Reminders/ReminderSchedule.cs" />
+    <Compile Include="../../Services/Reminders/ReminderStore.cs" Link="Production/Reminders/ReminderStore.cs" />
+    <Compile Include="../../Services/Reminders/ReminderAlarm.cs" Link="Production/Reminders/ReminderAlarm.cs" />
+    <Compile Include="../../Services/ReminderService.cs" Link="Production/ReminderService.cs" />
+    <Compile Include="../../Services/INotificationSink.cs" Link="Production/INotificationSink.cs" />
+    <!-- Knowledge retrieval, and the tools that expose all three blocks to the model. -->
+    <Compile Include="../../Services/Knowledge/KnowledgeIndex.cs" Link="Production/Knowledge/KnowledgeIndex.cs" />
+    <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
+    <Compile Include="../../Models/ChatMessage.cs" Link="Production/ChatMessage.cs" />
+    <Compile Include="../../Services/Tools/ToolProtocol.cs" Link="Production/Tools/ToolProtocol.cs" />
+    <Compile Include="../../Services/Tools/PersonalTools.cs" Link="Production/Tools/PersonalTools.cs" />
+  </ItemGroup>
+</Project>

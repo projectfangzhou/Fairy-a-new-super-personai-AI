@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FairyAI_Android.Pages.DashboardPage"
+             Title="看板">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#05070C" Offset="0.0"/>
+            <GradientStop Color="#0A0D12" Offset="0.5"/>
+            <GradientStop Color="#0F131C" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="14">
+
+            <!-- What the assistant is set up to do right now -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="6">
+                    <Label x:Name="GreetingLabel"
+                           Text="看板"
+                           TextColor="#E9E9E9"
+                           FontSize="19"
+                           FontAttributes="Bold"/>
+                    <Label x:Name="ModelLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Entries: everything that is not chatting -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+
+                <Border Grid.Row="0" Grid.Column="0"
+                        BackgroundColor="#111823"
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="0"
+                        Padding="14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDevicesTapped"/>
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="电脑" TextColor="#9CA3AF" FontSize="12"/>
+                        <Label x:Name="PcValueLabel" Text="—" TextColor="#E9E9E9" FontSize="15" FontAttributes="Bold"/>
+                        <Label Text="设备连接 ›" TextColor="#6B7280" FontSize="11"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="0" Grid.Column="1"
+                        BackgroundColor="#111823"
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="0"
+                        Padding="14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnTasksTapped"/>
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="待审批" TextColor="#9CA3AF" FontSize="12"/>
+                        <Label x:Name="PendingValueLabel" Text="—" TextColor="#E9E9E9" FontSize="15" FontAttributes="Bold"/>
+                        <Label Text="任务 ›" TextColor="#6B7280" FontSize="11"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="0"
+                        BackgroundColor="#111823"
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="0"
+                        Padding="14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDevicesTapped"/>
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="手机屏幕操作" TextColor="#9CA3AF" FontSize="12"/>
+                        <Label x:Name="ScreenValueLabel" Text="—" TextColor="#E9E9E9" FontSize="15" FontAttributes="Bold"/>
+                        <Label Text="Shizuku ›" TextColor="#6B7280" FontSize="11"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="1" Grid.Column="1"
+                        BackgroundColor="#111823"
+                        StrokeShape="RoundRectangle 16"
+                        StrokeThickness="0"
+                        Padding="14">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnDevicesTapped"/>
+                    </Border.GestureRecognizers>
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="任务摘要" TextColor="#9CA3AF" FontSize="12"/>
+                        <Label x:Name="SummaryValueLabel" Text="—" TextColor="#E9E9E9" FontSize="15" FontAttributes="Bold"/>
+                        <Label Text="设备连接 ›" TextColor="#6B7280" FontSize="11"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- What the phone itself is holding on to -->
+            <Border BackgroundColor="#111823"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="14">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnNotesTapped"/>
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="笔记与提醒" TextColor="#9CA3AF" FontSize="12"/>
+                        <Label x:Name="NotesValueLabel" Text="—" TextColor="#E9E9E9" FontSize="15" FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                    <Label Grid.Column="1"
+                           Text="打开 ›"
+                           TextColor="#6B7280"
+                           FontSize="11"
+                           VerticalOptions="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Measured, not assumed -->
+            <Border BackgroundColor="#161D2B"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="18">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="流畅度"
+                           TextColor="#E9E9E9"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+                    <Label Text="在真机上量一段时间的帧时间与内存。数字来自系统显示时钟，不是估计值。"
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+                    <Label x:Name="FrameReportLabel"
+                           Text="还没有测量数据"
+                           TextColor="#E9E9E9"
+                           FontSize="12"/>
+                    <Label x:Name="MemoryReportLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+                    <Label x:Name="TokenReportLabel"
+                           Text=""
+                           TextColor="#9CA3AF"
+                           FontSize="12"/>
+                    <Button Text="测 3 秒"
+                            BackgroundColor="#1F2937"
+                            TextColor="#E9E9E9"
+                            FontSize="14"
+                            CornerRadius="12"
+                            HeightRequest="42"
+                            Clicked="OnSampleClicked"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="聊天仍然是主界面；这里只放连接、权限和测量这些不宜塞进对话里的东西。"
+                   TextColor="#6B7280"
+                   FontSize="11"
+                   Margin="4,0,4,10"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

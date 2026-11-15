@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <StartupObject>TransferSelfTest.Program</StartupObject>
+    <AssemblyName>TransferSelfTest</AssemblyName>
+    <RootNamespace>TransferSelfTest</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="simple-crypto.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\MyAiAssistant.csproj" />
+    <!-- Does not flow through the project reference; the WebRTC surface needs it directly. -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2651.64" />
+  </ItemGroup>
+</Project>

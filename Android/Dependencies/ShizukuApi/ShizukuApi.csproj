@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Binding for the official Shizuku client library (dev.rikka.shizuku:* 13.1.5, Apache-2.0).
+    Only what a .NET app needs in order to ask Shizuku for permission and run a shell command through
+    it: no rish, no UI. The AARs are used unmodified.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <IsBindingProject>true</IsBindingProject>
+    <Nullable>enable</Nullable>
+    <SupportedOSPlatformVersion>23.0</SupportedOSPlatformVersion>
+    <AssemblyName>ShizukuApi</AssemblyName>
+    <RootNamespace>Rikka.Shizuku</RootNamespace>
+    <NoWarn>$(NoWarn);CS0618;CS0672;CA1422</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AndroidLibrary Include="..\shizuku\aidl-13.1.5.aar" />
+    <AndroidLibrary Include="..\shizuku\api-13.1.5.aar" />
+    <AndroidLibrary Include="..\shizuku\provider-13.1.5.aar" />
+  </ItemGroup>
+
+</Project>

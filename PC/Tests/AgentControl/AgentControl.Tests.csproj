@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Services/Permissions/RiskCategory.cs" Link="Permissions/RiskCategory.cs" />
+    <Compile Include="../../Services/Permissions/ActionRequest.cs" Link="Permissions/ActionRequest.cs" />
+    <Compile Include="../../Services/Permissions/PermissionPolicy.cs" Link="Permissions/PermissionPolicy.cs" />
+    <Compile Include="../../Services/Permissions/OperationAudit.cs" Link="Permissions/OperationAudit.cs" />
+    <Compile Include="../../Services/Permissions/ApprovalGate.cs" Link="Permissions/ApprovalGate.cs" />
+    <Compile Include="../../Services/AgentControl/TaskApproval.cs" Link="AgentControl/TaskApproval.cs" />
+    <Compile Include="../../Services/AgentControl/AgentTaskModels.cs" Link="AgentControl/AgentTaskModels.cs" />
+    <Compile Include="../../Services/AgentControl/AgentControlEvent.cs" Link="AgentControl/AgentControlEvent.cs" />
+    <Compile Include="../../Services/AgentControl/AgentControlCenter.cs" Link="AgentControl/AgentControlCenter.cs" />
+    <Compile Include="../../Services/AgentControl/AgentTaskHandle.cs" Link="AgentControl/AgentTaskHandle.cs" />
+    <Compile Include="../../Services/AgentControl/ResourceUsage.cs" Link="AgentControl/ResourceUsage.cs" />
+  </ItemGroup>
+</Project>

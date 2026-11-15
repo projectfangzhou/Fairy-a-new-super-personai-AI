@@ -1,0 +1,33 @@
+# Build outputs
+bin/
+obj/
+publish/
+*.apk
+*.aab
+
+# NuGet
+packages/
+nuget.exe
+*.binlog
+restore.binlog
+msbuild-logs/
+
+# User-specific
+*.user
+*.suo
+*.cache
+.DS_Store
+Thumbs.db
+.vs/
+.idea/
+.vscode/
+
+# Runtime logs
+fairy.log
+*.log
+
+# Secrets
+.env
+*.jks
+*.keystore
+secrets/

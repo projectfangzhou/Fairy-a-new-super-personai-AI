@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FairyAI_Android.Pages.DeviceAdaptivePage"
+             Title="FairyAI">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#05070C" Offset="0.0"/>
+            <GradientStop Color="#0A0D12" Offset="0.5"/>
+            <GradientStop Color="#0F131C" Offset="1.0"/>
+        </LinearGradientBrush>
+    </ContentPage.Background>
+
+    <Grid x:Name="MainGrid" Padding="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" 
+                BackgroundColor="#161D2B"
+                StrokeShape="RoundRectangle 16"
+                Padding="20,16"
+                Margin="0,0,0,16">
+            <HorizontalStackLayout Spacing="12">
+                <Label Text="🧚" 
+                       FontSize="28" 
+                       VerticalOptions="Center"/>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="FairyAI" 
+                           TextColor="#E9E9E9" 
+                           FontSize="20" 
+                           FontAttributes="Bold"/>
+                    <Label x:Name="DeviceLabel" 
+                           Text="正在检测设备类型..." 
+                           TextColor="#9CA3AF" 
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </Border>
+
+        <!-- Content area - adapts to device -->
+        <Grid Grid.Row="1" x:Name="ContentGrid">
+            
+            <!-- Phone: single column -->
+            <VerticalStackLayout x:Name="PhoneLayout" Spacing="16">
+                <Border BackgroundColor="#161D2B"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="20">
+                    <VerticalStackLayout Spacing="16">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="💬" FontSize="20"/>
+                            <Label Text="对话" 
+                                   TextColor="#E9E9E9" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12">
+                            <Editor x:Name="ChatEditor" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9" 
+                                    HeightRequest="200" 
+                                    FontSize="14"
+                                    Placeholder="输入您的消息..."
+                                    PlaceholderColor="#6B7280"/>
+                        </Border>
+                        
+                        <Button Text="发送" 
+                                BackgroundColor="#38BDF8" 
+                                TextColor="#0A0D12"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                HeightRequest="48"
+                                CornerRadius="12"
+                                Clicked="OnSendClicked">
+                            <Button.Shadow>
+                                <Shadow Brush="#38BDF8" 
+                                        Opacity="0.4" 
+                                        Radius="16" 
+                                        Offset="0,4"/>
+                            </Button.Shadow>
+                        </Button>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Tablet: sidebar + content -->
+            <Grid x:Name="TabletLayout" ColumnSpacing="16" IsVisible="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Sidebar -->
+                <Border Grid.Column="0" 
+                        BackgroundColor="#161D2B"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="16">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="📚 导航" 
+                               TextColor="#E9E9E9" 
+                               FontSize="16" 
+                               FontAttributes="Bold"
+                               Margin="4,0,0,8"/>
+                        
+                        <Button Text="💬 对话" 
+                                BackgroundColor="#1E2636" 
+                                TextColor="#E9E9E9"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                HorizontalOptions="Fill"
+                                Clicked="OnNavChat"/>
+                        
+                        <Button Text="📚 知识库" 
+                                BackgroundColor="#1E2636" 
+                                TextColor="#E9E9E9"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                HorizontalOptions="Fill"
+                                Clicked="OnNavKnowledge"/>
+                        
+                        <Button Text="⚙️ 设置" 
+                                BackgroundColor="#1E2636" 
+                                TextColor="#E9E9E9"
+                                HeightRequest="44"
+                                CornerRadius="10"
+                                HorizontalOptions="Fill"
+                                Clicked="OnNavSettings"/>
+                    </VerticalStackLayout>
+                </Border>
+                
+                <!-- Main content -->
+                <Border Grid.Column="1" 
+                        BackgroundColor="#161D2B"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="24">
+                    <VerticalStackLayout Spacing="16">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="💬" FontSize="22"/>
+                            <Label Text="对话" 
+                                   TextColor="#E9E9E9" 
+                                   FontSize="20" 
+                                   FontAttributes="Bold"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                        
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="16">
+                            <Editor x:Name="TabletChatEditor" 
+                                    BackgroundColor="Transparent" 
+                                    TextColor="#E9E9E9" 
+                                    HeightRequest="300" 
+                                    FontSize="15"
+                                    Placeholder="输入您的消息..."
+                                    PlaceholderColor="#6B7280"/>
+                        </Border>
+                        
+                        <Button Text="发送" 
+                                BackgroundColor="#38BDF8" 
+                                TextColor="#0A0D12"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                HeightRequest="52"
+                                CornerRadius="12"
+                                Clicked="OnSendClicked">
+                            <Button.Shadow>
+                                <Shadow Brush="#38BDF8" 
+                                        Opacity="0.4" 
+                                        Radius="16" 
+                                        Offset="0,4"/>
+                            </Button.Shadow>
+                        </Button>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Watch: minimal -->
+            <VerticalStackLayout x:Name="WatchLayout" 
+                                 Spacing="16" 
+                                 IsVisible="False"
+                                 VerticalOptions="Center">
+                <Border BackgroundColor="#161D2B"
+                        StrokeShape="RoundRectangle 24"
+                        Padding="24"
+                        HorizontalOptions="Center">
+                    <VerticalStackLayout Spacing="16">
+                        <Label Text="🧚 FairyAI" 
+                               TextColor="#E9E9E9" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               HorizontalOptions="Center"/>
+                        
+                        <Button Text="🎤 语音" 
+                                BackgroundColor="#38BDF8" 
+                                TextColor="#0A0D12"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                HeightRequest="60" 
+                                WidthRequest="160"
+                                CornerRadius="999"
+                                Clicked="OnVoiceClicked">
+                            <Button.Shadow>
+                                <Shadow Brush="#38BDF8" 
+                                        Opacity="0.4" 
+                                        Radius="16" 
+                                        Offset="0,4"/>
+                            </Button.Shadow>
+                        </Button>
+                        
+                        <Button Text="💬 消息" 
+                                BackgroundColor="#1E2636" 
+                                TextColor="#E9E9E9"
+                                FontSize="16"
+                                HeightRequest="60" 
+                                WidthRequest="160"
+                                CornerRadius="999"
+                                Clicked="OnNavChat"/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Footer -->
+        <Grid Grid.Row="2" 
+              ColumnDefinitions="*,*" 
+              ColumnSpacing="12" 
+              Margin="0,16,0,0">
+            <Button x:Name="VoiceBtn" 
+                    Grid.Column="0"
+                    Text="🎤 语音" 
+                    BackgroundColor="#38BDF8" 
+                    TextColor="#0A0D12"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    HeightRequest="52"
+                    CornerRadius="12"
+                    Clicked="OnVoiceClicked">
+                <Button.Shadow>
+                    <Shadow Brush="#38BDF8" 
+                            Opacity="0.4" 
+                            Radius="16" 
+                            Offset="0,4"/>
+                </Button.Shadow>
+            </Button>
+            
+            <Button x:Name="SettingsBtn" 
+                    Grid.Column="1"
+                    Text="⚙️ 设置" 
+                    BackgroundColor="#1E2636" 
+                    TextColor="#E9E9E9"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    HeightRequest="52"
+                    CornerRadius="12"
+                    Clicked="OnNavSettings">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" 
+                            Opacity="0.3" 
+                            Radius="8" 
+                            Offset="0,2"/>
+                </Button.Shadow>
+            </Button>
+        </Grid>
+    </Grid>
+</ContentPage>

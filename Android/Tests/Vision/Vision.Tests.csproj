@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The vision path: endpoint choice, request shape, reply parsing, and the client around them. -->
+    <Compile Include="../../Services/Vision/VisionModels.cs" Link="Production/Vision/VisionModels.cs" />
+    <Compile Include="../../Services/Vision/VisionRequest.cs" Link="Production/Vision/VisionRequest.cs" />
+    <Compile Include="../../Services/Vision/VisionReply.cs" Link="Production/Vision/VisionReply.cs" />
+    <Compile Include="../../Services/Vision/VisionClient.cs" Link="Production/Vision/VisionClient.cs" />
+    <Compile Include="../../Services/Vision/VisionProbe.cs" Link="Production/Vision/VisionProbe.cs" />
+    <Compile Include="../../Services/Knowledge/ImportantInfoExtractor.cs" Link="Production/Knowledge/ImportantInfoExtractor.cs" />
+    <!-- The tool the model calls, and the contract it implements. -->
+    <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
+    <Compile Include="../../Services/Tools/ToolProtocol.cs" Link="Production/Tools/ToolProtocol.cs" />
+    <Compile Include="../../Services/Tools/VisionTools.cs" Link="Production/Tools/VisionTools.cs" />
+    <Compile Include="../../Models/ChatMessage.cs" Link="Production/ChatMessage.cs" />
+  </ItemGroup>
+</Project>
