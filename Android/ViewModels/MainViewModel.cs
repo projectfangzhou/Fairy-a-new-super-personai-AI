@@ -247,7 +247,11 @@ public partial class MainViewModel : ObservableObject, IDisposable
         var sb = new System.Text.StringBuilder();
         try
         {
-            await foreach (var chunk in _llm.StreamChatAsync(Messages.TakeLast(20).ToList(), userMessage))
+            // The streaming path used to record nothing; the provider's usage chunk (or an estimate
+            // when it sends none) now reaches the same ledger the tool loop writes to.
+            await foreach (var chunk in _llm.StreamChatAsync(
+                Messages.TakeLast(20).ToList(), userMessage,
+                usage => _usage.Record(usage.PromptTokens, usage.CompletionTokens, usage.Exact)))
             {
                 sb.Append(chunk);
 

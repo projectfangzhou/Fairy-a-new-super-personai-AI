@@ -20,5 +20,6 @@
     <Compile Include="../../Services/Search/WebSearchBackends.cs" Link="Production/Search/WebSearchBackends.cs" />
     <Compile Include="../../Services/Markdown/MarkdownFormatter.cs" Link="Production/Markdown/MarkdownFormatter.cs" />
     <Compile Include="../../Services/Usage/TokenLedger.cs" Link="Production/Usage/TokenLedger.cs" />
+    <Compile Include="../../Services/Usage/StreamChunkParser.cs" Link="Production/Usage/StreamChunkParser.cs" />
   </ItemGroup>
 </Project>

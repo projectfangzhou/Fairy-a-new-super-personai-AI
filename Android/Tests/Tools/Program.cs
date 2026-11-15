@@ -313,6 +313,62 @@ Assert(timeOutput.Length > 8, "the clock tool returns something readable");
     Assert(TokenLedger.EstimateTokens("你好世界") == 4, "each CJK character counts as a token");
     Assert(TokenLedger.EstimateTokens("") == 0 && TokenLedger.EstimateTokens(null) == 0, "empty text counts as zero");
 
+    // ---------------------------------------------------------------- streaming chunks
+
+    var (deltaText, deltaUsage) = StreamChunkParser.Parse(
+        "data: {\"choices\":[{\"delta\":{\"content\":\"你好\"}}]}");
+    Assert(deltaText == "你好", "a delta chunk yields its text");
+    Assert(deltaUsage is null, "a text delta carries no usage");
+
+    var (roleText, _) = StreamChunkParser.Parse(
+        "data: {\"choices\":[{\"delta\":{\"role\":\"assistant\"}}]}");
+    Assert(roleText is null, "a role-only delta yields no text");
+
+    var (nullText, _) = StreamChunkParser.Parse(
+        "data: {\"choices\":[{\"delta\":{\"content\":null}}]}");
+    Assert(nullText is null, "a null content yields no text");
+
+    var (emptyText, _) = StreamChunkParser.Parse(
+        "data: {\"choices\":[{\"delta\":{\"content\":\"\"}}]}");
+    Assert(emptyText is null, "an empty content yields no text");
+
+    // The usage chunk arrives with an empty choices array — the shape a choices[0]-only parser drops.
+    var (usageText, usageChunk) = StreamChunkParser.Parse(
+        "data: {\"choices\":[],\"usage\":{\"prompt_tokens\":120,\"completion_tokens\":34}}");
+    Assert(usageText is null, "the usage chunk carries no text");
+    Assert(usageChunk is not null && usageChunk.Exact, "the usage chunk yields exact counts");
+    Assert(usageChunk!.PromptTokens == 120 && usageChunk.CompletionTokens == 34, "both counts are read");
+    Assert(usageChunk.TotalTokens == 154, "the total is the sum");
+
+    var (_, zeroUsage) = StreamChunkParser.Parse(
+        "data: {\"choices\":[],\"usage\":{\"prompt_tokens\":0,\"completion_tokens\":0}}");
+    Assert(zeroUsage is null, "a zero usage chunk is not recorded as an exact zero");
+
+    var (_, noChoices) = StreamChunkParser.Parse(
+        "data: {\"id\":\"x\",\"usage\":{\"prompt_tokens\":7}}");
+    Assert(noChoices!.PromptTokens == 7 && noChoices.CompletionTokens == 0,
+        "a missing completion count reads as zero, not as a failure");
+
+    Assert(StreamChunkParser.IsDone("data: [DONE]"), "the done marker is recognised");
+    Assert(!StreamChunkParser.IsDone("data: {\"choices\":[]}"), "a normal chunk is not the done marker");
+
+    var (doneText, doneUsage) = StreamChunkParser.Parse("data: [DONE]");
+    Assert(doneText is null && doneUsage is null, "the done marker parses to nothing");
+
+    var (keepAliveText, keepAliveUsage) = StreamChunkParser.Parse(": ping");
+    Assert(keepAliveText is null && keepAliveUsage is null, "a keep-alive line parses to nothing");
+
+    var (brokenText, brokenUsage) = StreamChunkParser.Parse("data: {not json");
+    Assert(brokenText is null && brokenUsage is null, "a malformed chunk is skipped instead of throwing");
+
+    var (blankText, blankUsage) = StreamChunkParser.Parse("   ");
+    Assert(blankText is null && blankUsage is null, "a blank line parses to nothing");
+
+    // The estimate path: a provider that sends no usage still gets counted, and says it is a guess.
+    var guess = new TokenUsage(TokenLedger.EstimateTokens("abcd"), TokenLedger.EstimateTokens("你好"), Exact: false);
+    Assert(guess.PromptTokens == 1 && guess.CompletionTokens == 2, "an estimate uses the same token heuristic");
+    Assert(!guess.Exact, "an estimate is never labelled exact");
+
     // The loop must add up what the provider reported, and add nothing when it reported nothing.
     var usageScript = new Queue<ToolLoopStep>(new[]
     {
