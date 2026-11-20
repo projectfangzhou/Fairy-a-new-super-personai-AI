@@ -2,6 +2,16 @@
 
 This project includes the following third-party components. Their licenses apply to those components, not to the project's own MIT-licensed code.
 
+## On-device embedding (PC)
+
+- **ONNX Runtime** (`Microsoft.ML.OnnxRuntime`, Microsoft) — MIT License. Unmodified NuGet package; its
+  Windows native library runs the embedding model locally.
+  See https://github.com/microsoft/onnxruntime/blob/main/LICENSE
+- **Qwen3-Embedding-0.6B** (Alibaba Qwen) — Apache-2.0 License. NOT distributed with this repository or
+  installer: the int8 ONNX export (`onnx/model_quantized.onnx`, ~585 MB) and its tokenizer files are
+  downloaded into `Dependencies/qwen3-embedding/` on the machine that wants local retrieval. See
+  https://huggingface.co/Qwen/Qwen3-Embedding-0.6B
+
 ## MIT License Components
 
 - **Microsoft.Data.Sqlite / Microsoft.Maui / Microsoft.Extensions.*** — MIT License

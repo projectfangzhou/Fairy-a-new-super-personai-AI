@@ -33,6 +33,8 @@
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="8.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Connections.Client" Version="8.0.8" />
     <PackageReference Include="NSec.Cryptography" Version="24.4.0" />
+    <!-- Runs the local embedding model (Qwen3-Embedding 0.6B, int8 ONNX). MIT, Apache-2.0 model. -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
   </ItemGroup>
 
   <ItemGroup>

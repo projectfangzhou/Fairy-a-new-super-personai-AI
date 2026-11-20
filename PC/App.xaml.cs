@@ -102,6 +102,9 @@ public partial class App : Application
             sc.AddSingleton<IAudioConverter, FfmpegAudioConverter>();
             sc.AddSingleton<VectorDatabase>();
             sc.AddSingleton<RAGService>();
+            // The embedding model that RAGService uses; it must be registered, because the container
+            // does not build unregistered concrete types on its own.
+            sc.AddSingleton<MyAiAssistant.Services.Knowledge.QwenEmbeddingService>();
             sc.AddSingleton<AgentService>();
             sc.AddSingleton<LocalModelService>();
             sc.AddSingleton<SecurityAuditService>();

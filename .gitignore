@@ -25,3 +25,6 @@ TestResults/
 *.apk
 *.aab
 PC/Installer/Output/
+
+# Local embedding models: hundreds of MB, downloaded or imported per machine, never committed
+PC/Dependencies/qwen3-embedding/
