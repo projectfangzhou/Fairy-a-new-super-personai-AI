@@ -30,6 +30,9 @@
     <Compile Include="../../Services/Knowledge/RetrievalFusion.cs" Link="Production/Knowledge/RetrievalFusion.cs" />
     <Compile Include="../../Services/Knowledge/RagPrompt.cs" Link="Production/Knowledge/RagPrompt.cs" />
     <Compile Include="../../Services/Knowledge/RagAnswer.cs" Link="Production/Knowledge/RagAnswer.cs" />
+    <Compile Include="../../Services/Knowledge/WordPieceTokenizer.cs" Link="Production/Knowledge/WordPieceTokenizer.cs" />
+    <Compile Include="../../Services/Knowledge/EmbeddingBackend.cs" Link="Production/Knowledge/EmbeddingBackend.cs" />
+    <Compile Include="../../Services/Knowledge/LocalEmbeddingStore.cs" Link="Production/Knowledge/LocalEmbeddingStore.cs" />
     <Compile Include="../../Services/Tools/KnowledgeTools.cs" Link="Production/Tools/KnowledgeTools.cs" />
     <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
     <Compile Include="../../Models/ChatMessage.cs" Link="Production/ChatMessage.cs" />

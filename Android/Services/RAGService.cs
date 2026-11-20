@@ -24,22 +24,19 @@ public sealed class RAGService
 
     private readonly KnowledgeBaseService _knowledge;
     private readonly ILlmService _llm;
-    private readonly EmbeddingClient _embeddings;
     private readonly EmbeddingCache _cache;
-    private readonly Func<EmbeddingSettings> _settings;
+    private readonly Func<IEmbeddingBackend?> _backend;
 
     public RAGService(
         KnowledgeBaseService knowledge,
         ILlmService llm,
-        EmbeddingClient embeddings,
         EmbeddingCache cache,
-        Func<EmbeddingSettings> settings)
+        Func<IEmbeddingBackend?> backend)
     {
         _knowledge = knowledge ?? throw new ArgumentNullException(nameof(knowledge));
         _llm = llm ?? throw new ArgumentNullException(nameof(llm));
-        _embeddings = embeddings ?? throw new ArgumentNullException(nameof(embeddings));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-        _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        _backend = backend ?? throw new ArgumentNullException(nameof(backend));
     }
 
     /// <summary>Passages currently in the vector cache, for the settings screen.</summary>
@@ -105,27 +102,28 @@ public sealed class RAGService
         string query,
         CancellationToken cancellationToken)
     {
-        var settings = _settings();
-        if (!settings.IsUsable) return Array.Empty<(string, string, double)>();
+        var backend = _backend();
+        if (backend is null || !backend.IsAvailable) return Array.Empty<(string, string, double)>();
 
         var passages = _knowledge.Passages;
         if (passages.Count == 0) return Array.Empty<(string, string, double)>();
 
-        _cache.PruneToModel(settings.Model);
+        var modelKey = backend.ModelKey;
+        _cache.PruneToModel(modelKey);
 
         // Only the passages without a cached vector are embedded; this is what keeps a question from
-        // costing money every time the app is opened.
+        // costing money (or battery) every time the app is opened.
         var missing = new List<(string Key, string Document, string Text)>();
         foreach (var (document, text) in passages)
         {
-            var key = EmbeddingCache.Key(settings.Model, document, text);
+            var key = EmbeddingCache.Key(modelKey, document, text);
             if (_cache.Get(key) is null) missing.Add((key, document, text));
         }
 
         if (missing.Count > 0)
         {
-            var batch = await _embeddings
-                .EmbedAsync(settings, missing.Select(item => item.Text).ToList(), cancellationToken)
+            var batch = await backend
+                .EmbedAsync(missing.Select(item => item.Text).ToList(), cancellationToken)
                 .ConfigureAwait(false);
 
             if (!batch.Ok) return Array.Empty<(string, string, double)>();
@@ -136,9 +134,7 @@ public sealed class RAGService
             _cache.Save();
         }
 
-        var queryBatch = await _embeddings.EmbedAsync(settings, new[] { query }, cancellationToken)
-            .ConfigureAwait(false);
-
+        var queryBatch = await backend.EmbedAsync(new[] { query }, cancellationToken).ConfigureAwait(false);
         if (!queryBatch.Ok || queryBatch.Vectors.Count == 0)
             return Array.Empty<(string, string, double)>();
 
@@ -147,7 +143,7 @@ public sealed class RAGService
 
         foreach (var (document, passage) in passages)
         {
-            var vector = _cache.Get(EmbeddingCache.Key(settings.Model, document, passage));
+            var vector = _cache.Get(EmbeddingCache.Key(modelKey, document, passage));
             if (vector is null) continue;
 
             var similarity = VectorMath.Cosine(queryVector, vector);

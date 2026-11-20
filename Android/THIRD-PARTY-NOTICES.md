@@ -13,8 +13,18 @@ This project includes the following third-party components. Their licenses apply
 - **SQLitePCLRaw** — Apache-2.0 License
 - **BouncyCastle.Cryptography** — MIT License
 
-## Apache-2.0 Components
+## On-device embedding
 
+- **ONNX Runtime** (`Microsoft.ML.OnnxRuntime`, Microsoft) — MIT License. Unmodified NuGet package; its
+  Android native libraries are what run the embedding model on the phone.
+  See https://github.com/microsoft/onnxruntime/blob/main/LICENSE
+- **bge-small-zh-v1.5** (BAAI) — MIT License. Copyright Beijing Academy of Artificial Intelligence.
+  The int8 ONNX export published in `Xenova/bge-small-zh-v1.5` is bundled unmodified at
+  `Resources/Raw/embedding/bge-small-zh-v1.5-int8.onnx` together with its WordPiece `vocab.txt`.
+  It runs entirely on the device and turns document passages into 512-dimension vectors for retrieval.
+  See https://huggingface.co/BAAI/bge-small-zh-v1.5
+
+## Apache-2.0 Components
 - **SQLitePCLRaw** — Apache-2.0 License. See https://www.apache.org/licenses/LICENSE-2.0
 - **Shizuku client library** (`dev.rikka.shizuku:api`, `:provider`, `:aidl` 13.1.5, RikkaApps) — Apache-2.0 License.
   Copyright RikkaApps. Bound unmodified from the published AARs in `Dependencies/shizuku/`; the binding lives in

@@ -137,15 +137,47 @@ public static class MauiProgram
         builder.Services.AddSingleton<VisionService>();
 
         // Answering from the user's own documents. Keyword retrieval is always available; the vector
-        // half switches on when an embedding model is configured.
+        // half prefers a model on the phone, falls back to a remote /embeddings endpoint, and says so
+        // when neither can run.
         builder.Services.AddSingleton(sp => new FairyAI_Android.Services.Knowledge.EmbeddingCache(
             Path.Combine(FileSystem.AppDataDirectory, "knowledge", "embeddings.json")));
         builder.Services.AddSingleton<FairyAI_Android.Services.Knowledge.EmbeddingClient>();
-        builder.Services.AddSingleton(sp => new RAGService(
-            sp.GetRequiredService<KnowledgeBaseService>(),
-            sp.GetRequiredService<ILlmService>(),
+        builder.Services.AddSingleton(sp => new FairyAI_Android.Services.Knowledge.LocalEmbeddingStore(
+            Path.Combine(FileSystem.AppDataDirectory, "knowledge", "models")));
+
+        // The runtime that runs the bundled model on the phone (ONNX Runtime, linked via NuGet).
+        builder.Services.AddSingleton<FairyAI_Android.Services.Knowledge.IEmbeddingRuntime>(sp =>
+        {
+            var store = sp.GetRequiredService<FairyAI_Android.Services.Knowledge.LocalEmbeddingStore>();
+            var model = FairyAI_Android.Services.Knowledge.LocalEmbeddingModel.BundledChinese;
+
+            // The model ships inside the APK; the runtime needs a real file path, so it is copied out
+            // to app storage once. Failure here is reported through the backend's UnavailableReason.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await store.InstallBundledAsync(model, async name =>
+                        await FileSystem.OpenAppPackageFileAsync(name));
+                }
+                catch (Exception)
+                {
+                    // Reported by the backend's state; nothing to do at start-up.
+                }
+            });
+
+            return new FairyAI_Android.Services.Knowledge.OnnxEmbeddingRuntime(
+                () => store.PathOf(model),
+                () => store.VocabPathOf(model));
+        });
+
+        builder.Services.AddSingleton(sp => new FairyAI_Android.Services.Knowledge.LocalEmbeddingBackend(
+            sp.GetRequiredService<FairyAI_Android.Services.Knowledge.LocalEmbeddingStore>(),
+            sp.GetRequiredService<FairyAI_Android.Services.Knowledge.IEmbeddingRuntime>(),
+            FairyAI_Android.Services.Knowledge.LocalEmbeddingModel.BundledChinese));
+
+        builder.Services.AddSingleton(sp => new FairyAI_Android.Services.Knowledge.RemoteEmbeddingBackend(
             sp.GetRequiredService<FairyAI_Android.Services.Knowledge.EmbeddingClient>(),
-            sp.GetRequiredService<FairyAI_Android.Services.Knowledge.EmbeddingCache>(),
             () =>
             {
                 var config = ConfigManager.Load();
@@ -157,6 +189,14 @@ public static class MauiProgram
                     knowledge.EmbeddingsBaseUrl, knowledge.EmbeddingsModel, knowledge.EmbeddingsApiKey,
                     config.LLM.BaseUrl, config.LLM.ApiKey);
             }));
+
+        builder.Services.AddSingleton(sp => new RAGService(
+            sp.GetRequiredService<KnowledgeBaseService>(),
+            sp.GetRequiredService<ILlmService>(),
+            sp.GetRequiredService<FairyAI_Android.Services.Knowledge.EmbeddingCache>(),
+            () => FairyAI_Android.Services.Knowledge.EmbeddingBackendSelector.Select(
+                sp.GetRequiredService<FairyAI_Android.Services.Knowledge.LocalEmbeddingBackend>(),
+                sp.GetRequiredService<FairyAI_Android.Services.Knowledge.RemoteEmbeddingBackend>())));
 
         builder.Services.AddSingleton<FunctionCallingService>();
         builder.Services.AddSingleton<ContextCompressionService>();

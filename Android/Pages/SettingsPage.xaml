@@ -498,6 +498,61 @@
                                Text=""
                                TextColor="#6B7280"
                                FontSize="11"/>
+
+                        <!-- Local embedding model: a file on the phone, not in the APK -->
+                        <Label Text="本地向量模型（可选，省掉每次调用）"
+                               TextColor="#9CA3AF"
+                               FontSize="12"/>
+
+                        <Label x:Name="LocalModelStatusLabel"
+                               Text=""
+                               TextColor="#6B7280"
+                               FontSize="11"/>
+
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="LocalModelUrlEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="模型下载地址（可留空，改为导入文件）"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <Button Grid.Column="0"
+                                    Text="导入模型文件"
+                                    BackgroundColor="#1F2937"
+                                    TextColor="#E9E9E9"
+                                    FontSize="13"
+                                    CornerRadius="10"
+                                    HeightRequest="40"
+                                    Clicked="OnImportLocalModel"/>
+                            <Button Grid.Column="1"
+                                    Text="从地址下载"
+                                    BackgroundColor="#1F2937"
+                                    TextColor="#E9E9E9"
+                                    FontSize="13"
+                                    CornerRadius="10"
+                                    HeightRequest="40"
+                                    Clicked="OnDownloadLocalModel"/>
+                        </Grid>
+
+                        <Button Text="删除本地模型"
+                                BackgroundColor="#2A1F2F"
+                                TextColor="#E58E8E"
+                                FontSize="13"
+                                CornerRadius="10"
+                                HeightRequest="38"
+                                Clicked="OnDeleteLocalModel"/>
+
+                        <Button Text="测一下向量（三句相似度）"
+                                BackgroundColor="#1F2937"
+                                TextColor="#E9E9E9"
+                                FontSize="13"
+                                CornerRadius="10"
+                                HeightRequest="40"
+                                Clicked="OnProbeLocalModel"/>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>

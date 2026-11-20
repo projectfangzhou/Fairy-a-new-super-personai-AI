@@ -61,6 +61,9 @@
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
 		<PackageReference Include="QRCoder" Version="1.6.0" />
 		<PackageReference Include="BouncyCastle.Cryptography" Version="2.4.0" />
+		<!-- Runs the bundled embedding model on the phone. Apache-2.0 / MIT; the Android native
+		     libraries for each ABI come with the package. -->
+		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.20.1" />
 		<Compile Remove="Tests\**\*.cs" />
 		<!-- The binding project lives under this one; its generated interop and AssemblyInfo must not be
 		     compiled again by the app. -->

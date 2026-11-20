@@ -812,6 +812,78 @@ var emptyBase = new AskDocumentsTool(_ => Task.FromResult(RagAnswer.Fail("知识
 var emptyText = await emptyBase.ExecuteAsync(new JsonObject { ["question"] = "随便问问" });
 Assert(emptyText.Contains("还没有文档", StringComparison.Ordinal), "an empty knowledge base is reported verbatim");
 
+// ------------------------------------------------------------------ tokenizer
+
+// A vocabulary shaped like a real one, small enough to read: ids follow insertion order.
+var tokenizer = WordPieceTokenizer.FromVocabulary(new[]
+{
+    "[PAD]", "[UNK]", "[CLS]", "[SEP]", "的", "预", "算", "会", "议",
+    "budget", "##ed", "budget##", "15", "%", ".", "会##",
+});
+
+Assert(tokenizer.VocabularySize == 16, "the vocabulary keeps every line");
+
+var tokenized = tokenizer.Tokenize("预算");
+Assert(tokenized.InputIds[0] == 2, "the sequence starts with [CLS]");
+Assert(tokenized.InputIds[^1] == 3, "the sequence ends with [SEP]");
+Assert(tokenized.InputIds.Length == 4, "two CJK characters become two tokens");
+Assert(tokenized.AttentionMask.All(flag => flag == 1), "every real token is attended to");
+Assert(tokenized.TokenTypeIds.All(type => type == 0), "BERT-style single-sentence input has one segment");
+
+var unknown = tokenizer.Tokenize("龘");
+Assert(unknown.InputIds.Contains(1L), "an unknown character becomes [UNK] instead of being dropped");
+Assert(unknown.InputIds.Length == 3, "the unknown character still takes a slot");
+
+var words = WordPieceTokenizer.SplitWords("预算 budget").ToList();
+Assert(words.Contains("预") && words.Contains("算"), "CJK characters are split one by one");
+Assert(words.Contains("budget"), "latin words stay whole");
+Assert(WordPieceTokenizer.SplitWords("Hello").First() == "hello", "latin text is lower-cased");
+
+var longText = string.Concat(Enumerable.Repeat("预算", 200));
+var truncated = tokenizer.Tokenize(longText, maxLength: 32);
+Assert(truncated.Length == 32, "long input is cut to the maximum length");
+Assert(truncated.InputIds[^1] == 3, "the cut sequence still ends with [SEP]");
+
+Assert(WordPieceTokenizer.SplitWords(null).ToList().Count == 0, "null text tokenises to nothing");
+
+// ------------------------------------------------------------------ pooling
+
+var hidden = new float[]
+{
+    1, 0, 0,
+    0, 1, 0,
+    9, 9, 9,
+};
+
+var pooled = TokenPooling.MeanPool(hidden, new long[] { 1, 1, 0 }, tokenCount: 3, dimension: 3);
+Assert(pooled.Length == 3, "pooling keeps the model dimension");
+Assert(Math.Abs(VectorMath.Cosine(pooled, new[] { 0.5f, 0.5f, 0f })) > 0.999,
+    "masked-out tokens do not contribute to the pooled vector");
+Assert(Math.Abs(pooled[0] - pooled[1]) < 1e-6, "the mean of two unit axes keeps them equal");
+
+var normalised = TokenPooling.Normalize(new[] { 3f, 4f });
+Assert(Math.Abs(normalised[0] - 0.6f) < 1e-6 && Math.Abs(normalised[1] - 0.8f) < 1e-6, "normalisation yields a unit vector");
+Assert(TokenPooling.Normalize(new[] { 0f, 0f }).SequenceEqual(new[] { 0f, 0f }), "a zero vector is left alone instead of dividing by zero");
+
+// ------------------------------------------------------------------ backend selection
+
+var unavailableLocal = new FakeEmbeddingBackend("本地模型", "local:test", false, "运行时没接入");
+var availableRemote = new FakeEmbeddingBackend("远程接口", "remote:m", true, null);
+
+Assert(EmbeddingBackendSelector.Select(unavailableLocal, availableRemote)?.ModelKey == "remote:m",
+    "an unavailable local model falls back to the remote endpoint");
+Assert(EmbeddingBackendSelector.Select(availableRemote, availableRemote)?.ModelKey == "remote:m",
+    "a working backend is selected");
+Assert(EmbeddingBackendSelector.Select(unavailableLocal, new FakeEmbeddingBackend("远程接口", "remote:x", false, "没配模型")) is null,
+    "nothing available means keyword-only retrieval");
+
+var described = EmbeddingBackendSelector.Describe(unavailableLocal, availableRemote);
+Assert(described.Contains("远程接口", StringComparison.Ordinal), "the description names what will be used");
+
+var describedNothing = EmbeddingBackendSelector.Describe(unavailableLocal, null);
+Assert(describedNothing.Contains("关键词", StringComparison.Ordinal), "with no vector backend the description says keyword-only");
+Assert(describedNothing.Contains("运行时没接入", StringComparison.Ordinal), "the description carries the reason");
+
 Console.WriteLine();
 Console.WriteLine($"{checks} checks passed");
 
@@ -955,4 +1027,29 @@ sealed class EmbeddingHandler : HttpMessageHandler
             Content = new StringContent(reply, System.Text.Encoding.UTF8, "application/json"),
         };
     }
+}
+
+/// <summary>An embedding backend whose availability is fixed, for selection tests.</summary>
+sealed class FakeEmbeddingBackend : IEmbeddingBackend
+{
+    public FakeEmbeddingBackend(string name, string modelKey, bool available, string? reason)
+    {
+        Name = name;
+        ModelKey = modelKey;
+        IsAvailable = available;
+        UnavailableReason = reason;
+    }
+
+    public string Name { get; }
+
+    public string ModelKey { get; }
+
+    public bool IsAvailable { get; }
+
+    public string? UnavailableReason { get; }
+
+    public Task<EmbeddingBatch> EmbedAsync(IReadOnlyList<string> inputs, CancellationToken cancellationToken = default) =>
+        Task.FromResult(IsAvailable
+            ? new EmbeddingBatch(true, inputs.Select(_ => new[] { 1f, 0f }).ToList(), null)
+            : EmbeddingBatch.Fail(UnavailableReason ?? "unavailable"));
 }

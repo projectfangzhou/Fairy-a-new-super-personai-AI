@@ -1,4 +1,5 @@
 using FairyAI_Android.Services;
+using FairyAI_Android.Services.Knowledge;
 using FairyAI_Android.Services.Vision;
 
 namespace FairyAI_Android.Pages;
@@ -6,8 +7,10 @@ namespace FairyAI_Android.Pages;
 public partial class SettingsPage : ContentPage
 {
     private readonly ITtsApiService _apiTts;
+    private readonly LocalEmbeddingStore _localModels;
+    private readonly IEmbeddingRuntime _embeddingRuntime;
 
-    public SettingsPage(ITtsApiService apiTts)
+    public SettingsPage(ITtsApiService apiTts, LocalEmbeddingStore localModels, IEmbeddingRuntime embeddingRuntime)
     {
         try
         {
@@ -19,6 +22,8 @@ public partial class SettingsPage : ContentPage
         }
 
         _apiTts = apiTts;
+        _localModels = localModels;
+        _embeddingRuntime = embeddingRuntime;
 
         try
         {
@@ -108,6 +113,8 @@ public partial class SettingsPage : ContentPage
                 : !embeddings.IsUsable
                     ? "打开了向量检索，但还没填向量模型名，暂时仍按关键词检索。"
                     : $"向量检索会调用 {embeddings.BaseUrl} · {embeddings.Model}";
+
+            RefreshLocalModel();
 
             // Wake word
             var ww = config.WakeWord;
@@ -276,8 +283,129 @@ public partial class SettingsPage : ContentPage
         catch (Exception ex) { await DisplayAlertAsync("Error", ex.Message, "OK"); }
     }
 
-    private async void OnImportDocument(object? sender, EventArgs e)
+    private static LocalEmbeddingModel LocalModel => LocalEmbeddingModel.BundledChinese;
+
+    /// <summary>
+    /// What the phone actually has: the file's state, its size, and whether anything could run it.
+    /// The runtime line is not decoration — without a native runtime a complete model file is still
+    /// unusable, and the user should learn that here rather than from a failed question.
+    /// </summary>
+    private void RefreshLocalModel()
     {
+        var model = LocalModel;
+        var state = _localModels.StateOf(model);
+        var size = _localModels.SizeOnDisk(model);
+
+        var stateText = state switch
+        {
+            LocalModelState.Ready => $"已就绪（{size / 1024.0 / 1024.0:0} MB，指纹 {_localModels.Fingerprint(model)}）",
+            LocalModelState.Partial => "有一次没下载完（.part 文件还在，不能使用）",
+            _ => $"还没有模型文件（约 {model.ApproximateSize}，{model.License}）",
+        };
+
+        var runtimeText = _embeddingRuntime.IsReady
+            ? "推理运行时已接入，会优先用它。"
+            : _embeddingRuntime.Reason ?? "没有可用的推理运行时。";
+
+        LocalModelStatusLabel.Text = $"{model.DisplayName} · {stateText}\n{runtimeText}";
+    }
+
+    private async void OnImportLocalModel(object? sender, EventArgs e)
+    {
+        try
+        {
+            var result = await FilePicker.PickAsync(new PickOptions { PickerTitle = "选择 ONNX 模型文件" });
+            if (result is null) return;
+
+            // Android hands back a content stream, not a usable path, so it is copied out first.
+            var temporary = Path.Combine(FileSystem.CacheDirectory, LocalModel.FileName + ".import");
+            await using (var source = await result.OpenReadAsync())
+            await using (var target = File.Create(temporary))
+                await source.CopyToAsync(target);
+
+            var (ok, message) = _localModels.Import(LocalModel, temporary);
+            try { File.Delete(temporary); } catch (IOException) { }
+
+            LocalModelStatusLabel.Text = message;
+            RefreshLocalModel();
+        }
+        catch (Exception ex)
+        {
+            LocalModelStatusLabel.Text = "导入失败：" + ex.Message;
+        }
+    }
+
+    private async void OnDownloadLocalModel(object? sender, EventArgs e)
+    {
+        var url = LocalModelUrlEntry.Text?.Trim() ?? "";
+        if (url.Length == 0)
+        {
+            LocalModelStatusLabel.Text = "先填一个模型下载地址（这里不预置第三方地址，避免装到来源不明的文件）。";
+            return;
+        }
+
+        LocalModelStatusLabel.Text = "正在下载…";
+        var progress = new Progress<double>(fraction => MainThread.BeginInvokeOnMainThread(() =>
+            LocalModelStatusLabel.Text = $"正在下载… {fraction:P0}"));
+
+        var (ok, message) = await _localModels.DownloadAsync(LocalModel, url, progress);
+        LocalModelStatusLabel.Text = message;
+        RefreshLocalModel();
+    }
+
+    private void OnDeleteLocalModel(object? sender, EventArgs e)
+    {
+        _localModels.Delete(LocalModel);
+        LocalModelStatusLabel.Text = "已删除本地模型文件。";
+        RefreshLocalModel();
+    }
+
+    /// <summary>
+    /// Embeds three sentences with the model on this phone and prints the cosine similarities.
+    ///
+    /// This is the check that matters: two sentences saying the same thing in different words must be
+    /// closer to each other than to an unrelated sentence. A model that loads but returns noise would
+    /// pass any "is it installed" test and fail this one.
+    /// </summary>
+    private async void OnProbeLocalModel(object? sender, EventArgs e)
+    {
+        var model = LocalModel;
+        var path = _localModels.PathOf(model);
+
+        LocalModelStatusLabel.Text = "正在用本机模型算三句的相似度…";
+
+        if (!_embeddingRuntime.IsReady)
+        {
+            LocalModelStatusLabel.Text = "本机向量不可用：" + (_embeddingRuntime.Reason ?? "原因未知");
+            return;
+        }
+
+        var sentences = new[]
+        {
+            "预算在本季度增加了百分之十五",
+            "这个季度市场预算上调了 15%",
+            "明天下午三点在三楼会议室开会",
+        };
+
+        var batch = await _embeddingRuntime.EmbedAsync(path, sentences);
+        if (!batch.Ok || batch.Vectors.Count < 3)
+        {
+            LocalModelStatusLabel.Text = "向量计算失败：" + (batch.Error ?? "向量数量不对");
+            return;
+        }
+
+        var related = VectorMath.Cosine(batch.Vectors[0], batch.Vectors[1]);
+        var unrelated = VectorMath.Cosine(batch.Vectors[0], batch.Vectors[2]);
+        var dimension = batch.Vectors[0].Length;
+
+        LocalModelStatusLabel.Text =
+            $"本机向量可用（{dimension} 维）\n" +
+            $"「预算增加」与「预算上调」：{related:0.000}\n" +
+            $"「预算增加」与「会议室开会」：{unrelated:0.000}\n" +
+            (related > unrelated ? "同义句更接近，向量是有效的。" : "警告：同义句没有更接近，向量可能不可用。");
+    }
+
+    private async void OnImportDocument(object? sender, EventArgs e)    {
         try
         {
             // Open file manager to select document
