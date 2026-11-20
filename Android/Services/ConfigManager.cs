@@ -81,7 +81,14 @@ public class TTSConfig
 public class ContextConfig
 {
     public bool Enabled { get; set; } = true;
-    public int AutoCompressTokens { get; set; } = 256000;
+
+    /// <summary>
+    /// Token budget for the history sent to the model. Above this, older turns are folded into one
+    /// summary instead of being dropped. 8K is a phone-sized budget: high enough that ordinary
+    /// conversations go out whole, low enough that a long session cannot quietly cost a fortune.
+    /// </summary>
+    public int AutoCompressTokens { get; set; } = 8000;
+
     public string LastSyncDate { get; set; } = "";
 }
 

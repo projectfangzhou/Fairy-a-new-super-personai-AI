@@ -16,6 +16,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     private readonly WakeWordService _wakeWord;
     private readonly FunctionCallingService _tools;
     private readonly Services.Usage.TokenUsageService _usage;
+    private readonly ContextCompressionService _context;
     private readonly string _sessionId;
 
     [ObservableProperty] private string _userInput = "";
@@ -30,7 +31,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
     public MainViewModel(ILlmService llm, IIntentAnalyzer intent,
         ISearchService search, ITtsService tts, IChatHistoryService history,
         WakeWordService wakeWord, FunctionCallingService tools,
-        Services.Usage.TokenUsageService usage)
+        Services.Usage.TokenUsageService usage, ContextCompressionService context)
     {
         _llm = llm;
         _intent = intent;
@@ -40,6 +41,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
         _wakeWord = wakeWord;
         _tools = tools;
         _usage = usage;
+        _context = context;
         _sessionId = Guid.NewGuid().ToString("N");
 
         // Wire wake word events
@@ -183,13 +185,18 @@ public partial class MainViewModel : ObservableObject, IDisposable
     /// </summary>
     private async Task<string> RunAssistantAsync(string text)
     {
+        // What gets sent is decided once per turn: the whole conversation while it fits the budget,
+        // otherwise a summary of the older part plus the recent turns. The visible transcript is not
+        // touched either way.
+        var requestHistory = await BuildRequestHistoryAsync();
+
         if (_tools.ToolCount > 0)
         {
             var personality = ConfigManager.Load().Personality.SystemPrompt;
 
             var outcome = await _tools.RunAsync(
                 personality,
-                Messages.TakeLast(10).ToList(),
+                requestHistory,
                 text,
                 onToolRun: result => MainThread.BeginInvokeOnMainThread(() =>
                     StatusText = result.Ok ? $"已完成 {result.Name}" : $"{result.Name} 未完成"),
@@ -215,13 +222,38 @@ public partial class MainViewModel : ObservableObject, IDisposable
             StatusText = "这个模型不支持工具调用，改用普通对话";
         }
 
-        return await FallbackAsync(text);
+        return await FallbackAsync(text, requestHistory);
+    }
+
+    /// <summary>
+    /// The history to send. Compression is a request-level decision: it never edits <see cref="Messages"/>,
+    /// so scrolling back in the chat still shows everything the user said.
+    /// </summary>
+    private async Task<List<ChatMessage>> BuildRequestHistoryAsync()
+    {
+        var all = Messages.ToList();
+        try
+        {
+            var before = _context.Compressions;
+            var request = await _context.BuildRequestHistoryAsync(all);
+
+            if (_context.Compressions > before)
+                MainThread.BeginInvokeOnMainThread(() =>
+                    StatusText = $"较早的对话已折叠成摘要（发送 {request.Count} 条）");
+
+            return request;
+        }
+        catch (Exception)
+        {
+            // Compression is an optimisation; a failure must not stop the answer.
+            return all;
+        }
     }
 
     /// <summary>The pre-tool path: intent analysis, an optional web search, then streaming.</summary>
-    private async Task<string> FallbackAsync(string text)
+    private async Task<string> FallbackAsync(string text, List<ChatMessage> requestHistory)
     {
-        var historyText = string.Join("\n", Messages.TakeLast(10).Select(m => $"{m.Role}: {m.Content}"));
+        var historyText = string.Join("\n", requestHistory.TakeLast(10).Select(m => $"{m.Role}: {m.Content}"));
         var (intent, query, _) = await _intent.AnalyzeAsync(text, historyText);
 
         StatusText = intent switch
@@ -235,14 +267,14 @@ public partial class MainViewModel : ObservableObject, IDisposable
         {
             var searchResult = await _search.SearchAsync(query);
             return await _llm.ChatAsync(
-                Messages.TakeLast(10).ToList(),
+                requestHistory,
                 $"[搜索结果]\n{searchResult}\n\n[用户问题] {text}");
         }
 
-        return await StreamResponseAsync(text);
+        return await StreamResponseAsync(text, requestHistory);
     }
 
-    private async Task<string> StreamResponseAsync(string userMessage)
+    private async Task<string> StreamResponseAsync(string userMessage, List<ChatMessage> history)
     {
         var sb = new System.Text.StringBuilder();
         try
@@ -250,7 +282,7 @@ public partial class MainViewModel : ObservableObject, IDisposable
             // The streaming path used to record nothing; the provider's usage chunk (or an estimate
             // when it sends none) now reaches the same ledger the tool loop writes to.
             await foreach (var chunk in _llm.StreamChatAsync(
-                Messages.TakeLast(20).ToList(), userMessage,
+                history, userMessage,
                 usage => _usage.Record(usage.PromptTokens, usage.CompletionTokens, usage.Exact)))
             {
                 sb.Append(chunk);

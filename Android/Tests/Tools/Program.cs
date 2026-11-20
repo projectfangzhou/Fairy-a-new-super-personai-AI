@@ -5,6 +5,7 @@ using FairyAI_Android.Services.Screen;
 using FairyAI_Android.Services.Markdown;
 using FairyAI_Android.Services.Search;
 using FairyAI_Android.Services.Usage;
+using FairyAI_Android.Services.Compression;
 using FairyAI_Android.Services.Tools;
 
 var checks = 0;
@@ -368,6 +369,72 @@ Assert(timeOutput.Length > 8, "the clock tool returns something readable");
     var guess = new TokenUsage(TokenLedger.EstimateTokens("abcd"), TokenLedger.EstimateTokens("你好"), Exact: false);
     Assert(guess.PromptTokens == 1 && guess.CompletionTokens == 2, "an estimate uses the same token heuristic");
     Assert(!guess.Exact, "an estimate is never labelled exact");
+
+    // ---------------------------------------------------------------- context window
+
+    List<ChatMessage> Conversation(int count, int charsEach) =>
+        Enumerable.Range(0, count)
+            .Select(i => new ChatMessage { Role = i % 2 == 0 ? "user" : "assistant", Content = new string('字', charsEach) })
+            .ToList();
+
+    var shortChat = Conversation(4, 5);
+    Assert(!ContextWindow.ShouldCompress(shortChat, 8_000), "a short conversation is sent as it is");
+    Assert(ContextWindow.Plan(shortChat, 8_000).SummarizeCount == 0, "a short conversation has nothing to fold");
+
+    var longChat = Conversation(40, 400);
+    var longPlan = ContextWindow.Plan(longChat, 8_000);
+    Assert(longPlan.Needed, "a conversation over the budget is folded");
+    Assert(longPlan.KeepCount == ContextWindow.KeepRecent, "the recent turns are kept verbatim");
+    Assert(longPlan.SummarizeCount == longChat.Count - ContextWindow.KeepRecent, "everything older is summarised");
+    Assert(longPlan.EstimatedTokens >= 8_000, "the estimate is what triggered it");
+
+    Assert(!ContextWindow.ShouldCompress(longChat, 0), "a zero budget means compression is off, not 'compress everything'");
+    Assert(!ContextWindow.ShouldCompress(longChat, -1), "a negative budget is off too");
+    Assert(ContextWindow.ShouldCompress(longChat, longPlan.EstimatedTokens), "being exactly at the budget counts as over it");
+
+    var applied = ContextWindow.Apply("用户想订周五的机票", longChat, longPlan);
+    Assert(applied[0].Role == "system", "the summary is a system message");
+    Assert(applied[0].Content.StartsWith(ContextWindow.SummaryMarker, StringComparison.Ordinal),
+        "the summary carries the marker so it can be folded again later");
+    Assert(applied[0].Content.Contains("周五的机票", StringComparison.Ordinal), "the summary text is kept");
+    Assert(applied.Count == 1 + ContextWindow.KeepRecent, "the result is one summary plus the recent turns");
+    Assert(applied[^1].Content == longChat[^1].Content, "the newest message is the last one sent");
+    Assert(applied[^2].Content == longChat[^2].Content, "order is preserved");
+
+    var alreadyMarked = ContextWindow.Apply(ContextWindow.SummaryMarker + " 旧摘要", longChat, longPlan);
+    Assert(alreadyMarked[0].Content == ContextWindow.SummaryMarker + " 旧摘要", "a summary that already has the marker is not marked twice");
+
+    var empty = ContextWindow.Apply("", longChat, longPlan);
+    Assert(empty.Count == ContextWindow.KeepRecent, "an empty summary adds no system message");
+
+    var prompt = ContextWindow.BuildPrompt(longChat.Take(5).ToList());
+    Assert(prompt.Contains("摘要", StringComparison.Ordinal), "the prompt asks for a summary");
+    Assert(prompt.Contains("user:", StringComparison.Ordinal), "the prompt keeps who said what");
+    Assert(prompt.Contains("不要编造", StringComparison.Ordinal), "the prompt forbids making things up");
+
+    var withPreviousSummary = ContextWindow.BuildPrompt(new List<ChatMessage>
+    {
+        new() { Role = "system", Content = ContextWindow.SummaryMarker + " 之前聊过机票" },
+        new() { Role = "user", Content = "" },
+    });
+    Assert(withPreviousSummary.Contains("此前的摘要", StringComparison.Ordinal),
+        "an earlier summary is labelled instead of pretending to be dialogue");
+    Assert(!withPreviousSummary.Contains("system:", StringComparison.Ordinal),
+        "the earlier summary is not relabelled as a system line");
+
+    // Two 10-character messages plus the newline they are joined with.
+    Assert(ContextWindow.EstimateTokens(Conversation(2, 10)) == 21, "the estimate follows the ledger heuristic");
+    Assert(ContextWindow.EstimateTokens(null!) == 0, "no history estimates as zero");
+    Assert(ContextWindow.Apply("x", new List<ChatMessage>(), new CompressionPlan(0, 0, 0)).Count == 1,
+        "an empty history leaves only the summary");
+
+    Assert(ContextWindow.LooksLikeFailure(""), "an empty summary counts as no summary");
+    Assert(ContextWindow.LooksLikeFailure("Please configure LLM API Key in settings"),
+        "a missing-key message is not a summary");
+    Assert(ContextWindow.LooksLikeFailure("LLM request failed"), "a failed request is not a summary");
+    Assert(!ContextWindow.LooksLikeFailure("用户想订周五的机票"), "a real summary is accepted");
+    Assert(!ContextWindow.LooksLikeFailure("我们讨论了提醒功能，用户希望每天 9 点提醒吃药。"),
+        "a summary that mentions the app's own features is still a summary");
 
     // The loop must add up what the provider reported, and add nothing when it reported nothing.
     var usageScript = new Queue<ToolLoopStep>(new[]

@@ -136,6 +136,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<VisionService>();
 
         builder.Services.AddSingleton<FunctionCallingService>();
+        builder.Services.AddSingleton<ContextCompressionService>();
         builder.Services.AddSingleton<FairyAI_Android.Services.Usage.TokenUsageService>();
 
         // ViewModels

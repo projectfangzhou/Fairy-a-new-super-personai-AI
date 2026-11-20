@@ -435,11 +435,17 @@
                         <CheckBox x:Name="ContextCompressionCheckBox" 
                                   IsChecked="True"
                                   Color="#38BDF8"/>
-                        <Label Text="上下文自动压缩 (256K)" 
+                        <Label x:Name="ContextCompressionLabel"
+                               Text="自动压缩过长对话"
                                TextColor="#E9E9E9" 
                                FontSize="14" 
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
+
+                    <Label x:Name="ContextBudgetLabel"
+                           Text=""
+                           TextColor="#6B7280"
+                           FontSize="11"/>
 
                     <!-- Knowledge Base -->
                     <VerticalStackLayout Spacing="12" Margin="0,8,0,0">

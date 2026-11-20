@@ -88,6 +88,13 @@ public partial class SettingsPage : ContentPage
                 ? "现在没有可用的视觉模型：识屏会直接告诉你缺配置，不会去截屏。"
                 : $"识屏会用它：{config.Vision.Model}";
 
+            // The budget used to be printed as a fixed "256K" in the label; show the real value so the
+            // number on screen is the one the app acts on.
+            ContextCompressionCheckBox.IsChecked = config.Context.Enabled;
+            ContextBudgetLabel.Text = config.Context.Enabled
+                ? $"超过约 {config.Context.AutoCompressTokens:N0} tokens 时，较早的对话会被折叠成一份摘要再发送（你看到的聊天记录不变）。"
+                : "关闭后整段对话按原样发送，长会话会更贵。";
+
             // Wake word
             var ww = config.WakeWord;
             WakeWordEnabledCheckBox.IsChecked = ww.Enabled;
