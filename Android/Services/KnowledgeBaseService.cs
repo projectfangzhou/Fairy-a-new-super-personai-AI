@@ -32,6 +32,9 @@ public class KnowledgeBaseService : IKnowledgeSearch
     /// <summary>Passages the current index can answer from — zero means nothing to search.</summary>
     public int PassageCount => CurrentIndex().PassageCount;
 
+    /// <summary>The chunks retrieval works on — the same ones keyword search uses.</summary>
+    public IReadOnlyList<(string Document, string Text)> Passages => CurrentIndex().Passages;
+
     /// <summary>Save important extracted info.</summary>
     public async Task SaveImportantInfoAsync(string category, string content)
     {

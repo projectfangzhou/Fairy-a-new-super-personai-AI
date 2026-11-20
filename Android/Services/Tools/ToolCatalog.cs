@@ -20,6 +20,7 @@ public static class ToolCatalog
         NoteStore notes,
         ReminderService reminders,
         Func<string?, Task<VisionOutcome>> lookAtScreen,
+        RAGService rag,
         Func<DateTime>? clock = null)
     {
         var registry = new ToolRegistry();
@@ -43,6 +44,10 @@ public static class ToolCatalog
 
         // Looking at the screen: the same gate as the other screen tools, plus a vision model.
         registry.Register(new DescribeScreenTool(lookAtScreen));
+
+        // Questions against the imported documents. Retrieval happens here, so the model gets the
+        // passages that matter instead of guessing which file to search.
+        registry.Register(new AskDocumentsTool(question => rag.AskAsync(question ?? "")));
 
         // The phone's own screen, one tool per whitelisted capability. Each still needs its grant and
         // a fresh approval at the moment it runs.

@@ -43,6 +43,14 @@ public sealed class KnowledgeIndex
 
     public int PassageCount => _passages.Count;
 
+    /// <summary>
+    /// The passages the index can answer from, with their document name. Exposed because retrieval by
+    /// vector needs the same chunks the keyword index works on — two different splittings would make
+    /// the two retrievers disagree about what a "passage" even is.
+    /// </summary>
+    public IReadOnlyList<(string Document, string Text)> Passages =>
+        _passages.Select(passage => (passage.Document, passage.Text)).ToList();
+
     public static KnowledgeIndex Build(IEnumerable<KnowledgeDocument> documents, int passageLength = DefaultPassageLength)
     {
         var index = new KnowledgeIndex();

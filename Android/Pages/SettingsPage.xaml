@@ -463,6 +463,41 @@
                                Text="" 
                                TextColor="#6EE7B7" 
                                FontSize="12"/>
+
+                        <!-- Vector retrieval: off unless an embedding model is configured -->
+                        <HorizontalStackLayout Spacing="12">
+                            <CheckBox x:Name="VectorSearchCheckBox"
+                                      Color="#38BDF8"/>
+                            <Label Text="用向量检索（需要接口支持 /embeddings）"
+                                   TextColor="#E9E9E9"
+                                   FontSize="13"
+                                   VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="EmbeddingsModelEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="向量模型名，例: text-embedding-3-small"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+
+                        <Border BackgroundColor="#0F131C"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12,0">
+                            <Entry x:Name="EmbeddingsUrlEntry"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#E9E9E9"
+                                   Placeholder="向量接口地址（留空则用聊天接口的 /embeddings）"
+                                   PlaceholderColor="#6B7280"/>
+                        </Border>
+
+                        <Label x:Name="VectorStatusLabel"
+                               Text=""
+                               TextColor="#6B7280"
+                               FontSize="11"/>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>

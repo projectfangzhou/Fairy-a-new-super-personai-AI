@@ -95,6 +95,20 @@ public partial class SettingsPage : ContentPage
                 ? $"超过约 {config.Context.AutoCompressTokens:N0} tokens 时，较早的对话会被折叠成一份摘要再发送（你看到的聊天记录不变）。"
                 : "关闭后整段对话按原样发送，长会话会更贵。";
 
+            // Knowledge: keyword search always works; the vector half needs a model name.
+            VectorSearchCheckBox.IsChecked = config.Knowledge.VectorSearchEnabled;
+            EmbeddingsModelEntry.Text = config.Knowledge.EmbeddingsModel;
+            EmbeddingsUrlEntry.Text = config.Knowledge.EmbeddingsBaseUrl;
+            var embeddings = FairyAI_Android.Services.Knowledge.EmbeddingSettings.From(
+                config.Knowledge.EmbeddingsBaseUrl, config.Knowledge.EmbeddingsModel,
+                config.Knowledge.EmbeddingsApiKey, config.LLM.BaseUrl, config.LLM.ApiKey);
+
+            VectorStatusLabel.Text = !config.Knowledge.VectorSearchEnabled
+                ? "现在只用关键词检索（离线、免费）：说法一致才找得到。"
+                : !embeddings.IsUsable
+                    ? "打开了向量检索，但还没填向量模型名，暂时仍按关键词检索。"
+                    : $"向量检索会调用 {embeddings.BaseUrl} · {embeddings.Model}";
+
             // Wake word
             var ww = config.WakeWord;
             WakeWordEnabledCheckBox.IsChecked = ww.Enabled;
@@ -172,6 +186,9 @@ public partial class SettingsPage : ContentPage
         config.TTS.VoiceCloneLang = VoiceCloneLangPicker.SelectedItem?.ToString() ?? "zh";
         if (ConfigManager.TTSProviders.TryGetValue(ttsP, out var tp)) { config.TTS.BaseUrl = tp.BaseUrl; }
         config.Context.Enabled = ContextCompressionCheckBox.IsChecked;
+        config.Knowledge.VectorSearchEnabled = VectorSearchCheckBox.IsChecked;
+        config.Knowledge.EmbeddingsModel = EmbeddingsModelEntry.Text?.Trim() ?? "";
+        config.Knowledge.EmbeddingsBaseUrl = EmbeddingsUrlEntry.Text?.Trim() ?? "";
         config.Performance.Mode = PerformanceModePicker.SelectedIndex switch { 0 => "high", 1 => "balanced", 2 => "low", _ => "balanced" };
 
         // Wake word

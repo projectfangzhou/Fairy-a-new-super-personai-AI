@@ -22,6 +22,8 @@ public class AppConfig
     public Live2DConfig Live2D { get; set; } = new();
     public ScreenControlConfig ScreenControl { get; set; } = new();
 
+    public KnowledgeConfig Knowledge { get; set; } = new();
+
     /// <summary>
     /// Set once the setup wizard has run to the end. Persisted so a blank API key (allowed on step 1)
     /// does not make the app ask for setup again on the next launch.
@@ -110,9 +112,26 @@ public class CustomPlatformConfig
     public string MultimodalApiKey { get; set; } = "";
 }
 
-public class VisionConfig
+/// <summary>
+/// How the knowledge base answers questions. Keyword search always works offline; the vector half is
+/// opt-in because it needs an endpoint that supports <c>/embeddings</c> and costs money per call.
+/// </summary>
+public class KnowledgeConfig
 {
-    public string Provider { get; set; } = "OpenAI";
+    public bool VectorSearchEnabled { get; set; } = false;
+
+    /// <summary>Empty means "not configured" — the URL is then derived from the LLM endpoint's host.</summary>
+    public string EmbeddingsBaseUrl { get; set; } = "";
+
+    /// <summary>Embedding model name, e.g. text-embedding-3-small. Empty means the vector half is off.</summary>
+    public string EmbeddingsModel { get; set; } = "";
+
+    /// <summary>Empty means "use the LLM key", which is the same provider most of the time.</summary>
+    public string EmbeddingsApiKey { get; set; } = "";
+}
+
+public class VisionConfig
+{    public string Provider { get; set; } = "OpenAI";
     public string ApiKey { get; set; } = "";
     public string BaseUrl { get; set; } = "https://api.openai.com/v1/chat/completions";
     public string Model { get; set; } = "gpt-4o-mini";

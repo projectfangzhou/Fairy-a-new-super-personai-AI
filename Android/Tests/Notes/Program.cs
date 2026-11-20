@@ -635,6 +635,183 @@ Assert(untouchedHandler.Calls == 0, "an unpaired phone sends no request");
 currentSettings = settings;
 Assert(MakeService(untouchedHandler).Describe().Contains("本机", StringComparison.Ordinal), "the summary line describes local state");
 
+
+// ------------------------------------------------------------------ retrieval wiring
+
+var derivedSettings = EmbeddingSettings.From(
+    null, "text-embedding-3-small", null,
+    "https://api.example.test/v1/chat/completions", "llm-key");
+Assert(derivedSettings.BaseUrl == "https://api.example.test/v1/embeddings", "the embedding URL is derived from the chat endpoint");
+Assert(derivedSettings.ApiKey == "llm-key", "the LLM key is reused when no separate key is given");
+Assert(derivedSettings.IsUsable, "a derived endpoint plus a model is usable");
+
+var explicitUrl = EmbeddingSettings.From(
+    "https://other.test/v1/embeddings", "m", "own-key",
+    "https://api.example.test/v1/chat/completions", "llm-key");
+Assert(explicitUrl.BaseUrl == "https://other.test/v1/embeddings", "an explicit URL wins");
+Assert(explicitUrl.ApiKey == "own-key", "an explicit key wins");
+
+Assert(EmbeddingSettings.DeriveUrl("https://a.test/custom") == "https://a.test/custom",
+    "an unknown URL shape is left alone instead of guessed at");
+Assert(!EmbeddingSettings.From(null, "", null, null, null).IsUsable, "no model means the vector half is off");
+
+var embeddingBody = EmbeddingsWire.BuildBody(derivedSettings, new[] { "第一段", "第二段" });
+using (var document = JsonDocument.Parse(embeddingBody))
+{
+    Assert(document.RootElement.GetProperty("model").GetString() == "text-embedding-3-small", "the request names the model");
+    Assert(document.RootElement.GetProperty("input").GetArrayLength() == 2, "every input is sent");
+}
+
+// The index field is what keeps a vector paired with its own paragraph.
+var outOfOrder = """
+{"data":[{"index":1,"embedding":[0,1]},{"index":0,"embedding":[1,0]}]}
+""";
+var (orderOk, orderVectors, _) = EmbeddingsWire.ParseResponse(200, outOfOrder, 2);
+Assert(orderOk, "an out-of-order reply parses");
+Assert(orderVectors[0][0] == 1 && orderVectors[1][1] == 1, "vectors are placed by their index, not by arrival order");
+
+var (shortOk, _, shortError) = EmbeddingsWire.ParseResponse(200, """{"data":[{"index":0,"embedding":[1,0]}]}""", 2);
+Assert(!shortOk && shortError!.Contains("只回了", StringComparison.Ordinal), "a short reply is an error, not a silent gap");
+
+var (raggedOk, _, raggedError) = EmbeddingsWire.ParseResponse(200,
+    """{"data":[{"index":0,"embedding":[1,0]},{"index":1,"embedding":[1,0,0]}]}""", 2);
+Assert(!raggedOk && raggedError!.Contains("长度不一致", StringComparison.Ordinal), "vectors of different lengths are rejected");
+
+var (apiErrOk, _, apiErrText) = EmbeddingsWire.ParseResponse(200, """{"error":{"message":"bad model"}}""", 1);
+Assert(!apiErrOk && apiErrText!.Contains("bad model", StringComparison.Ordinal), "an API-level error is surfaced");
+
+var (httpErrOk, _, httpErrText) = EmbeddingsWire.ParseResponse(429, "", 1);
+Assert(!httpErrOk && httpErrText!.Contains("429", StringComparison.Ordinal), "an HTTP error names the status");
+
+Assert(Math.Abs(VectorMath.Cosine(new[] { 1f, 0f }, new[] { 1f, 0f }) - 1) < 1e-9, "a vector is fully similar to itself");
+Assert(VectorMath.Cosine(new[] { 1f, 0f }, new[] { 0f, 1f }) == 0, "orthogonal vectors are not similar");
+Assert(VectorMath.Cosine(new[] { 1f, 0f }, new[] { 1f, 0f, 0f }) == 0, "different dimensions are not compared");
+Assert(VectorMath.Cosine(null!, new[] { 1f }) == 0, "a missing vector scores zero instead of throwing");
+
+// ------------------------------------------------------------------ fusion
+
+var fusion = RetrievalFusion.Fuse(
+    new[]
+    {
+        new KnowledgeHit("周会记录", "周一上午开会", 9.0),
+        new KnowledgeHit("排期表", "下周三交付", 5.0),
+    },
+    new[]
+    {
+        ("周会记录", "周一上午开会", 0.91),
+        ("旅行计划", "周五出发", 0.55),
+    },
+    limit: 3);
+
+Assert(fusion.Count == 3, "the two lists are merged and limited");
+Assert(fusion[0].Document == "周会记录" && fusion[0].Source == RetrievalSource.Both,
+    "a passage both retrievers found wins and is labelled as both");
+Assert(fusion.Any(hit => hit.Document == "旅行计划" && hit.Source == RetrievalSource.Vector),
+    "a vector-only hit is kept and labelled");
+Assert(fusion.Any(hit => hit.Document == "排期表" && hit.Source == RetrievalSource.Keyword),
+    "a keyword-only hit is kept and labelled keyword");
+Assert(fusion[1].Document == "排期表" && fusion[2].Document == "旅行计划",
+    "hits with the same fused score keep a stable order");
+
+var floored = RetrievalFusion.Fuse(null, new[] { ("弱相关", "无关段落", 0.05) }, limit: 3);
+Assert(floored.Count == 0, "a vector hit below the similarity floor is dropped");
+
+var dupes = RetrievalFusion.Fuse(
+    new[] { new KnowledgeHit("A", "同一段", 1.0), new KnowledgeHit("A", "同一段", 1.0) },
+    null, limit: 5);
+Assert(dupes.Count == 1, "the same passage is not listed twice");
+
+Assert(RetrievalFusion.Fuse(null, null, 4).Count == 0, "no retrievers means no hits");
+
+// ------------------------------------------------------------------ grounded prompt
+
+var promptHits = new List<RetrievalHit>
+{
+    new("周会记录", "预算通过了", 1.0, RetrievalSource.Both),
+    new("排期表", "周三交付", 0.5, RetrievalSource.Keyword),
+    new("周会记录", "招聘冻结", 0.4, RetrievalSource.Keyword),
+};
+
+var ragPrompt = RagPrompt.Build("预算怎么样", promptHits);
+Assert(ragPrompt.Contains("资料 1", StringComparison.Ordinal) && ragPrompt.Contains("资料 3", StringComparison.Ordinal),
+    "sources are numbered");
+Assert(ragPrompt.Contains("资料里没有提到", StringComparison.Ordinal), "the prompt says what to do when the sources are silent");
+Assert(ragPrompt.Contains("不要用你自己的知识补全", StringComparison.Ordinal), "the prompt forbids answering from memory");
+Assert(ragPrompt.Contains("预算怎么样", StringComparison.Ordinal), "the question is included");
+Assert(ragPrompt.IndexOf("资料 1", StringComparison.Ordinal) < ragPrompt.IndexOf("问题：", StringComparison.Ordinal),
+    "the sources come before the question");
+
+var ragSources = RagPrompt.Sources(promptHits);
+Assert(ragSources.Count == 2 && ragSources[0] == "周会记录", "source names are deduplicated in order");
+Assert(RagPrompt.DescribeSources(promptHits) == "关键词 + 向量", "the retriever mix is described");
+Assert(RagPrompt.DescribeSources(new[] { new RetrievalHit("A", "b", 1, RetrievalSource.Keyword) }) == "关键词",
+    "keyword-only is described as such");
+Assert(RagPrompt.DescribeSources(Array.Empty<RetrievalHit>()) == "没有命中", "no hits is described as such");
+
+// ------------------------------------------------------------------ the embedding cache
+
+var cachePath = PathFor("embeddings.json");
+var cache = new EmbeddingCache(cachePath);
+var keyA = EmbeddingCache.Key("model-a", "文档", "段落一");
+Assert(cache.Count == 0, "a new cache is empty");
+Assert(cache.Get(keyA) is null, "a missing vector reads as null");
+
+cache.Put(keyA, new[] { 1f, 2f, 3f });
+Assert(cache.Get(keyA)![1] == 2f, "a stored vector reads back");
+Assert(EmbeddingCache.Key("model-a", "文档", "段落一") == keyA, "the key is stable");
+Assert(EmbeddingCache.Key("model-b", "文档", "段落一") != keyA, "a different model gets a different key");
+
+var keyB = EmbeddingCache.Key("model-b", "文档", "段落一");
+cache.Put(keyB, new[] { 4f, 5f, 6f });
+Assert(cache.Save(), "the cache saves");
+Assert(new EmbeddingCache(cachePath).Count == 2, "the cache reloads from disk");
+Assert(new EmbeddingCache(cachePath).Get(keyA) is not null, "the values survive a reload");
+
+Assert(cache.PruneToModel("model-b") == 1, "vectors of another model are dropped");
+Assert(cache.Count == 1 && cache.Get(keyB) is not null, "the current model's vectors stay");
+
+File.WriteAllText(PathFor("bad-embeddings.json"), "{ not json");
+var damagedCache = new EmbeddingCache(PathFor("bad-embeddings.json"));
+Assert(damagedCache.Count == 0 && damagedCache.LastError is not null, "a damaged cache is reported and starts empty");
+
+// ------------------------------------------------------------------ the client
+
+var embeddingHandler = new EmbeddingHandler(dimension: 4);
+using (var client = new EmbeddingClient(new HttpClient(embeddingHandler)))
+{
+    var batch = await client.EmbedAsync(derivedSettings, Enumerable.Range(0, 40).Select(i => "段落" + i).ToList());
+    Assert(batch.Ok && batch.Vectors.Count == 40, "a batch larger than the per-call limit is completed");
+    Assert(embeddingHandler.Calls == 2, "the client splits by the documented batch size");
+    Assert(embeddingHandler.LastAuthorization == "Bearer llm-key", "the key travels as a bearer token");
+}
+
+var failingEmbeddings = new EmbeddingHandler(dimension: 4, status: 500, body: """{"error":{"message":"boom"}}""");
+using (var client = new EmbeddingClient(new HttpClient(failingEmbeddings)))
+{
+    var batch = await client.EmbedAsync(derivedSettings, new[] { "段落" });
+    Assert(!batch.Ok && batch.Error!.Contains("500", StringComparison.Ordinal), "an HTTP failure is reported");
+}
+
+using (var client = new EmbeddingClient(new HttpClient(new EmbeddingHandler(dimension: 4))))
+{
+    var batch = await client.EmbedAsync(new EmbeddingSettings("", "", ""), new[] { "x" });
+    Assert(!batch.Ok && batch.Error!.Contains("没有配置", StringComparison.Ordinal), "an unconfigured model sends nothing");
+}
+
+// ------------------------------------------------------------------ the tool
+
+var answered = new AskDocumentsTool(_ => Task.FromResult(new RagAnswer(
+    true, "预算通过了（资料 1）。", new[] { "周会记录" }, "关键词 + 向量", null)));
+
+var toolText = await answered.ExecuteAsync(new JsonObject { ["question"] = "预算怎么样" });
+Assert(toolText.Contains("预算通过了", StringComparison.Ordinal), "the answer is returned");
+Assert(toolText.Contains("依据：周会记录", StringComparison.Ordinal), "the sources are named");
+Assert(toolText.Contains("检索方式：关键词 + 向量", StringComparison.Ordinal), "how it was found is reported");
+
+var emptyBase = new AskDocumentsTool(_ => Task.FromResult(RagAnswer.Fail("知识库里还没有文档：先到设置里导入要问的资料。")));
+var emptyText = await emptyBase.ExecuteAsync(new JsonObject { ["question"] = "随便问问" });
+Assert(emptyText.Contains("还没有文档", StringComparison.Ordinal), "an empty knowledge base is reported verbatim");
+
 Console.WriteLine();
 Console.WriteLine($"{checks} checks passed");
 
@@ -725,6 +902,57 @@ sealed class SyncHandler : HttpMessageHandler
         return new HttpResponseMessage((HttpStatusCode)status)
         {
             Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json"),
+        };
+    }
+}
+
+/// <summary>Answers embedding requests: one vector per input, echoing the count it was given.</summary>
+sealed class EmbeddingHandler : HttpMessageHandler
+{
+    private readonly int _dimension;
+    private readonly int _status;
+    private readonly string _body;
+
+    public EmbeddingHandler(int dimension, int status = 200, string? body = null)
+    {
+        _dimension = dimension;
+        _status = status;
+        _body = body ?? "";
+    }
+
+    public int Calls { get; private set; }
+
+    public string? LastAuthorization { get; private set; }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        Calls++;
+        LastAuthorization = request.Headers.Authorization?.ToString();
+
+        if (_status != 200)
+        {
+            return new HttpResponseMessage((HttpStatusCode)_status)
+            {
+                Content = new StringContent(_body, System.Text.Encoding.UTF8, "application/json"),
+            };
+        }
+
+        var payload = request.Content is null ? "{}" : await request.Content.ReadAsStringAsync(cancellationToken);
+        using var document = System.Text.Json.JsonDocument.Parse(payload);
+        var count = document.RootElement.GetProperty("input").GetArrayLength();
+
+        var items = new List<object>();
+        for (var index = 0; index < count; index++)
+        {
+            var vector = new double[_dimension];
+            for (var i = 0; i < _dimension; i++) vector[i] = 0.1 * (index + 1) + i * 0.01;
+            items.Add(new { index, embedding = vector });
+        }
+
+        var reply = System.Text.Json.JsonSerializer.Serialize(new { data = items });
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(reply, System.Text.Encoding.UTF8, "application/json"),
         };
     }
 }

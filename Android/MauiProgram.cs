@@ -107,7 +107,8 @@ public static class MauiProgram
             sp.GetRequiredService<KnowledgeBaseService>(),
             sp.GetRequiredService<NoteService>().Store,
             sp.GetRequiredService<ReminderService>(),
-            question => sp.GetRequiredService<VisionService>().LookAsync(question)));
+            question => sp.GetRequiredService<VisionService>().LookAsync(question),
+            sp.GetRequiredService<RAGService>()));
         // Looking at the screen. The capture half is the same gate the screen tools use; the model
         // half reads its endpoint from config on every call, so changing the model in settings works
         // without a restart.
@@ -134,6 +135,28 @@ public static class MauiProgram
             return target;
         }));
         builder.Services.AddSingleton<VisionService>();
+
+        // Answering from the user's own documents. Keyword retrieval is always available; the vector
+        // half switches on when an embedding model is configured.
+        builder.Services.AddSingleton(sp => new FairyAI_Android.Services.Knowledge.EmbeddingCache(
+            Path.Combine(FileSystem.AppDataDirectory, "knowledge", "embeddings.json")));
+        builder.Services.AddSingleton<FairyAI_Android.Services.Knowledge.EmbeddingClient>();
+        builder.Services.AddSingleton(sp => new RAGService(
+            sp.GetRequiredService<KnowledgeBaseService>(),
+            sp.GetRequiredService<ILlmService>(),
+            sp.GetRequiredService<FairyAI_Android.Services.Knowledge.EmbeddingClient>(),
+            sp.GetRequiredService<FairyAI_Android.Services.Knowledge.EmbeddingCache>(),
+            () =>
+            {
+                var config = ConfigManager.Load();
+                var knowledge = config.Knowledge;
+                if (!knowledge.VectorSearchEnabled)
+                    return new FairyAI_Android.Services.Knowledge.EmbeddingSettings("", "", "");
+
+                return FairyAI_Android.Services.Knowledge.EmbeddingSettings.From(
+                    knowledge.EmbeddingsBaseUrl, knowledge.EmbeddingsModel, knowledge.EmbeddingsApiKey,
+                    config.LLM.BaseUrl, config.LLM.ApiKey);
+            }));
 
         builder.Services.AddSingleton<FunctionCallingService>();
         builder.Services.AddSingleton<ContextCompressionService>();

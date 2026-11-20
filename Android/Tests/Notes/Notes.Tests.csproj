@@ -24,6 +24,13 @@
     <Compile Include="../../Services/INotificationSink.cs" Link="Production/INotificationSink.cs" />
     <!-- Knowledge retrieval, and the tools that expose all three blocks to the model. -->
     <Compile Include="../../Services/Knowledge/KnowledgeIndex.cs" Link="Production/Knowledge/KnowledgeIndex.cs" />
+    <Compile Include="../../Services/Knowledge/Embeddings.cs" Link="Production/Knowledge/Embeddings.cs" />
+    <Compile Include="../../Services/Knowledge/EmbeddingCache.cs" Link="Production/Knowledge/EmbeddingCache.cs" />
+    <Compile Include="../../Services/Knowledge/EmbeddingClient.cs" Link="Production/Knowledge/EmbeddingClient.cs" />
+    <Compile Include="../../Services/Knowledge/RetrievalFusion.cs" Link="Production/Knowledge/RetrievalFusion.cs" />
+    <Compile Include="../../Services/Knowledge/RagPrompt.cs" Link="Production/Knowledge/RagPrompt.cs" />
+    <Compile Include="../../Services/Knowledge/RagAnswer.cs" Link="Production/Knowledge/RagAnswer.cs" />
+    <Compile Include="../../Services/Tools/KnowledgeTools.cs" Link="Production/Tools/KnowledgeTools.cs" />
     <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
     <Compile Include="../../Models/ChatMessage.cs" Link="Production/ChatMessage.cs" />
     <Compile Include="../../Services/Tools/ToolProtocol.cs" Link="Production/Tools/ToolProtocol.cs" />
