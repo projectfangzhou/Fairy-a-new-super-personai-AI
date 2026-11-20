@@ -26,18 +26,31 @@ public sealed class VisionService
         _important = important ?? throw new ArgumentNullException(nameof(important));
     }
 
-    public async Task<VisionOutcome> LookAsync(string? question = null, CancellationToken cancellationToken = default)
+    public async Task<VisionOutcome> LookAsync(string? question = null, CancellationToken cancellationToken = default) =>
+        await LookAsync(question, onStage: null, cancellationToken).ConfigureAwait(false);
+
+    /// <summary>
+    /// Same flow, reporting what it is currently doing. The two stages take very different amounts of
+    /// time — a screenshot is instant, the model can take half a minute — so a single "working…" label
+    /// would leave the user staring at the wrong word for most of the wait.
+    /// </summary>
+    public async Task<VisionOutcome> LookAsync(
+        string? question,
+        Action<string>? onStage,
+        CancellationToken cancellationToken = default)
     {
         // Check the model before touching the screen: with no vision endpoint the answer is known
         // already, so there is no reason to ask the user to approve a capture.
         if (_client.ResolveTarget() is null)
             return VisionOutcome.Fail("", VisionTargetSelector.MissingReason);
 
+        onStage?.Invoke("正在截屏…");
         var (bytes, capture, captureFailed) = await CaptureAsync(cancellationToken).ConfigureAwait(false);
 
         if (bytes is null)
             return VisionOutcome.Fail(capture, captureFailed ?? "没有拿到截图");
 
+        onStage?.Invoke("正在问视觉模型…");
         var answer = await _client.DescribeAsync(bytes, question, cancellationToken).ConfigureAwait(false);
 
         // The capture is always part of a failure message: "the model is unreachable" and "the screen

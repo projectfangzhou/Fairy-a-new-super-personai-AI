@@ -443,12 +443,14 @@ public partial class DevicesPage : ContentPage
         if (_looking) return;
         _looking = true;
 
-        VisionResultLabel.Text = "正在截屏…";
+        VisionResultLabel.Text = "准备中…";
         VisionResultLabel.TextColor = Color.FromArgb("#9CA3AF");
 
         try
         {
-            var outcome = await _vision.LookAsync();
+            var outcome = await _vision.LookAsync(
+                question: null,
+                onStage: stage => MainThread.BeginInvokeOnMainThread(() => VisionResultLabel.Text = stage));
             VisionResultLabel.Text = outcome.Message;
             VisionResultLabel.TextColor = Color.FromArgb(outcome.Ok ? "#E9E9E9" : "#FCA5A5");
         }

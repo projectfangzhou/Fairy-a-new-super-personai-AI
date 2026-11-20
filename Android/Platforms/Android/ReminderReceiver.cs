@@ -59,15 +59,31 @@ public sealed class ReminderReceiver : BroadcastReceiver
             var updated = store.MarkFired(id, DateTime.Now);
             if (updated is { Enabled: true }) new AndroidReminderAlarm(context).Schedule(updated);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // A broadcast receiver that throws is killed by the system; there is nowhere to report to
-            // but the notification history the user already has.
+            // A receiver that throws is killed by the system, so nothing may escape — but swallowing
+            // the failure silently leaves no way to find out why a reminder never arrived.
+            Log(context, "fire", ex);
         }
     }
 
     internal static string ReminderFile(Context context) =>
         Path.Combine(context.FilesDir?.AbsolutePath ?? FileSystem.AppDataDirectory, "reminders.json");
+
+    /// <summary>Appends to the same fairy.log the rest of the app writes, so a boot failure is findable.</summary>
+    internal static void Log(Context context, string tag, Exception ex)
+    {
+        try
+        {
+            var root = context.FilesDir?.AbsolutePath ?? FileSystem.AppDataDirectory;
+            File.AppendAllText(Path.Combine(root, "fairy.log"),
+                $"[{DateTime.Now:HH:mm:ss}] [Reminder:{tag}] {ex.GetType().Name}: {ex.Message}\n");
+        }
+        catch (Exception)
+        {
+            // Nowhere left to report to.
+        }
+    }
 
     private static ReminderService? RunningReminders()
     {
@@ -109,9 +125,10 @@ public sealed class ReminderBootReceiver : BroadcastReceiver
             foreach (var reminder in store.All().Where(item => item.Enabled))
                 alarm.Schedule(reminder);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Same reasoning as the receiver above: nothing useful to do inside a broadcast.
+            // Same reasoning as the receiver above: nothing may escape, but it has to be findable.
+            ReminderReceiver.Log(context, "boot", ex);
         }
     }
 }
