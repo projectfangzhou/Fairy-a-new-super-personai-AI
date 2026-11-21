@@ -1,0 +1,44 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+  主题三：青（Cyan）。
+
+  底色从纯黑抬到冷调深青，让强调色和环境同源 —— 玻璃层最吃这一套，
+  因为 tint 与强调色同色时折射出来的边缘不会出现「脏边」。
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="Theme.Bg">#04141A</Color>
+    <Color x:Key="Theme.BgMid">#082028</Color>
+    <Color x:Key="Theme.BgBottom">#0C2C36</Color>
+
+    <Color x:Key="Theme.SurfaceCard">#0E2630</Color>
+    <Color x:Key="Theme.SurfaceRaised">#143039</Color>
+    <Color x:Key="Theme.SurfaceSunken">#0A1E26</Color>
+    <Color x:Key="Theme.SurfaceTile">#0B222B</Color>
+
+    <Color x:Key="Theme.TextPrimary">#E4F4F8</Color>
+    <Color x:Key="Theme.TextSecondary">#93B7C4</Color>
+    <Color x:Key="Theme.TextMuted">#5E818E</Color>
+    <Color x:Key="Theme.TextOnAccent">#04141A</Color>
+
+    <Color x:Key="Theme.Accent">#22D3EE</Color>
+    <Color x:Key="Theme.AccentSoft">#0E7490</Color>
+    <Color x:Key="Theme.Success">#5EEAD4</Color>
+    <Color x:Key="Theme.Warning">#F0B872</Color>
+    <Color x:Key="Theme.Error">#FCA5A5</Color>
+    <Color x:Key="Theme.ErrorSurface">#2B1A22</Color>
+
+    <Color x:Key="Theme.Border">#173C46</Color>
+    <Color x:Key="Theme.BorderStrong">#1E5060</Color>
+    <Color x:Key="Theme.Divider">#12313A</Color>
+
+    <Color x:Key="Theme.GlassTint">#1422D3EE</Color>
+    <Color x:Key="Theme.GlassTintStrong">#2422D3EE</Color>
+    <Color x:Key="Theme.GlassHighlight">#4D67E8F5</Color>
+    <Color x:Key="Theme.GlassBorder">#3322D3EE</Color>
+    <Color x:Key="Theme.GlassShadow">#4D001418</Color>
+    <Color x:Key="Theme.GlassSheen">#1F22D3EE</Color>
+
+</ResourceDictionary>

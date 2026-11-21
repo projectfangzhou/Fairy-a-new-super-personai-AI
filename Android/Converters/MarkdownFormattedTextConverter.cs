@@ -1,17 +1,21 @@
 using System.Globalization;
 using FairyAI_Android.Services.Markdown;
+using FairyAI_Android.Services.Theme;
 
 namespace FairyAI_Android;
 
 /// <summary>
 /// Renders assistant markdown as label spans: bold, italic, monospace inline code and underlined
 /// links. Plain labels stay plain — this is only bound to the assistant side of the conversation.
+///
+/// 颜色从当前主题取（而不是写死），否则换主题后助手消息还是旧颜色，
+/// 会和页面其它部分对不上。取不到时退回墨黑的一套。
 /// </summary>
 public sealed class MarkdownFormattedTextConverter : IValueConverter
 {
-    private static readonly Color BodyColor = Color.FromArgb("#E9E9E9");
-    private static readonly Color LinkColor = Color.FromArgb("#7FB3FF");
-    private static readonly Color CodeColor = Color.FromArgb("#9FE8C0");
+    private static Color BodyColor => Glass.ReadColor("Theme.TextPrimary");
+    private static Color LinkColor => Glass.ReadColor("Theme.Accent");
+    private static Color CodeColor => Glass.ReadColor("Theme.Success");
 
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {

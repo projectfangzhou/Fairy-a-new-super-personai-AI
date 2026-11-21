@@ -1,4 +1,5 @@
 using FairyAI_Android.Services;
+using FairyAI_Android.Services.Theme;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FairyAI_Android;
@@ -16,6 +17,7 @@ public partial class App : Application
     {
         StartReminders();
         StartNoteSync();
+        ApplyStartupTheme();
 
         var window = ConfigManager.NeedsSetup()
             ? new Window(new NavigationPage(new Pages.SetupWizardPage()))
@@ -34,6 +36,28 @@ public partial class App : Application
         window.Stopped += (_, _) => updates.StopForeground();
         window.Destroying += (_, _) => updates.Dispose();
         return window;
+    }
+
+    /// <summary>
+    /// Applies the saved theme before the first frame. Reading the config can take a lock another
+    /// thread may be holding, so it happens on a worker; the dictionary swap itself is marshalled
+    /// back to the UI thread by ThemeManager.
+    /// </summary>
+    private static void ApplyStartupTheme()
+    {
+        var services = IPlatformApplication.Current?.Services;
+        if (services is null) return;
+
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                ThemeManager.ApplyFromConfig();            }
+            catch (Exception ex)
+            {
+                Log("Theme", ex);
+            }
+        });
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using FairyAI_Android.Services;
+using FairyAI_Android.Services.Theme;
 
 namespace FairyAI_Android.Pages;
 
@@ -30,7 +31,7 @@ public partial class TasksPage : ContentPage
         if (!_desk.IsConfigured)
         {
             StatusLabel.Text = "还没有和电脑配对：到设置里配对一次，电脑才会下发令牌。";
-            StatusLabel.TextColor = Color.FromArgb("#FCA5A5");
+            StatusLabel.TextColor = Glass.ReadColor("Theme.Error");
             PendingList.Clear();
             TaskList.Clear();
             PendingEmpty.IsVisible = true;
@@ -39,11 +40,11 @@ public partial class TasksPage : ContentPage
         }
 
         StatusLabel.Text = "正在读取…";
-        StatusLabel.TextColor = Color.FromArgb("#9CA3AF");
+        StatusLabel.TextColor = Glass.ReadColor("Theme.TextSecondary");
 
         var (ok, message, desk) = await _desk.FetchAsync();
         StatusLabel.Text = message;
-        StatusLabel.TextColor = ok ? Color.FromArgb("#6EE7B7") : Color.FromArgb("#FCA5A5");
+        StatusLabel.TextColor = ok ? Glass.ReadColor("Theme.Success") : Glass.ReadColor("Theme.Error");
 
         PendingList.Clear();
         TaskList.Clear();
@@ -71,7 +72,7 @@ public partial class TasksPage : ContentPage
         layout.Add(new Label
         {
             Text = pending.Prompt,
-            TextColor = Color.FromArgb("#E9E9E9"),
+            TextColor = Glass.ReadColor("Theme.TextPrimary"),
             FontSize = 13,
         });
 
@@ -80,7 +81,7 @@ public partial class TasksPage : ContentPage
             layout.Add(new Label
             {
                 Text = "风险：" + pending.Risk,
-                TextColor = Color.FromArgb("#FCA5A5"),
+                TextColor = Glass.ReadColor("Theme.Error"),
                 FontSize = 11,
             });
         }
@@ -90,14 +91,14 @@ public partial class TasksPage : ContentPage
             var answer = new Entry
             {
                 Placeholder = "在这里回答",
-                BackgroundColor = Color.FromArgb("#0F131C"),
-                TextColor = Color.FromArgb("#E9E9E9"),
+                BackgroundColor = Glass.ReadColor("Theme.SurfaceSunken"),
+                TextColor = Glass.ReadColor("Theme.TextPrimary"),
             };
             var send = new Button
             {
                 Text = "提交回答",
-                BackgroundColor = Color.FromArgb("#38BDF8"),
-                TextColor = Color.FromArgb("#0A0D12"),
+                BackgroundColor = Glass.ReadColor("Theme.Accent"),
+                TextColor = Glass.ReadColor("Theme.TextOnAccent"),
                 CornerRadius = 10,
                 HeightRequest = 40,
             };
@@ -112,8 +113,8 @@ public partial class TasksPage : ContentPage
             var allow = new Button
             {
                 Text = "允许",
-                BackgroundColor = Color.FromArgb("#10B981"),
-                TextColor = Color.FromArgb("#0A0D12"),
+                BackgroundColor = Glass.ReadColor("Theme.Success"),
+                TextColor = Glass.ReadColor("Theme.TextOnAccent"),
                 CornerRadius = 10,
                 HeightRequest = 40,
             };
@@ -122,8 +123,8 @@ public partial class TasksPage : ContentPage
             var deny = new Button
             {
                 Text = "拒绝",
-                BackgroundColor = Color.FromArgb("#374151"),
-                TextColor = Color.FromArgb("#E9E9E9"),
+                BackgroundColor = Glass.ReadColor("Theme.BorderStrong"),
+                TextColor = Glass.ReadColor("Theme.TextPrimary"),
                 CornerRadius = 10,
                 HeightRequest = 40,
             };
@@ -136,7 +137,7 @@ public partial class TasksPage : ContentPage
 
         return new Border
         {
-            BackgroundColor = Color.FromArgb("#161D2B"),
+            BackgroundColor = Glass.ReadColor("Theme.SurfaceCard"),
             StrokeThickness = 0,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 14 },
             Padding = 16,
@@ -156,13 +157,13 @@ public partial class TasksPage : ContentPage
         };
 
         var title = new VerticalStackLayout { Spacing = 2 };
-        title.Add(new Label { Text = task.Title, TextColor = Color.FromArgb("#E9E9E9"), FontSize = 13 });
-        title.Add(new Label { Text = task.TaskId, TextColor = Color.FromArgb("#6B7280"), FontSize = 11 });
+        title.Add(new Label { Text = task.Title, TextColor = Glass.ReadColor("Theme.TextPrimary"), FontSize = 13 });
+        title.Add(new Label { Text = task.TaskId, TextColor = Glass.ReadColor("Theme.TextMuted"), FontSize = 11 });
 
         var state = new Label
         {
             Text = task.State,
-            TextColor = Color.FromArgb("#38BDF8"),
+            TextColor = Glass.ReadColor("Theme.Accent"),
             FontSize = 12,
             VerticalOptions = LayoutOptions.Center,
         };
@@ -172,7 +173,7 @@ public partial class TasksPage : ContentPage
 
         return new Border
         {
-            BackgroundColor = Color.FromArgb("#111823"),
+            BackgroundColor = Glass.ReadColor("Theme.SurfaceTile"),
             StrokeThickness = 0,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
             Padding = 12,
@@ -185,7 +186,7 @@ public partial class TasksPage : ContentPage
         button.IsEnabled = false;
         var (ok, message) = await _desk.AnswerAsync(interactionId, approved);
         StatusLabel.Text = message;
-        StatusLabel.TextColor = ok ? Color.FromArgb("#6EE7B7") : Color.FromArgb("#FCA5A5");
+        StatusLabel.TextColor = ok ? Glass.ReadColor("Theme.Success") : Glass.ReadColor("Theme.Error");
 
         if (ok) await RefreshAsync();
         else button.IsEnabled = true;
@@ -196,14 +197,14 @@ public partial class TasksPage : ContentPage
         if (string.IsNullOrWhiteSpace(text))
         {
             StatusLabel.Text = "回答不能为空";
-            StatusLabel.TextColor = Color.FromArgb("#FCA5A5");
+            StatusLabel.TextColor = Glass.ReadColor("Theme.Error");
             return;
         }
 
         button.IsEnabled = false;
         var (ok, message) = await _desk.AnswerTextAsync(interactionId, text.Trim());
         StatusLabel.Text = message;
-        StatusLabel.TextColor = ok ? Color.FromArgb("#6EE7B7") : Color.FromArgb("#FCA5A5");
+        StatusLabel.TextColor = ok ? Glass.ReadColor("Theme.Success") : Glass.ReadColor("Theme.Error");
 
         if (ok) await RefreshAsync();
         else button.IsEnabled = true;

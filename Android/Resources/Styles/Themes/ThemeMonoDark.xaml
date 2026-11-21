@@ -1,0 +1,52 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+  主题语义令牌（四套主题共享同一组键名）。
+
+  键名按「角色」命名，不按色相命名：页面只引用 SurfaceCard / TextPrimary / Accent，
+  换主题时不需要改任何页面。
+
+  配色约束：
+    · 黑 / 白 是明暗模式，承载各自的强调色。
+    · 青 / 绿 是强调色变体：底色仍是冷灰 / 暖灰，强调色换成青 / 绿。
+  玻璃层参数（GlassTint / GlassHighlight）四套不同，因为同一条 alpha 在浅底和深底上观感不同。
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- ══════════════ 主题一：墨黑（Mono Dark）══════════════ -->
+    <!-- 底色纯黑系，强调色沿用原有 #38BDF8 天蓝，不丢掉既有视觉资产 -->
+    <Color x:Key="Theme.Bg">#05070C</Color>
+    <Color x:Key="Theme.BgMid">#0A0D12</Color>
+    <Color x:Key="Theme.BgBottom">#0F131C</Color>
+
+    <Color x:Key="Theme.SurfaceCard">#161D2B</Color>
+    <Color x:Key="Theme.SurfaceRaised">#1E2636</Color>
+    <Color x:Key="Theme.SurfaceSunken">#0F131C</Color>
+    <Color x:Key="Theme.SurfaceTile">#111823</Color>
+
+    <Color x:Key="Theme.TextPrimary">#E9E9E9</Color>
+    <Color x:Key="Theme.TextSecondary">#9CA3AF</Color>
+    <Color x:Key="Theme.TextMuted">#6B7280</Color>
+    <Color x:Key="Theme.TextOnAccent">#0A0D12</Color>
+
+    <Color x:Key="Theme.Accent">#38BDF8</Color>
+    <Color x:Key="Theme.AccentSoft">#0E7490</Color>
+    <Color x:Key="Theme.Success">#6EE7B7</Color>
+    <Color x:Key="Theme.Warning">#E9A568</Color>
+    <Color x:Key="Theme.Error">#FCA5A5</Color>
+    <Color x:Key="Theme.ErrorSurface">#2A1F2F</Color>
+
+    <Color x:Key="Theme.Border">#1F2937</Color>
+    <Color x:Key="Theme.BorderStrong">#2A3547</Color>
+    <Color x:Key="Theme.Divider">#1B2434</Color>
+
+    <!-- 玻璃：深底上用白色低 alpha 提亮，靠内高光勾边 -->
+    <Color x:Key="Theme.GlassTint">#14FFFFFF</Color>
+    <Color x:Key="Theme.GlassTintStrong">#22FFFFFF</Color>
+    <Color x:Key="Theme.GlassHighlight">#3DFFFFFF</Color>
+    <Color x:Key="Theme.GlassBorder">#26FFFFFF</Color>
+    <Color x:Key="Theme.GlassShadow">#40000000</Color>
+    <Color x:Key="Theme.GlassSheen">#1AFFFFFF</Color>
+
+</ResourceDictionary>

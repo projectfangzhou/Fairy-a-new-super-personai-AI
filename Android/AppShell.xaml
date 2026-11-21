@@ -1,32 +1,34 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8" ?>
 <Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:pages="clr-namespace:FairyAI_Android.Pages"
        x:Class="FairyAI_Android.AppShell"
-       Shell.FlyoutBehavior="Disabled"
-       Shell.BackgroundColor="#1a1a2e"
-       Shell.ForegroundColor="#7b68ee"
-       Shell.TabBarBackgroundColor="#1a1a2e"
-       Shell.TabBarForegroundColor="#9d8bff"
-       Shell.TabBarTitleColor="#9d8bff"
-       Shell.TabBarUnselectedColor="#8A8FA3">
+       Shell.FlyoutBehavior="Disabled">
 
-    <!-- Chat first: it is the product. Everything else is reached from the dashboard. -->
-    <TabBar>
+    <!--
+      Shell 自带的 TabBar 换成了自绘的液态玻璃气泡栏（Controls/GlassTabBar.cs），
+      它浮在内容之上，所以这里不设 TabBar —— 否则内置那条会跟气泡栏叠在一起。
+
+      气泡栏挂在 OverlayTab 那个 ShellItem 里：Shell 不接受直接往自己身上加子元素，
+      而这个 ShellItem 不在导航路由里，只用来承载覆盖层。
+    -->
+    <Tab>
         <ShellContent x:Name="ChatTab"
                       Title="对话"
-                      Icon="{OnPlatform iOS='chat_bubble'}"/>
+                      Route="chat"/>
         <ShellContent x:Name="DashboardTab"
                       Title="看板"
                       Route="dashboard"/>
         <ShellContent x:Name="TasksTab"
                       Title="任务"
-                      Route="tasks"
-                      Icon="{OnPlatform iOS='list_bullet'}"/>
+                      Route="tasks"/>
         <ShellContent x:Name="SettingsTab"
                       Title="设置"
-                      Route="settings"
-                      Icon="{OnPlatform iOS='settings'}"/>
-    </TabBar>
+                      Route="settings"/>
+    </Tab>
+
+    <ShellItem x:Name="OverlayItem">
+        <ShellContent x:Name="OverlayTab" Route="overlay" />
+    </ShellItem>
 
 </Shell>

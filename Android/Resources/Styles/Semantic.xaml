@@ -1,0 +1,53 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+  语义令牌桥接层。
+
+  页面只引用这里的键（SurfaceCard / TextPrimary / Accent …），
+  四套主题各自定义 Theme.* 值，ThemeManager 切换时替换本文件的绑定值。
+
+  这里定义的是「别名」，不是新颜色。页面写 {DynamicResource SurfaceCardBrush}，
+  切换主题时 ThemeManager 重新给 Semantic.* 赋值即可，页面不需要重新加载。
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- 背景三层（渐变用） -->
+    <SolidColorBrush x:Key="BgBrush" Color="{DynamicResource Theme.Bg}" />
+    <SolidColorBrush x:Key="BgMidBrush" Color="{DynamicResource Theme.BgMid}" />
+    <SolidColorBrush x:Key="BgBottomBrush" Color="{DynamicResource Theme.BgBottom}" />
+
+    <!-- 面 -->
+    <SolidColorBrush x:Key="SurfaceCardBrush" Color="{DynamicResource Theme.SurfaceCard}" />
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{DynamicResource Theme.SurfaceRaised}" />
+    <SolidColorBrush x:Key="SurfaceSunkenBrush" Color="{DynamicResource Theme.SurfaceSunken}" />
+    <SolidColorBrush x:Key="SurfaceTileBrush" Color="{DynamicResource Theme.SurfaceTile}" />
+    <SolidColorBrush x:Key="ErrorSurfaceBrush" Color="{DynamicResource Theme.ErrorSurface}" />
+
+    <!-- 字 -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{DynamicResource Theme.TextPrimary}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{DynamicResource Theme.TextSecondary}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{DynamicResource Theme.TextMuted}" />
+    <SolidColorBrush x:Key="TextOnAccentBrush" Color="{DynamicResource Theme.TextOnAccent}" />
+
+    <!-- 强调与状态 -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource Theme.Accent}" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="{DynamicResource Theme.AccentSoft}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{DynamicResource Theme.Success}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{DynamicResource Theme.Warning}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{DynamicResource Theme.Error}" />
+
+    <!-- 线 -->
+    <SolidColorBrush x:Key="BorderBrush" Color="{DynamicResource Theme.Border}" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{DynamicResource Theme.BorderStrong}" />
+    <SolidColorBrush x:Key="DividerBrush" Color="{DynamicResource Theme.Divider}" />
+
+    <!-- 玻璃 -->
+    <SolidColorBrush x:Key="GlassTintBrush" Color="{DynamicResource Theme.GlassTint}" />
+    <SolidColorBrush x:Key="GlassTintStrongBrush" Color="{DynamicResource Theme.GlassTintStrong}" />
+    <SolidColorBrush x:Key="GlassHighlightBrush" Color="{DynamicResource Theme.GlassHighlight}" />
+    <SolidColorBrush x:Key="GlassBorderBrush" Color="{DynamicResource Theme.GlassBorder}" />
+    <SolidColorBrush x:Key="GlassShadowBrush" Color="{DynamicResource Theme.GlassShadow}" />
+    <SolidColorBrush x:Key="GlassSheenBrush" Color="{DynamicResource Theme.GlassSheen}" />
+
+</ResourceDictionary>

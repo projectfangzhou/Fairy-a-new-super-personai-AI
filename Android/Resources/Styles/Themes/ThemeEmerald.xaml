@@ -1,0 +1,44 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+  主题四：翠（Emerald）。
+
+  底色带一点暖（比青主题的冷调更沉），避免纯绿在深底上发荧光。
+  强调色 #34D399 是同亮度带里在深底上可读性最好的一档。
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="Theme.Bg">#05140E</Color>
+    <Color x:Key="Theme.BgMid">#0A1E16</Color>
+    <Color x:Key="Theme.BgBottom">#0E2A1E</Color>
+
+    <Color x:Key="Theme.SurfaceCard">#10231A</Color>
+    <Color x:Key="Theme.SurfaceRaised">#163024</Color>
+    <Color x:Key="Theme.SurfaceSunken">#0B1C14</Color>
+    <Color x:Key="Theme.SurfaceTile">#0D2018</Color>
+
+    <Color x:Key="Theme.TextPrimary">#E4F5EC</Color>
+    <Color x:Key="Theme.TextSecondary">#96B9A6</Color>
+    <Color x:Key="Theme.TextMuted">#628073</Color>
+    <Color x:Key="Theme.TextOnAccent">#04140E</Color>
+
+    <Color x:Key="Theme.Accent">#34D399</Color>
+    <Color x:Key="Theme.AccentSoft">#0F7A52</Color>
+    <Color x:Key="Theme.Success">#6EE7B7</Color>
+    <Color x:Key="Theme.Warning">#E9B872</Color>
+    <Color x:Key="Theme.Error">#F2A0A0</Color>
+    <Color x:Key="Theme.ErrorSurface">#2A1A1E</Color>
+
+    <Color x:Key="Theme.Border">#1B3B2C</Color>
+    <Color x:Key="Theme.BorderStrong">#234B38</Color>
+    <Color x:Key="Theme.Divider">#153226</Color>
+
+    <Color x:Key="Theme.GlassTint">#1434D399</Color>
+    <Color x:Key="Theme.GlassTintStrong">#2434D399</Color>
+    <Color x:Key="Theme.GlassHighlight">#4D6EE7B7</Color>
+    <Color x:Key="Theme.GlassBorder">#3334D399</Color>
+    <Color x:Key="Theme.GlassShadow">#4D00140E</Color>
+    <Color x:Key="Theme.GlassSheen">#1F34D399</Color>
+
+</ResourceDictionary>

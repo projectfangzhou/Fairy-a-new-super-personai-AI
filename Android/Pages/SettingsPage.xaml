@@ -6,67 +6,124 @@
 
     <ContentPage.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#05070C" Offset="0.0"/>
-            <GradientStop Color="#0A0D12" Offset="0.5"/>
-            <GradientStop Color="#0F131C" Offset="1.0"/>
+            <GradientStop Color="{DynamicResource Theme.Bg}" Offset="0.0"/>
+            <GradientStop Color="{DynamicResource Theme.TextOnAccent}" Offset="0.5"/>
+            <GradientStop Color="{DynamicResource Theme.SurfaceSunken}" Offset="1.0"/>
         </LinearGradientBrush>
     </ContentPage.Background>
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="16">
 
+            <!-- ═══ 外观：四套主题 ═══ -->
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="0"
+                    Padding="20">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="🎨 外观"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           FontSize="18"
+                           FontAttributes="Bold"/>
+
+                    <Label Text="四套主题：墨黑与素白是明暗，青与翠是强调色变体。玻璃层用在顶栏、输入栏和弹层上。"
+                           TextColor="{DynamicResource Theme.TextMuted}"
+                           FontSize="12"/>
+
+                    <!-- 主题按钮组：四个胶囊，选中的是强调色 -->
+                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                        <Button Grid.Column="0" x:Name="ThemeMonoButton"
+                                Text="墨黑"
+                                Clicked="OnThemeSelected"
+                                AutomationId="ThemeMono"
+                                BackgroundColor="{DynamicResource Theme.SurfaceRaised}"
+                                TextColor="{DynamicResource Theme.TextSecondary}"
+                                CornerRadius="12"
+                                HeightRequest="44"/>
+                        <Button Grid.Column="1" x:Name="ThemeLightButton"
+                                Text="素白"
+                                Clicked="OnThemeSelected"
+                                AutomationId="ThemeLight"
+                                BackgroundColor="{DynamicResource Theme.SurfaceRaised}"
+                                TextColor="{DynamicResource Theme.TextSecondary}"
+                                CornerRadius="12"
+                                HeightRequest="44"/>
+                        <Button Grid.Column="2" x:Name="ThemeCyanButton"
+                                Text="青"
+                                Clicked="OnThemeSelected"
+                                AutomationId="ThemeCyan"
+                                BackgroundColor="{DynamicResource Theme.SurfaceRaised}"
+                                TextColor="{DynamicResource Theme.TextSecondary}"
+                                CornerRadius="12"
+                                HeightRequest="44"/>
+                        <Button Grid.Column="3" x:Name="ThemeEmeraldButton"
+                                Text="翠"
+                                Clicked="OnThemeSelected"
+                                AutomationId="ThemeEmerald"
+                                BackgroundColor="{DynamicResource Theme.SurfaceRaised}"
+                                TextColor="{DynamicResource Theme.TextSecondary}"
+                                CornerRadius="12"
+                                HeightRequest="44"/>
+                    </Grid>
+
+                    <Label x:Name="ThemeDescriptionLabel"
+                           TextColor="{DynamicResource Theme.TextSecondary}"
+                           FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
             <!-- AI Personality Card -->
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
                     <Label Text="🤖 AI 人格" 
-                           TextColor="#E9E9E9" 
+                           TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="角色名称" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="角色名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="PersonalityNameEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Text="Fairy"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="系统提示词" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="系统提示词" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,8">
                             <Editor x:Name="PersonalityPromptEditor" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9" 
+                                    TextColor="{DynamicResource Theme.TextPrimary}" 
                                     HeightRequest="120" 
                                     FontSize="13"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="语言" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="语言" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="LanguagePicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <HorizontalStackLayout Spacing="12">
                         <CheckBox x:Name="EnableEmotionCheckBox" 
                                   IsChecked="True"
-                                  Color="#38BDF8"/>
+                                  Color="{DynamicResource Theme.Accent}"/>
                         <Label Text="启用情感表达" 
-                               TextColor="#E9E9E9" 
+                               TextColor="{DynamicResource Theme.TextPrimary}" 
                                FontSize="14" 
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
@@ -74,95 +131,95 @@
             </Border>
 
             <!-- LLM Card -->
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
                     <Label Text="🧠 大语言模型" 
-                           TextColor="#E9E9E9" 
+                           TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="供应商" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="供应商" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="LLMProviderPicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
                         <HorizontalStackLayout Spacing="4">
-                            <Label Text="模型名称" TextColor="#9CA3AF" FontSize="13"/>
-                            <Label Text="*" TextColor="#EF4444" FontSize="13"/>
+                            <Label Text="模型名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                            <Label Text="*" TextColor="{DynamicResource Theme.Error}" FontSize="13"/>
                         </HorizontalStackLayout>
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="LLMModelNameEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="例: kimi-k2.6 / gpt-4o-mini"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="API Key" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="API Key" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="LLMApiKeyEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    IsPassword="True" 
                                    Placeholder="输入 API Key"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Vision model: what 识屏 uses -->
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="视觉模型（识屏用）" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="视觉模型（识屏用）" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VisionBaseUrlEntry"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    Placeholder="接口地址，例: https://…/v1/chat/completions"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VisionModelNameEntry"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    Placeholder="模型名称，例: gpt-4o-mini / mimo-vl"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VisionApiKeyEntry"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    IsPassword="True"
                                    Placeholder="API Key"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                         <Label x:Name="VisionSettingsStatus"
                                Text=""
-                               TextColor="#6B7280"
+                               TextColor="{DynamicResource Theme.TextMuted}"
                                FontSize="11"/>
 
                         <Button Text="测一下能不能看图"
-                                BackgroundColor="#1F2937"
-                                TextColor="#E9E9E9"
+                                BackgroundColor="{DynamicResource Theme.Border}"
+                                TextColor="{DynamicResource Theme.TextPrimary}"
                                 FontSize="13"
                                 CornerRadius="10"
                                 HeightRequest="40"
@@ -170,239 +227,239 @@
 
                         <Label x:Name="VisionProbeStatus"
                                Text=""
-                               TextColor="#9CA3AF"
+                               TextColor="{DynamicResource Theme.TextSecondary}"
                                FontSize="11"/>
                     </VerticalStackLayout>
 
                     <!-- Fallback LLM -->
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="备用 LLM 供应商" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="备用 LLM 供应商" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="FallbackLLMProviderPicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="备用 API Key" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="备用 API Key" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="FallbackLLMApiKeyEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    IsPassword="True" 
                                    Placeholder="输入备用 API Key"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
 
             <!-- TTS Card -->
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
                     <Label Text="🎵 语音合成" 
-                           TextColor="#E9E9E9" 
+                           TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="TTS 供应商" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="TTS 供应商" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="TTSProviderPicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
                                     SelectedIndexChanged="OnTTSProviderChanged"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
                         <HorizontalStackLayout Spacing="4">
-                            <Label Text="模型名称" TextColor="#9CA3AF" FontSize="13"/>
-                            <Label Text="*" TextColor="#EF4444" FontSize="13"/>
+                            <Label Text="模型名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                            <Label Text="*" TextColor="{DynamicResource Theme.Error}" FontSize="13"/>
                         </HorizontalStackLayout>
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="TTSModelNameEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="例: mimo-tts-v2.5 / tts-1"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="音色" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="音色" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="TTSVoicePicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="API Key" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="API Key" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="TTSApiKeyEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    IsPassword="True" 
                                    Placeholder="输入 TTS API Key"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Voice Clone Section -->
                     <VerticalStackLayout Spacing="12" Margin="0,8,0,0">
                         <Label Text="GPT-SoVITS 语音克隆" 
-                               TextColor="#6EE7B7" 
+                               TextColor="{DynamicResource Theme.Success}" 
                                FontSize="15" 
                                FontAttributes="Bold"/>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VoiceClonePathEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="参考音频路径 (WAV/MP3)"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
 
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VoiceClonePromptEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="声音描述 (可选)"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
 
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="VoiceCloneLangPicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <Button Text="测试语音" 
-                            BackgroundColor="#38BDF8" 
-                            TextColor="#0A0D12"
+                            BackgroundColor="{DynamicResource Theme.Accent}" 
+                            TextColor="{DynamicResource Theme.TextOnAccent}"
                             CornerRadius="12"
                             HeightRequest="44"
                             Clicked="OnTestTts"/>
                     <Label x:Name="TtsStatus" 
                            Text="" 
-                           TextColor="#6EE7B7" 
+                           TextColor="{DynamicResource Theme.Success}" 
                            FontSize="12"/>
                 </VerticalStackLayout>
             </Border>
 
             <!-- Wake Word Card -->
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
                     <Label Text="🎙️ 唤醒词" 
-                           TextColor="#E9E9E9" 
+                           TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
                     <Label Text="说出唤醒词后 AI 自动开始聆听指令" 
-                           TextColor="#9CA3AF" 
+                           TextColor="{DynamicResource Theme.TextSecondary}" 
                            FontSize="13"/>
 
                     <HorizontalStackLayout Spacing="12">
                         <CheckBox x:Name="WakeWordEnabledCheckBox" 
                                   IsChecked="False"
-                                  Color="#38BDF8"/>
+                                  Color="{DynamicResource Theme.Accent}"/>
                         <Label Text="启用唤醒词" 
-                               TextColor="#E9E9E9" 
+                               TextColor="{DynamicResource Theme.TextPrimary}" 
                                FontSize="14" 
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="唤醒词" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="唤醒词" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="WakeWordEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="默认: 小精灵"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="备用唤醒词 (逗号分隔)" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="备用唤醒词 (逗号分隔)" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="WakeWordAltEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="例: 小助手,Fairy"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <HorizontalStackLayout Spacing="12">
                         <CheckBox x:Name="WakeWordTtsCheckBox" 
                                   IsChecked="True"
-                                  Color="#38BDF8"/>
+                                  Color="{DynamicResource Theme.Accent}"/>
                         <Label Text="唤醒后语音回应" 
-                               TextColor="#E9E9E9" 
+                               TextColor="{DynamicResource Theme.TextPrimary}" 
                                FontSize="14" 
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="回应语" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="回应语" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="WakeWordFeedbackEntry" 
                                    BackgroundColor="Transparent" 
-                                   TextColor="#E9E9E9" 
+                                   TextColor="{DynamicResource Theme.TextPrimary}" 
                                    Placeholder="回应语: 我在"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
                 </VerticalStackLayout>
             </Border>
 
             <!-- Connections and permissions moved out of settings -->
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="🔗 连接与权限"
-                           TextColor="#E9E9E9"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
                            FontSize="18"
                            FontAttributes="Bold"/>
                     <Label Text="配对电脑、读取电脑任务摘要、允许手机屏幕操作，都挪到了「看板 → 设备连接」。这里只保留外观、模型与语音这些偏好。"
-                           TextColor="#9CA3AF"
+                           TextColor="{DynamicResource Theme.TextSecondary}"
                            FontSize="13"/>
                     <Button Text="打开设备连接"
-                            BackgroundColor="#1F2937"
-                            TextColor="#E9E9E9"
+                            BackgroundColor="{DynamicResource Theme.Border}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
                             CornerRadius="12"
                             HeightRequest="44"
                             Clicked="OnOpenDevices"/>
@@ -410,128 +467,128 @@
             </Border>
 
             <!-- Advanced Features Card -->
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
                     <Label Text="⚡ 高级功能" 
-                           TextColor="#E9E9E9" 
+                           TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
                     <!-- Performance -->
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="性能模式" TextColor="#9CA3AF" FontSize="13"/>
-                        <Border BackgroundColor="#0F131C"
+                        <Label Text="性能模式" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="PerformanceModePicker" 
                                     BackgroundColor="Transparent" 
-                                    TextColor="#E9E9E9"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <HorizontalStackLayout Spacing="12">
                         <CheckBox x:Name="ContextCompressionCheckBox" 
                                   IsChecked="True"
-                                  Color="#38BDF8"/>
+                                  Color="{DynamicResource Theme.Accent}"/>
                         <Label x:Name="ContextCompressionLabel"
                                Text="自动压缩过长对话"
-                               TextColor="#E9E9E9" 
+                               TextColor="{DynamicResource Theme.TextPrimary}" 
                                FontSize="14" 
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
                     <Label x:Name="ContextBudgetLabel"
                            Text=""
-                           TextColor="#6B7280"
+                           TextColor="{DynamicResource Theme.TextMuted}"
                            FontSize="11"/>
 
                     <!-- Knowledge Base -->
                     <VerticalStackLayout Spacing="12" Margin="0,8,0,0">
                         <Label Text="📚 知识库" 
-                               TextColor="#6EE7B7" 
+                               TextColor="{DynamicResource Theme.Success}" 
                                FontSize="15" 
                                FontAttributes="Bold"/>
                         <Button Text="导入文档 (PPT/Word/PDF)" 
-                                BackgroundColor="#1E2636" 
-                                TextColor="#E9E9E9"
+                                BackgroundColor="{DynamicResource Theme.SurfaceRaised}" 
+                                TextColor="{DynamicResource Theme.TextPrimary}"
                                 CornerRadius="12"
                                 HeightRequest="44"
                                 Clicked="OnImportDocument"/>
                         <Label x:Name="KnowledgeStatus" 
                                Text="" 
-                               TextColor="#6EE7B7" 
+                               TextColor="{DynamicResource Theme.Success}" 
                                FontSize="12"/>
 
                         <!-- Vector retrieval: off unless an embedding model is configured -->
                         <HorizontalStackLayout Spacing="12">
                             <CheckBox x:Name="VectorSearchCheckBox"
-                                      Color="#38BDF8"/>
+                                      Color="{DynamicResource Theme.Accent}"/>
                             <Label Text="用向量检索（需要接口支持 /embeddings）"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    FontSize="13"
                                    VerticalOptions="Center"/>
                         </HorizontalStackLayout>
 
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="EmbeddingsModelEntry"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    Placeholder="向量模型名，例: text-embedding-3-small"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
 
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="EmbeddingsUrlEntry"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    Placeholder="向量接口地址（留空则用聊天接口的 /embeddings）"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
 
                         <Label x:Name="VectorStatusLabel"
                                Text=""
-                               TextColor="#6B7280"
+                               TextColor="{DynamicResource Theme.TextMuted}"
                                FontSize="11"/>
 
                         <!-- Local embedding model: a file on the phone, not in the APK -->
                         <Label Text="本地向量模型（可选，省掉每次调用）"
-                               TextColor="#9CA3AF"
+                               TextColor="{DynamicResource Theme.TextSecondary}"
                                FontSize="12"/>
 
                         <Label x:Name="LocalModelStatusLabel"
                                Text=""
-                               TextColor="#6B7280"
+                               TextColor="{DynamicResource Theme.TextMuted}"
                                FontSize="11"/>
 
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="LocalModelUrlEntry"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    Placeholder="模型下载地址（可留空，改为导入文件）"
-                                   PlaceholderColor="#6B7280"/>
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                             <Button Grid.Column="0"
                                     Text="导入模型文件"
-                                    BackgroundColor="#1F2937"
-                                    TextColor="#E9E9E9"
+                                    BackgroundColor="{DynamicResource Theme.Border}"
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
                                     FontSize="13"
                                     CornerRadius="10"
                                     HeightRequest="40"
                                     Clicked="OnImportLocalModel"/>
                             <Button Grid.Column="1"
                                     Text="从地址下载"
-                                    BackgroundColor="#1F2937"
-                                    TextColor="#E9E9E9"
+                                    BackgroundColor="{DynamicResource Theme.Border}"
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
                                     FontSize="13"
                                     CornerRadius="10"
                                     HeightRequest="40"
@@ -539,16 +596,16 @@
                         </Grid>
 
                         <Button Text="删除本地模型"
-                                BackgroundColor="#2A1F2F"
-                                TextColor="#E58E8E"
+                                BackgroundColor="{DynamicResource Theme.ErrorSurface}"
+                                TextColor="{DynamicResource Theme.Error}"
                                 FontSize="13"
                                 CornerRadius="10"
                                 HeightRequest="38"
                                 Clicked="OnDeleteLocalModel"/>
 
                         <Button Text="测一下向量（三句相似度）"
-                                BackgroundColor="#1F2937"
-                                TextColor="#E9E9E9"
+                                BackgroundColor="{DynamicResource Theme.Border}"
+                                TextColor="{DynamicResource Theme.TextPrimary}"
                                 FontSize="13"
                                 CornerRadius="10"
                                 HeightRequest="40"
@@ -559,8 +616,8 @@
 
             <!-- Save Button -->
             <Button Text="保存配置" 
-                    BackgroundColor="#38BDF8" 
-                    TextColor="#0A0D12"
+                    BackgroundColor="{DynamicResource Theme.Accent}" 
+                    TextColor="{DynamicResource Theme.TextOnAccent}"
                     FontSize="16"
                     FontAttributes="Bold"
                     CornerRadius="16"
@@ -568,7 +625,7 @@
                     Margin="0,8,0,16"
                     Clicked="OnSaveClicked">
                 <Button.Shadow>
-                    <Shadow Brush="#38BDF8" 
+                    <Shadow Brush="{DynamicResource Theme.Accent}" 
                             Opacity="0.4" 
                             Radius="16" 
                             Offset="0,4"/>

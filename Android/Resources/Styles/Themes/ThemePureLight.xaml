@@ -1,0 +1,46 @@
+﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+  主题二：素白（Pure Light）。
+
+  白底上玻璃必须靠「白 tint + 内阴影」而不是「黑 alpha」，否则会脏。
+  强调色用深青 #0E7490 —— 天蓝 #38BDF8 在白底上对比度不足（3.1:1），
+  正文级别的青才够（5.1:1）。
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="Theme.Bg">#F7F8FA</Color>
+    <Color x:Key="Theme.BgMid">#FFFFFF</Color>
+    <Color x:Key="Theme.BgBottom">#EEF1F5</Color>
+
+    <Color x:Key="Theme.SurfaceCard">#FFFFFF</Color>
+    <Color x:Key="Theme.SurfaceRaised">#FFFFFF</Color>
+    <Color x:Key="Theme.SurfaceSunken">#F1F3F7</Color>
+    <Color x:Key="Theme.SurfaceTile">#F4F6FA</Color>
+
+    <Color x:Key="Theme.TextPrimary">#101828</Color>
+    <Color x:Key="Theme.TextSecondary">#5A6478</Color>
+    <Color x:Key="Theme.TextMuted">#8B94A6</Color>
+    <Color x:Key="Theme.TextOnAccent">#FFFFFF</Color>
+
+    <Color x:Key="Theme.Accent">#0E7490</Color>
+    <Color x:Key="Theme.AccentSoft">#67C5DE</Color>
+    <Color x:Key="Theme.Success">#0F9D63</Color>
+    <Color x:Key="Theme.Warning">#B26A12</Color>
+    <Color x:Key="Theme.Error">#C23B3B</Color>
+    <Color x:Key="Theme.ErrorSurface">#FBEDED</Color>
+
+    <Color x:Key="Theme.Border">#E3E7EF</Color>
+    <Color x:Key="Theme.BorderStrong">#CBD2E0</Color>
+    <Color x:Key="Theme.Divider">#EDF0F5</Color>
+
+    <!-- 浅底玻璃：白 tint + 深色内阴影，边缘靠下缘暗线勾出厚度 -->
+    <Color x:Key="Theme.GlassTint">#B3FFFFFF</Color>
+    <Color x:Key="Theme.GlassTintStrong">#CCFFFFFF</Color>
+    <Color x:Key="Theme.GlassHighlight">#FFFFFFFF</Color>
+    <Color x:Key="Theme.GlassBorder">#1A101828</Color>
+    <Color x:Key="Theme.GlassShadow">#14101828</Color>
+    <Color x:Key="Theme.GlassSheen">#0AFFFFFF</Color>
+
+</ResourceDictionary>

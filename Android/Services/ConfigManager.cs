@@ -24,11 +24,24 @@ public class AppConfig
 
     public KnowledgeConfig Knowledge { get; set; } = new();
 
+    /// <summary>外观：主题与相关偏好。</summary>
+    public AppearanceConfig Appearance { get; set; } = new();
+
     /// <summary>
     /// Set once the setup wizard has run to the end. Persisted so a blank API key (allowed on step 1)
     /// does not make the app ask for setup again on the next launch.
     /// </summary>
     public bool SetupCompleted { get; set; }
+}
+
+/// <summary>外观设置。</summary>
+public class AppearanceConfig
+{
+    /// <summary>主题名（AppTheme 枚举）。空值按墨黑处理。</summary>
+    public string Theme { get; set; } = "MonoDark";
+
+    /// <summary>是否启用玻璃层。关掉后退回纯色面，给低性能设备留一条路。</summary>
+    public bool GlassEnabled { get; set; } = true;
 }
 
 /// <summary>

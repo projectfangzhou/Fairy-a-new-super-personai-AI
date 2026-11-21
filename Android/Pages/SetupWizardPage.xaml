@@ -6,16 +6,16 @@
 
     <ContentPage.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#05070C" Offset="0.0"/>
-            <GradientStop Color="#0A0D12" Offset="0.5"/>
-            <GradientStop Color="#0F131C" Offset="1.0"/>
+            <GradientStop Color="{DynamicResource Theme.Bg}" Offset="0.0"/>
+            <GradientStop Color="{DynamicResource Theme.TextOnAccent}" Offset="0.5"/>
+            <GradientStop Color="{DynamicResource Theme.SurfaceSunken}" Offset="1.0"/>
         </LinearGradientBrush>
     </ContentPage.Background>
 
     <Grid RowDefinitions="Auto,*,Auto" Padding="20">
         <!-- Progress indicator -->
         <Border Grid.Row="0" 
-                BackgroundColor="#161D2B"
+                BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                 StrokeShape="RoundRectangle 16"
                 Padding="20,16"
                 Margin="0,0,0,20">
@@ -24,13 +24,13 @@
                        Text="第 1 步 / 共 14 步" 
                        FontSize="16" 
                        FontAttributes="Bold"
-                       TextColor="#E9E9E9" 
+                       TextColor="{DynamicResource Theme.TextPrimary}" 
                        HorizontalOptions="Center"/>
                 <ProgressBar x:Name="ProgressBar" 
                              Progress="0.071" 
-                             ProgressColor="#38BDF8" 
+                             ProgressColor="{DynamicResource Theme.Accent}" 
                              HeightRequest="6"
-                             BackgroundColor="#1E2636">
+                             BackgroundColor="{DynamicResource Theme.SurfaceRaised}">
                     <ProgressBar.Clip>
                         <RoundRectangleGeometry CornerRadius="999" Rect="0,0,1000,6"/>
                     </ProgressBar.Clip>
@@ -38,7 +38,7 @@
                 <Label x:Name="StepDescription" 
                        Text="配置您的 AI 助手" 
                        FontSize="13" 
-                       TextColor="#9CA3AF" 
+                       TextColor="{DynamicResource Theme.TextSecondary}" 
                        HorizontalOptions="Center"/>
             </VerticalStackLayout>
         </Border>
@@ -50,7 +50,7 @@
                 <!-- Step 1: LLM Provider -->
                 <Border x:Name="Step1Panel" 
                         IsVisible="True"
-                        BackgroundColor="#161D2B"
+                        BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                         StrokeShape="RoundRectangle 16"
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
@@ -58,31 +58,31 @@
                             <Label Text="🧠 选择 LLM 供应商" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
-                                   TextColor="#E9E9E9"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"/>
                             <Label Text="选择您的主要大语言模型服务商" 
                                    FontSize="14" 
-                                   TextColor="#9CA3AF"/>
+                                   TextColor="{DynamicResource Theme.TextSecondary}"/>
                         </VerticalStackLayout>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="LLMProviderPicker" 
                                     Title="选择供应商"
                                     BackgroundColor="Transparent"
-                                    TextColor="#E9E9E9"
-                                    TitleColor="#6EE7B7"
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
+                                    TitleColor="{DynamicResource Theme.Success}"
                                     SelectedIndexChanged="OnLLMProviderChanged"/>
                         </Border>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="LLMApiKeyEntry" 
                                    Placeholder="API Key (可选)" 
                                    IsPassword="True"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
-                                   PlaceholderColor="#6B7280"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
                 </Border>
@@ -90,7 +90,7 @@
                 <!-- Step 2: Model Names -->
                 <Border x:Name="Step2Panel" 
                         IsVisible="False"
-                        BackgroundColor="#161D2B"
+                        BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                         StrokeShape="RoundRectangle 16"
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
@@ -98,25 +98,25 @@
                             <Label Text="⚙️ 配置模型名称" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
-                                   TextColor="#E9E9E9"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"/>
                             <Label Text="输入您要使用的具体模型名称" 
                                    FontSize="14" 
-                                   TextColor="#9CA3AF"/>
+                                   TextColor="{DynamicResource Theme.TextSecondary}"/>
                         </VerticalStackLayout>
                         
                         <VerticalStackLayout Spacing="8">
                             <HorizontalStackLayout Spacing="4">
-                                <Label Text="文本模型名称" TextColor="#9CA3AF" FontSize="13"/>
-                                <Label Text="*" TextColor="#EF4444" FontSize="13"/>
+                                <Label Text="文本模型名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
+                                <Label Text="*" TextColor="{DynamicResource Theme.Error}" FontSize="13"/>
                             </HorizontalStackLayout>
-                            <Border BackgroundColor="#0F131C"
+                            <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                     StrokeShape="RoundRectangle 12"
                                     Padding="12,0">
                                 <Entry x:Name="LLMModelNameEntry" 
                                        Placeholder="例: kimi-k2.6, deepseek-chat"
                                        BackgroundColor="Transparent"
-                                       TextColor="#E9E9E9"
-                                       PlaceholderColor="#6B7280"/>
+                                       TextColor="{DynamicResource Theme.TextPrimary}"
+                                       PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                             </Border>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
@@ -125,7 +125,7 @@
                 <!-- Step 3: Vision Service -->
                 <Border x:Name="Step3Panel" 
                         IsVisible="False"
-                        BackgroundColor="#161D2B"
+                        BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                         StrokeShape="RoundRectangle 16"
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
@@ -133,40 +133,40 @@
                             <Label Text="👁️ 视觉识别服务" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
-                                   TextColor="#E9E9E9"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"/>
                             <Label Text="用于图像分析和识屏功能" 
                                    FontSize="14" 
-                                   TextColor="#9CA3AF"/>
+                                   TextColor="{DynamicResource Theme.TextSecondary}"/>
                         </VerticalStackLayout>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="VisionProviderPicker" 
                                     Title="选择 Vision 供应商"
                                     BackgroundColor="Transparent"
-                                    TextColor="#E9E9E9"
-                                    TitleColor="#6EE7B7"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
+                                    TitleColor="{DynamicResource Theme.Success}"/>
                         </Border>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VisionApiKeyEntry" 
                                    Placeholder="Vision API Key (可选)" 
                                    IsPassword="True"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
-                                   PlaceholderColor="#6B7280"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="VisionModelNameEntry" 
                                    Placeholder="Vision 模型名称"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
-                                   PlaceholderColor="#6B7280"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                     </VerticalStackLayout>
                 </Border>
@@ -174,7 +174,7 @@
                 <!-- Step 4: TTS Service -->
                 <Border x:Name="Step4Panel" 
                         IsVisible="False"
-                        BackgroundColor="#161D2B"
+                        BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                         StrokeShape="RoundRectangle 16"
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
@@ -182,55 +182,55 @@
                             <Label Text="🎵 语音合成服务" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
-                                   TextColor="#E9E9E9"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"/>
                             <Label Text="让 Fairy 可以开口说话" 
                                    FontSize="14" 
-                                   TextColor="#9CA3AF"/>
+                                   TextColor="{DynamicResource Theme.TextSecondary}"/>
                         </VerticalStackLayout>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="TTSProviderPicker" 
                                     Title="选择 TTS 供应商"
                                     BackgroundColor="Transparent"
-                                    TextColor="#E9E9E9"
-                                    TitleColor="#6EE7B7"
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
+                                    TitleColor="{DynamicResource Theme.Success}"
                                     SelectedIndexChanged="OnTTSProviderChanged"/>
                         </Border>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12,0">
                             <Entry x:Name="TTSApiKeyEntry" 
                                    Placeholder="TTS API Key (可选)" 
                                    IsPassword="True"
                                    BackgroundColor="Transparent"
-                                   TextColor="#E9E9E9"
-                                   PlaceholderColor="#6B7280"/>
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
+                                   PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                         </Border>
                         
-                        <Border BackgroundColor="#0F131C"
+                        <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
                             <Picker x:Name="TTSVoicePicker" 
                                     Title="选择音色"
                                     BackgroundColor="Transparent"
-                                    TextColor="#E9E9E9"
-                                    TitleColor="#6EE7B7"/>
+                                    TextColor="{DynamicResource Theme.TextPrimary}"
+                                    TitleColor="{DynamicResource Theme.Success}"/>
                         </Border>
                     </VerticalStackLayout>
                 </Border>
 
                 <!-- Step 5: Offline ASR -->
                 <StackLayout x:Name="Step5Panel" IsVisible="False" Spacing="12">
-                    <Label Text="离线语音识别" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="使用本地 Whisper 模型，无需联网" FontSize="14" TextColor="#9CA3AF"/>
-                    <CheckBox x:Name="EnableOfflineAsrCheckBox" Color="#38BDF8"/>
-                    <Label Text="启用离线 ASR (Whisper.cpp)" TextColor="#E9E9E9" VerticalOptions="Center"/>
+                    <Label Text="离线语音识别" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="使用本地 Whisper 模型，无需联网" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
+                    <CheckBox x:Name="EnableOfflineAsrCheckBox" Color="{DynamicResource Theme.Accent}"/>
+                    <Label Text="启用离线 ASR (Whisper.cpp)" TextColor="{DynamicResource Theme.TextPrimary}" VerticalOptions="Center"/>
                     <Picker x:Name="WhisperModelPicker" 
                             Title="选择 Whisper 模型"
-                            BackgroundColor="#161D2B"
-                            TextColor="#E9E9E9"
-                            TitleColor="#6EE7B7">
+                            BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
+                            TitleColor="{DynamicResource Theme.Success}">
                         <Picker.Items>
                             <x:String>tiny (75MB, 快速)</x:String>
                             <x:String>base (142MB, 推荐)</x:String>
@@ -241,55 +241,55 @@
 
                 <!-- Step 6: Fallback LLM -->
                 <StackLayout x:Name="Step6Panel" IsVisible="False" Spacing="12">
-                    <Label Text="备用 LLM 配置" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="当主模型失败时自动切换" FontSize="14" TextColor="#9CA3AF"/>
+                    <Label Text="备用 LLM 配置" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="当主模型失败时自动切换" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
                     <Picker x:Name="FallbackLLMProviderPicker" 
                             Title="选择备用供应商"
-                            BackgroundColor="#161D2B"
-                            TextColor="#E9E9E9"
-                            TitleColor="#6EE7B7"/>
+                            BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
+                            TitleColor="{DynamicResource Theme.Success}"/>
                     <Entry x:Name="FallbackLLMApiKeyEntry" 
                            Placeholder="备用 API Key" 
                            IsPassword="True"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Entry x:Name="FallbackLLMModelEntry" 
                            Placeholder="备用模型名称"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                 </StackLayout>
 
                 <!-- Step 7: Local Models -->
                 <StackLayout x:Name="Step7Panel" IsVisible="False" Spacing="12">
-                    <Label Text="本地模型支持" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="使用本地 Ollama 或 llama.cpp 模型" FontSize="14" TextColor="#9CA3AF"/>
-                    <CheckBox x:Name="EnableLocalModelCheckBox" Color="#38BDF8"/>
-                    <Label Text="启用本地模型" TextColor="#E9E9E9" VerticalOptions="Center"/>
+                    <Label Text="本地模型支持" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="使用本地 Ollama 或 llama.cpp 模型" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
+                    <CheckBox x:Name="EnableLocalModelCheckBox" Color="{DynamicResource Theme.Accent}"/>
+                    <Label Text="启用本地模型" TextColor="{DynamicResource Theme.TextPrimary}" VerticalOptions="Center"/>
                     <Entry x:Name="OllamaUrlEntry" 
                            Placeholder="Ollama URL (如: http://localhost:11434)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Entry x:Name="LocalModelNameEntry" 
                            Placeholder="本地模型名称 (如: llama3)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                 </StackLayout>
 
                 <!-- Step 8: Live2D Avatar -->
                 <StackLayout x:Name="Step8Panel" IsVisible="False" Spacing="12">
-                    <Label Text="Live2D 虚拟形象" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="让 Fairy 拥有可爱的虚拟形象" FontSize="14" TextColor="#9CA3AF"/>
-                    <CheckBox x:Name="EnableLive2DCheckBox" Color="#38BDF8"/>
-                    <Label Text="启用 Live2D 角色" TextColor="#E9E9E9" VerticalOptions="Center"/>
+                    <Label Text="Live2D 虚拟形象" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="让 Fairy 拥有可爱的虚拟形象" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
+                    <CheckBox x:Name="EnableLive2DCheckBox" Color="{DynamicResource Theme.Accent}"/>
+                    <Label Text="启用 Live2D 角色" TextColor="{DynamicResource Theme.TextPrimary}" VerticalOptions="Center"/>
                     <Picker x:Name="Live2DModelPicker" 
                             Title="选择形象"
-                            BackgroundColor="#161D2B"
-                            TextColor="#E9E9E9"
-                            TitleColor="#6EE7B7">
+                            BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
+                            TitleColor="{DynamicResource Theme.Success}">
                         <Picker.Items>
                             <x:String>Fairy (默认)</x:String>
                             <x:String>Hiyori (日和)</x:String>
@@ -300,24 +300,24 @@
 
                 <!-- Step 9: Personality -->
                 <StackLayout x:Name="Step9Panel" IsVisible="False" Spacing="12">
-                    <Label Text="人格设定" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="定义 Fairy 的性格和回答风格" FontSize="14" TextColor="#9CA3AF"/>
+                    <Label Text="人格设定" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="定义 Fairy 的性格和回答风格" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
                     <Entry x:Name="PersonalityNameEntry" 
                            Placeholder="角色名称 (默认: Fairy)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Editor x:Name="PersonalityPromptEditor" 
                             Placeholder="系统提示词 (可选自定义)"
                             HeightRequest="120"
-                            BackgroundColor="#161D2B"
-                            TextColor="#E9E9E9"
-                            PlaceholderColor="#6B7280"/>
+                            BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
+                            PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Picker x:Name="LanguagePicker" 
                             Title="界面语言"
-                            BackgroundColor="#161D2B"
-                            TextColor="#E9E9E9"
-                            TitleColor="#6EE7B7">
+                            BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
+                            TitleColor="{DynamicResource Theme.Success}">
                         <Picker.Items>
                             <x:String>简体中文</x:String>
                             <x:String>English</x:String>
@@ -328,75 +328,75 @@
 
                 <!-- Step 10: Wake Word -->
                 <StackLayout x:Name="Step10Panel" IsVisible="False" Spacing="12">
-                    <Label Text="唤醒词配置" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="设置语音唤醒关键词" FontSize="14" TextColor="#9CA3AF"/>
-                    <CheckBox x:Name="WakeWordEnabledCheckBox" Color="#38BDF8"/>
-                    <Label Text="启用语音唤醒" TextColor="#E9E9E9" VerticalOptions="Center"/>
+                    <Label Text="唤醒词配置" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="设置语音唤醒关键词" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
+                    <CheckBox x:Name="WakeWordEnabledCheckBox" Color="{DynamicResource Theme.Accent}"/>
+                    <Label Text="启用语音唤醒" TextColor="{DynamicResource Theme.TextPrimary}" VerticalOptions="Center"/>
                     <Entry x:Name="WakeWordEntry" 
                            Placeholder="唤醒词 (默认: 小精灵)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Entry x:Name="WakeWordAltEntry" 
                            Placeholder="备用唤醒词 (逗号分隔)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
-                    <CheckBox x:Name="WakeWordTtsCheckBox" Color="#38BDF8"/>
-                    <Label Text="唤醒后播放语音反馈" TextColor="#E9E9E9" VerticalOptions="Center"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
+                    <CheckBox x:Name="WakeWordTtsCheckBox" Color="{DynamicResource Theme.Accent}"/>
+                    <Label Text="唤醒后播放语音反馈" TextColor="{DynamicResource Theme.TextPrimary}" VerticalOptions="Center"/>
                 </StackLayout>
 
                 <!-- Step 11: Performance -->
                 <StackLayout x:Name="Step11Panel" IsVisible="False" Spacing="12">
-                    <Label Text="性能模式" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="根据设备性能调整运行策略" FontSize="14" TextColor="#9CA3AF"/>
+                    <Label Text="性能模式" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="根据设备性能调整运行策略" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
                     <Picker x:Name="PerformanceModePicker" 
                             Title="选择性能模式"
-                            BackgroundColor="#161D2B"
-                            TextColor="#E9E9E9"
-                            TitleColor="#6EE7B7">
+                            BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
+                            TitleColor="{DynamicResource Theme.Success}">
                         <Picker.Items>
                             <x:String>高性能 (推荐旗舰机)</x:String>
                             <x:String>均衡 (推荐)</x:String>
                             <x:String>低占用 (省电模式)</x:String>
                         </Picker.Items>
                     </Picker>
-                    <CheckBox x:Name="ContextCompressionCheckBox" Color="#38BDF8"/>
-                    <Label Text="启用上下文压缩 (节省 token)" TextColor="#E9E9E9" VerticalOptions="Center"/>
+                    <CheckBox x:Name="ContextCompressionCheckBox" Color="{DynamicResource Theme.Accent}"/>
+                    <Label Text="启用上下文压缩 (节省 token)" TextColor="{DynamicResource Theme.TextPrimary}" VerticalOptions="Center"/>
                 </StackLayout>
 
                 <!-- Step 12: Phone screen control (Shizuku) -->
                 <StackLayout x:Name="Step12Panel" IsVisible="False" Spacing="12">
-                    <Label Text="手机屏幕操作" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="需要 Shizuku 才能在手机上点击、滑动、输入。不装也可以正常聊天，只有这些能力不可用；授权随时可以在「看板 → 设备连接」里逐项收放。" FontSize="14" TextColor="#9CA3AF"/>
+                    <Label Text="手机屏幕操作" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="需要 Shizuku 才能在手机上点击、滑动、输入。不装也可以正常聊天，只有这些能力不可用；授权随时可以在「看板 → 设备连接」里逐项收放。" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
                     <Button Text="打开 Shizuku"
                             Clicked="OnOpenShizuku"
-                            BackgroundColor="#38BDF8"
-                            TextColor="#0A0D12"
+                            BackgroundColor="{DynamicResource Theme.Accent}"
+                            TextColor="{DynamicResource Theme.TextOnAccent}"
                             CornerRadius="999"/>
                     <Label x:Name="ScreenStatus"
                            Text="未检查"
-                           TextColor="#E9A568"
+                           TextColor="{DynamicResource Theme.Warning}"
                            FontSize="12"/>
                 </StackLayout>
 
                 <!-- Step 14: Device Sync -->
                 <StackLayout x:Name="Step13Panel" IsVisible="False" Spacing="12">
-                    <Label Text="设备同步" FontSize="20" FontAttributes="Bold" TextColor="#E9E9E9"/>
-                    <Label Text="与 PC 端、其他移动设备同步配置" FontSize="14" TextColor="#9CA3AF"/>
+                    <Label Text="设备同步" FontSize="20" FontAttributes="Bold" TextColor="{DynamicResource Theme.TextPrimary}"/>
+                    <Label Text="与 PC 端、其他移动设备同步配置" FontSize="14" TextColor="{DynamicResource Theme.TextSecondary}"/>
                     <Entry x:Name="DeviceNameEntry" 
                            Placeholder="设备名称 (默认: FairyAI-Android)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Entry x:Name="RelayUrlEntry" 
                            Placeholder="Relay 服务器地址 (可选)"
-                           BackgroundColor="#161D2B"
-                           TextColor="#E9E9E9"
-                           PlaceholderColor="#6B7280"/>
+                           BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
+                           PlaceholderColor="{DynamicResource Theme.TextMuted}"/>
                     <Label Text="留空表示不启用设备同步功能" 
                            FontSize="12" 
-                           TextColor="#6B7280"/>
+                           TextColor="{DynamicResource Theme.TextMuted}"/>
                 </StackLayout>
 
             </VerticalStackLayout>
@@ -408,15 +408,15 @@
                     Grid.Column="0"
                     Text="← 上一步" 
                     Clicked="OnBackClicked"
-                    BackgroundColor="#1E2636"
-                    TextColor="#E9E9E9"
+                    BackgroundColor="{DynamicResource Theme.SurfaceRaised}"
+                    TextColor="{DynamicResource Theme.TextPrimary}"
                     FontSize="15"
                     FontAttributes="Bold"
                     HeightRequest="52"
                     CornerRadius="12"
                     IsVisible="False">
                 <Button.Shadow>
-                    <Shadow Brush="#000000" 
+                    <Shadow Brush="{DynamicResource Theme.GlassShadowBrush}" 
                             Opacity="0.3" 
                             Radius="8" 
                             Offset="0,2"/>
@@ -426,14 +426,14 @@
                     Grid.Column="1"
                     Text="下一步 →" 
                     Clicked="OnNextClicked"
-                    BackgroundColor="#38BDF8"
-                    TextColor="#0A0D12"
+                    BackgroundColor="{DynamicResource Theme.Accent}"
+                    TextColor="{DynamicResource Theme.TextOnAccent}"
                     FontSize="15"
                     FontAttributes="Bold"
                     HeightRequest="52"
                     CornerRadius="12">
                 <Button.Shadow>
-                    <Shadow Brush="#38BDF8" 
+                    <Shadow Brush="{DynamicResource Theme.Accent}" 
                             Opacity="0.4" 
                             Radius="16" 
                             Offset="0,4"/>

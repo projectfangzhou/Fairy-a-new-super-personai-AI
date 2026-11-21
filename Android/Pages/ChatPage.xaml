@@ -7,79 +7,104 @@
              x:DataType="vm:MainViewModel"
              Title="仙灵">
 
+    <!--
+      玻璃层说明：
+        顶部栏、输入栏、唤醒条用「玻璃容器」（半透明 + 上缘高光 + 细边），
+        气泡用「半透明实色面」—— 气泡里是长文本，全玻璃会让可读性崩掉，
+        而且 MAUI 里每个 Border 都做高光渐变会让长列表掉帧。
+    -->
     <ContentPage.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#05070C" Offset="0.0"/>
-            <GradientStop Color="#0A0D12" Offset="0.5"/>
-            <GradientStop Color="#0F131C" Offset="1.0"/>
+            <GradientStop Color="{DynamicResource Theme.Bg}" Offset="0.0"/>
+            <GradientStop Color="{DynamicResource Theme.BgMid}" Offset="0.5"/>
+            <GradientStop Color="{DynamicResource Theme.BgBottom}" Offset="1.0"/>
         </LinearGradientBrush>
     </ContentPage.Background>
 
     <Grid RowDefinitions="Auto,*,Auto,Auto" Padding="0">
 
-        <!-- Header with avatar and status -->
-        <Grid Grid.Row="0" 
-              Padding="20,16"
-              BackgroundColor="#161D2B">
+        <!-- ═══════════ 顶部栏：玻璃 ═══════════ -->
+        <Grid Grid.Row="0" Padding="20,14">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
-            <!-- Avatar -->
-            <Border Grid.Column="0"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    StrokeShape="RoundRectangle 22"
-                    BackgroundColor="#38BDF8"
-                    StrokeThickness="0">
-                <Label Text="✨" 
-                       FontSize="24"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"/>
-            </Border>
-            
-            <!-- Name and status -->
-            <VerticalStackLayout Grid.Column="1" 
-                                 Spacing="2" 
-                                 Margin="12,0,0,0"
-                                 VerticalOptions="Center">
-                <Label Text="Fairy" 
-                       FontSize="16" 
-                       FontAttributes="Bold"
-                       TextColor="#E9E9E9"/>
-                <Label Text="{Binding StatusText}" 
-                       FontSize="12"
-                       TextColor="#6EE7B7"/>
-            </VerticalStackLayout>
-            
-            <!-- Export button -->
-            <Button Grid.Column="2"
-                    Text="⤓"
-                    FontSize="20"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    Margin="0,0,8,0"
-                    BackgroundColor="#1E2636"
-                    TextColor="#9CA3AF"
-                    CornerRadius="22"
-                    Clicked="OnExportClicked"/>
 
-            <!-- Settings button -->
-            <Button Grid.Column="3"
-                    Text="⚙"
-                    FontSize="20"
-                    WidthRequest="44"
-                    HeightRequest="44"
-                    BackgroundColor="#1E2636"
-                    TextColor="#9CA3AF"
-                    CornerRadius="22"
-                    Clicked="OnSettingsClicked"/>
+            <Border Grid.ColumnSpan="4"
+                    StrokeShape="RoundRectangle 22"
+                    StrokeThickness="1"
+                    Padding="0">
+                <Border.Stroke>
+                    <SolidColorBrush Color="{DynamicResource Theme.GlassBorder}"/>
+                </Border.Stroke>
+                <Border.Shadow>
+                    <Shadow Brush="{DynamicResource Theme.GlassShadowBrush}"
+                            Opacity="0.5" Radius="20" Offset="0,6"/>
+                </Border.Shadow>
+                <Grid Padding="16,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 头像 -->
+                    <Border Grid.Column="0"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            StrokeShape="RoundRectangle 22"
+                            BackgroundColor="{DynamicResource Theme.Accent}"
+                            StrokeThickness="0">
+                        <Label Text="✨"
+                               FontSize="24"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center"/>
+                    </Border>
+
+                    <!-- 名字与状态 -->
+                    <VerticalStackLayout Grid.Column="1"
+                                         Spacing="2"
+                                         Margin="12,0,0,0"
+                                         VerticalOptions="Center">
+                        <Label Text="Fairy"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{DynamicResource Theme.TextPrimary}"/>
+                        <Label Text="{Binding StatusText}"
+                               FontSize="12"
+                               TextColor="{DynamicResource Theme.Success}"/>
+                    </VerticalStackLayout>
+
+                    <!-- 导出 -->
+                    <Button Grid.Column="2"
+                            Text="⤓"
+                            FontSize="20"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            Margin="0,0,8,0"
+                            BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
+                            TextColor="{DynamicResource Theme.TextSecondary}"
+                            CornerRadius="22"
+                            Clicked="OnExportClicked"/>
+
+                    <!-- 设置 -->
+                    <Button Grid.Column="3"
+                            Text="⚙"
+                            FontSize="20"
+                            WidthRequest="44"
+                            HeightRequest="44"
+                            BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
+                            TextColor="{DynamicResource Theme.TextSecondary}"
+                            CornerRadius="22"
+                            Clicked="OnSettingsClicked"/>
+                </Grid>
+            </Border>
         </Grid>
 
-        <!-- Messages -->
+        <!-- 消息 -->
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Messages}"
                         SelectionMode="None"
@@ -93,44 +118,40 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <!-- User message (right) -->
+                        <!-- 用户气泡（右）：强调色实心 -->
                         <Border Grid.Column="1"
-                                BackgroundColor="#38BDF8"
-                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{DynamicResource Theme.Accent}"
+                                StrokeShape="RoundRectangle 18"
                                 StrokeThickness="0"
                                 Padding="16,12"
                                 MaximumWidthRequest="280"
                                 IsVisible="{Binding IsUser}"
                                 HorizontalOptions="End">
                             <Border.Shadow>
-                                <Shadow Brush="#000000" 
-                                        Opacity="0.15" 
-                                        Radius="12" 
-                                        Offset="0,4"/>
+                                <Shadow Brush="{DynamicResource Theme.AccentBrush}"
+                                        Opacity="0.35" Radius="14" Offset="0,4"/>
                             </Border.Shadow>
                             <Label Text="{Binding Content}"
-                                   TextColor="#0A0D12"
+                                   TextColor="{DynamicResource Theme.TextOnAccent}"
                                    FontSize="15"
                                    LineHeight="1.5"/>
                         </Border>
 
-                        <!-- Assistant message (left) -->
+                        <!-- 助手气泡（左）：半透明面 -->
                         <Border Grid.Column="0"
-                                BackgroundColor="#161D2B"
-                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{DynamicResource Theme.SurfaceCard}"
+                                StrokeShape="RoundRectangle 18"
                                 StrokeThickness="0"
                                 Padding="16,12"
                                 MaximumWidthRequest="280"
                                 IsVisible="{Binding IsAssistant}"
                                 HorizontalOptions="Start">
                             <Border.Shadow>
-                                <Shadow Brush="#000000" 
-                                        Opacity="0.2" 
-                                        Radius="12" 
-                                        Offset="0,4"/>
+                                <Shadow Brush="{DynamicResource Theme.GlassShadowBrush}"
+                                        Opacity="0.4" Radius="12" Offset="0,4"/>
                             </Border.Shadow>
                             <Label FormattedText="{Binding Content, Converter={StaticResource MarkdownText}}"
-                                   TextColor="#E9E9E9"
+                                   TextColor="{DynamicResource Theme.TextPrimary}"
                                    FontSize="15"
                                    LineHeight="1.5"/>
                         </Border>
@@ -139,96 +160,112 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Wake word indicator -->
+        <!-- ═══════════ 唤醒条：玻璃 ═══════════ -->
         <Border Grid.Row="2"
-                BackgroundColor="#1E2636"
+                Margin="16,8,16,0"
+                StrokeShape="RoundRectangle 16"
+                StrokeThickness="1"
                 Padding="16,8"
                 IsVisible="{Binding IsWakeWordActive}">
+            <Border.Stroke>
+                <SolidColorBrush Color="{DynamicResource Theme.GlassBorder}"/>
+            </Border.Stroke>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{DynamicResource Theme.GlassTint}" Offset="0.0"/>
+                    <GradientStop Color="{DynamicResource Theme.GlassTintStrong}" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
             <HorizontalStackLayout Spacing="12">
-                <Border WidthRequest="8" 
-                        HeightRequest="8" 
-                        BackgroundColor="#6EE7B7"
+                <Border WidthRequest="8"
+                        HeightRequest="8"
+                        BackgroundColor="{DynamicResource Theme.Success}"
                         StrokeShape="RoundRectangle 4"
-                        VerticalOptions="Center">
-                    <Border.Triggers>
-                        <DataTrigger TargetType="Border" 
-                                     Binding="{Binding IsWakeWordActive}" 
-                                     Value="True">
-                            <!-- Pulse animation can be added here -->
-                        </DataTrigger>
-                    </Border.Triggers>
-                </Border>
-                <Label Text="🎙 唤醒词监听中..." 
-                       TextColor="#6EE7B7" 
+                        VerticalOptions="Center"/>
+                <Label Text="🎙 唤醒词监听中..."
+                       TextColor="{DynamicResource Theme.Success}"
                        FontSize="13"
                        VerticalOptions="Center"/>
-                <Label Text="{Binding WakeWordText}" 
-                       TextColor="#9CA3AF" 
+                <Label Text="{Binding WakeWordText}"
+                       TextColor="{DynamicResource Theme.TextSecondary}"
                        FontSize="12"
-                       LineBreakMode="TailTruncation" 
-                       MaxLines="1" 
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1"
                        HorizontalOptions="FillAndExpand"
                        VerticalOptions="Center"/>
             </HorizontalStackLayout>
         </Border>
 
-        <!-- Input bar -->
-        <Grid Grid.Row="3" 
-              Padding="16,12,16,20" 
-              ColumnDefinitions="*,Auto,Auto" 
-              ColumnSpacing="12"
-              BackgroundColor="#0F131C">
-            
-            <!-- Text input -->
-            <Border Grid.Column="0"
-                    BackgroundColor="#161D2B"
-                    StrokeShape="RoundRectangle 24"
-                    StrokeThickness="0"
-                    Padding="16,0">
-                <Entry Text="{Binding UserInput}"
-                       Placeholder="输入消息..."
-                       PlaceholderColor="#6B7280"
-                       TextColor="#E9E9E9"
-                       BackgroundColor="Transparent"
-                       FontSize="15"
-                       VerticalOptions="Center"
-                       ReturnCommand="{Binding SendMessageCommand}"/>
-            </Border>
-            
-            <!-- Voice input button -->
-            <Border Grid.Column="1"
-                    WidthRequest="48"
-                    HeightRequest="48"
-                    BackgroundColor="#1E2636"
-                    StrokeShape="RoundRectangle 24"
-                    StrokeThickness="0">
-                <Button Text="🎤" 
-                        FontSize="22"
-                        BackgroundColor="Transparent"
-                        TextColor="#9CA3AF"
-                        Command="{Binding StartListeningCommand}"
-                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
-            </Border>
-            
-            <!-- Send button -->
-            <Border Grid.Column="2"
-                    WidthRequest="48"
-                    HeightRequest="48"
-                    BackgroundColor="#38BDF8"
-                    StrokeShape="RoundRectangle 24"
-                    StrokeThickness="0">
+        <!-- ═══════════ 输入栏：玻璃 ═══════════ -->
+        <Grid Grid.Row="3" Padding="16,12,16,20">
+            <Border StrokeShape="RoundRectangle 28"
+                    StrokeThickness="1"
+                    Padding="0">
+                <Border.Stroke>
+                    <SolidColorBrush Color="{DynamicResource Theme.GlassBorder}"/>
+                </Border.Stroke>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{DynamicResource Theme.GlassTint}" Offset="0.0"/>
+                        <GradientStop Color="{DynamicResource Theme.GlassTintStrong}" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
                 <Border.Shadow>
-                    <Shadow Brush="#38BDF8" 
-                            Opacity="0.4" 
-                            Radius="16" 
-                            Offset="0,4"/>
+                    <Shadow Brush="{DynamicResource Theme.GlassShadowBrush}"
+                            Opacity="0.45" Radius="18" Offset="0,4"/>
                 </Border.Shadow>
-                <Button Text="➤" 
-                        FontSize="22"
-                        BackgroundColor="Transparent"
-                        TextColor="#0A0D12"
-                        Command="{Binding SendMessageCommand}"
-                        IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                    <!-- 输入框 -->
+                    <Border Grid.Column="0"
+                            BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
+                            StrokeShape="RoundRectangle 24"
+                            StrokeThickness="0"
+                            Padding="16,0">
+                        <Entry Text="{Binding UserInput}"
+                               Placeholder="输入消息..."
+                               PlaceholderColor="{DynamicResource Theme.TextMuted}"
+                               TextColor="{DynamicResource Theme.TextPrimary}"
+                               BackgroundColor="Transparent"
+                               FontSize="15"
+                               VerticalOptions="Center"
+                               ReturnCommand="{Binding SendMessageCommand}"/>
+                    </Border>
+
+                    <!-- 语音 -->
+                    <Border Grid.Column="1"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
+                            StrokeShape="RoundRectangle 24"
+                            StrokeThickness="0">
+                        <Button Text="🎤"
+                                FontSize="22"
+                                BackgroundColor="Transparent"
+                                TextColor="{DynamicResource Theme.TextSecondary}"
+                                Command="{Binding StartListeningCommand}"
+                                IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+                    </Border>
+
+                    <!-- 发送 -->
+                    <Border Grid.Column="2"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            BackgroundColor="{DynamicResource Theme.Accent}"
+                            StrokeShape="RoundRectangle 24"
+                            StrokeThickness="0">
+                        <Border.Shadow>
+                            <Shadow Brush="{DynamicResource Theme.AccentBrush}"
+                                    Opacity="0.45" Radius="16" Offset="0,4"/>
+                        </Border.Shadow>
+                        <Button Text="➤"
+                                FontSize="22"
+                                BackgroundColor="Transparent"
+                                TextColor="{DynamicResource Theme.TextOnAccent}"
+                                Command="{Binding SendMessageCommand}"
+                                IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+                    </Border>
+                </Grid>
             </Border>
         </Grid>
     </Grid>

@@ -1,4 +1,5 @@
 using FairyAI_Android.Services;
+using FairyAI_Android.Services.Theme;
 using FairyAI_Android.Services.Screen;
 using FairyAI_Android.Services.Vision;
 using DeviceInfo = FairyAI_Android.Services.DeviceInfo;
@@ -108,7 +109,7 @@ public partial class DevicesPage : ContentPage
             row.Add(new Label
             {
                 Text = ScreenCapabilityCatalog.Label(capability),
-                TextColor = Color.FromArgb("#E9E9E9"),
+                TextColor = Glass.ReadColor("Theme.TextPrimary"),
                 FontSize = 13,
                 VerticalOptions = LayoutOptions.Center,
             });
@@ -308,7 +309,7 @@ public partial class DevicesPage : ContentPage
         SummarySyncStateLabel.Text = "正在检查…";
         var (ok, message) = await _summarySync.PollOnceAsync();
         SummarySyncStateLabel.Text = message;
-        SummarySyncStateLabel.TextColor = ok ? Color.FromArgb("#6EE7B7") : Color.FromArgb("#FCA5A5");
+        SummarySyncStateLabel.TextColor = ok ? Glass.ReadColor("Theme.Success") : Glass.ReadColor("Theme.Error");
     }
 
     private void RefreshScreenSection()
@@ -324,8 +325,8 @@ public partial class DevicesPage : ContentPage
             var status = _screen.Status;
             ScreenStatusLabel.Text = DescribeAvailability(status);
             ScreenStatusLabel.TextColor = status.CanInject
-                ? Color.FromArgb("#6EE7B7")
-                : Color.FromArgb("#9CA3AF");
+                ? Glass.ReadColor("Theme.Success")
+                : Glass.ReadColor("Theme.TextSecondary");
         }
         finally
         {
@@ -355,8 +356,8 @@ public partial class DevicesPage : ContentPage
             ? $"「{ScreenCapabilityCatalog.Label(capability)}」已允许"
             : $"「{ScreenCapabilityCatalog.Label(capability)}」现在会被拦下：{decision.Message}";
         ScreenResultLabel.TextColor = decision.Allowed
-            ? Color.FromArgb("#6EE7B7")
-            : Color.FromArgb("#FCA5A5");
+            ? Glass.ReadColor("Theme.Success")
+            : Glass.ReadColor("Theme.Error");
     }
 
     private void OnOpenShizuku(object? sender, EventArgs e)
@@ -364,13 +365,13 @@ public partial class DevicesPage : ContentPage
         _screen.OpenShizukuApp(out var message);
         RefreshScreenSection();
         ScreenResultLabel.Text = message;
-        ScreenResultLabel.TextColor = Color.FromArgb("#9CA3AF");
+        ScreenResultLabel.TextColor = Glass.ReadColor("Theme.TextSecondary");
     }
 
     private async void OnCheckScreenChain(object? sender, EventArgs e)
     {
         ScreenResultLabel.Text = "检查中…";
-        ScreenResultLabel.TextColor = Color.FromArgb("#9CA3AF");
+        ScreenResultLabel.TextColor = Glass.ReadColor("Theme.TextSecondary");
 
         // Runs the real chain (policy → availability → grant → approval → bridge) for a read-only
         // action, so the result says where it stops instead of asserting that it works.
@@ -381,12 +382,12 @@ public partial class DevicesPage : ContentPage
             ScreenResultLabel.Text = string.IsNullOrWhiteSpace(decision.Message)
                 ? "链路可用：这次操作已经执行。"
                 : "链路可用：" + decision.Message;
-            ScreenResultLabel.TextColor = Color.FromArgb("#6EE7B7");
+            ScreenResultLabel.TextColor = Glass.ReadColor("Theme.Success");
             return;
         }
 
         ScreenResultLabel.Text = "现在会停在：" + decision.Message;
-        ScreenResultLabel.TextColor = Color.FromArgb("#FCA5A5");
+        ScreenResultLabel.TextColor = Glass.ReadColor("Theme.Error");
     }
 
     private static string DescribeAvailability(ShizukuProbeResult status) => status.Availability switch
@@ -444,7 +445,7 @@ public partial class DevicesPage : ContentPage
         _looking = true;
 
         VisionResultLabel.Text = "准备中…";
-        VisionResultLabel.TextColor = Color.FromArgb("#9CA3AF");
+        VisionResultLabel.TextColor = Glass.ReadColor("Theme.TextSecondary");
 
         try
         {
@@ -457,7 +458,7 @@ public partial class DevicesPage : ContentPage
         catch (Exception ex)
         {
             VisionResultLabel.Text = "识屏失败：" + ex.Message;
-            VisionResultLabel.TextColor = Color.FromArgb("#FCA5A5");
+            VisionResultLabel.TextColor = Glass.ReadColor("Theme.Error");
         }
         finally
         {
@@ -497,7 +498,7 @@ public partial class DevicesPage : ContentPage
     private async void OnNotesSyncNowClicked(object? sender, EventArgs e)
     {
         NotesSyncResultLabel.Text = "同步中…";
-        NotesSyncResultLabel.TextColor = Color.FromArgb("#9CA3AF");
+        NotesSyncResultLabel.TextColor = Glass.ReadColor("Theme.TextSecondary");
 
         var outcome = await _noteSync.SyncOnceAsync();
 

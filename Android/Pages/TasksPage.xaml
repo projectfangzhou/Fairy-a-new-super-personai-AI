@@ -6,59 +6,59 @@
 
     <ContentPage.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#05070C" Offset="0.0"/>
-            <GradientStop Color="#0A0D12" Offset="0.5"/>
-            <GradientStop Color="#0F131C" Offset="1.0"/>
+            <GradientStop Color="{DynamicResource Theme.Bg}" Offset="0.0"/>
+            <GradientStop Color="{DynamicResource Theme.TextOnAccent}" Offset="0.5"/>
+            <GradientStop Color="{DynamicResource Theme.SurfaceSunken}" Offset="1.0"/>
         </LinearGradientBrush>
     </ContentPage.Background>
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="14">
 
-            <Border BackgroundColor="#161D2B"
+            <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="18">
                 <VerticalStackLayout Spacing="10">
                     <Label Text="来自已配对电脑"
-                           TextColor="#E9E9E9"
+                           TextColor="{DynamicResource Theme.TextPrimary}"
                            FontSize="17"
                            FontAttributes="Bold"/>
                     <Label Text="这里显示电脑上的任务和你需要回答的确认。每次允许或拒绝都会直接作用在电脑上的那一项，电脑端也会同时看到它已被回答。"
-                           TextColor="#9CA3AF"
+                           TextColor="{DynamicResource Theme.TextSecondary}"
                            FontSize="12"/>
                     <Button Text="刷新"
-                            BackgroundColor="#1F2937"
-                            TextColor="#E9E9E9"
+                            BackgroundColor="{DynamicResource Theme.Border}"
+                            TextColor="{DynamicResource Theme.TextPrimary}"
                             CornerRadius="12"
                             HeightRequest="42"
                             Clicked="OnRefreshClicked"/>
                     <Label x:Name="StatusLabel"
-                           TextColor="#9CA3AF"
+                           TextColor="{DynamicResource Theme.TextSecondary}"
                            FontSize="12"/>
                 </VerticalStackLayout>
             </Border>
 
             <Label Text="待审批 / 待回答"
-                   TextColor="#E9E9E9"
+                   TextColor="{DynamicResource Theme.TextPrimary}"
                    FontSize="15"
                    FontAttributes="Bold"/>
             <VerticalStackLayout x:Name="PendingList" Spacing="10"/>
             <Label x:Name="PendingEmpty"
                    Text="没有等待你处理的项。"
-                   TextColor="#6B7280"
+                   TextColor="{DynamicResource Theme.TextMuted}"
                    FontSize="12"
                    IsVisible="False"/>
 
             <Label Text="任务"
-                   TextColor="#E9E9E9"
+                   TextColor="{DynamicResource Theme.TextPrimary}"
                    FontSize="15"
                    FontAttributes="Bold"
                    Margin="0,6,0,0"/>
             <VerticalStackLayout x:Name="TaskList" Spacing="6"/>
             <Label x:Name="TasksEmpty"
                    Text="还没有任务。"
-                   TextColor="#6B7280"
+                   TextColor="{DynamicResource Theme.TextMuted}"
                    FontSize="12"
                    IsVisible="False"/>
 

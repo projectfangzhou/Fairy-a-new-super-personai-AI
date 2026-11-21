@@ -1,5 +1,6 @@
 using FairyAI_Android.Services;
 using FairyAI_Android.Services.Knowledge;
+using FairyAI_Android.Services.Theme;
 using FairyAI_Android.Services.Vision;
 
 namespace FairyAI_Android.Pages;
@@ -65,6 +66,7 @@ public partial class SettingsPage : ContentPage
         try
         {
             var config = ConfigManager.Load();
+            ApplyThemeSelection(FairyThemeInfo.Parse(config.Appearance.Theme));
             PersonalityNameEntry.Text = config.Personality.Name ?? "Fairy";
             PersonalityPromptEditor.Text = config.Personality.SystemPrompt ?? "";
             LanguagePicker.SelectedIndex = config.Personality.Language switch { "en-US" => 1, "ja-JP" => 2, _ => 0 };
@@ -241,7 +243,7 @@ public partial class SettingsPage : ContentPage
         }
 
         VisionProbeStatus.Text = $"正在让「{target.Name}」看一张图…";
-        VisionProbeStatus.TextColor = Color.FromArgb("#9CA3AF");
+        VisionProbeStatus.TextColor = Glass.ReadColor("Theme.TextSecondary");
 
         VisionProbeResult result;
         using (var client = new VisionClient(() => target))
@@ -433,5 +435,54 @@ public partial class SettingsPage : ContentPage
             KnowledgeStatus.Text = $"错误: {ex.Message}";
             KnowledgeStatus.TextColor = Colors.OrangeRed;
         }
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  外观：四套主题
+    // ══════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// 主题按钮点了之后立刻切换 —— 主题就是一个视觉偏好，让人先看效果再决定
+    /// 是不是要保存，比挑一个下拉框再点保存强。
+    /// </summary>
+    private void OnThemeSelected(object? sender, EventArgs e)
+    {
+        if (sender is not Button button) return;
+
+        var theme = button.AutomationId switch
+        {
+            "ThemeLight" => FairyTheme.PureLight,
+            "ThemeCyan" => FairyTheme.Cyan,
+            "ThemeEmerald" => FairyTheme.Emerald,
+            _ => FairyTheme.MonoDark,
+        };
+
+        ThemeManager.SetTheme(theme);
+        ApplyThemeSelection(theme);
+    }
+
+    /// <summary>
+    /// 把当前主题标在对应的按钮上：选中的是强调色，其余是普通面。
+    /// 切换主题后这些颜色要重刷，所以用的是当前主题的资源而不是写死的值。
+    /// </summary>
+    private void ApplyThemeSelection(FairyTheme theme)
+    {
+        var accent = Glass.ReadColor("Theme.Accent");
+        var onAccent = Glass.ReadColor("Theme.TextOnAccent");
+        var surface = Glass.ReadColor("Theme.SurfaceRaised");
+        var secondary = Glass.ReadColor("Theme.TextSecondary");
+
+        void Style(Button button, bool selected)
+        {
+            button.BackgroundColor = selected ? accent : surface;
+            button.TextColor = selected ? onAccent : secondary;
+        }
+
+        Style(ThemeMonoButton, theme == FairyTheme.MonoDark);
+        Style(ThemeLightButton, theme == FairyTheme.PureLight);
+        Style(ThemeCyanButton, theme == FairyTheme.Cyan);
+        Style(ThemeEmeraldButton, theme == FairyTheme.Emerald);
+
+        ThemeDescriptionLabel.Text = FairyThemeInfo.Description(theme);
     }
 }
