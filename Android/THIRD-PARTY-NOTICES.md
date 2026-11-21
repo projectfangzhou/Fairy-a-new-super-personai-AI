@@ -8,10 +8,7 @@ This project includes the following third-party components. Their licenses apply
 - **CommunityToolkit.Mvvm** — MIT License
 - **Markdig / Markdig.Wpf** — BSD-2-Clause License
 - **Microsoft.Web.WebView2** — Microsoft proprietary (redistribution permitted)
-- **QRCoder** — MIT License
-- **NSec.Cryptography** — MIT License
 - **SQLitePCLRaw** — Apache-2.0 License
-- **BouncyCastle.Cryptography** — MIT License
 
 ## On-device embedding
 
@@ -23,6 +20,12 @@ This project includes the following third-party components. Their licenses apply
   `Resources/Raw/embedding/bge-small-zh-v1.5-int8.onnx` together with its WordPiece `vocab.txt`.
   It runs entirely on the device and turns document passages into 512-dimension vectors for retrieval.
   See https://huggingface.co/BAAI/bge-small-zh-v1.5
+
+## Update signing
+
+- No third-party cryptography is used. Update manifests are signed and verified with **ECDSA P-256 over
+  SHA-256** from `System.Security.Cryptography` (signature in IEEE P1363 form, public key `0x04‖X‖Y`).
+  The private key is held offline by the release owner and is never in this repository.
 
 ## Apache-2.0 Components
 - **SQLitePCLRaw** — Apache-2.0 License. See https://www.apache.org/licenses/LICENSE-2.0

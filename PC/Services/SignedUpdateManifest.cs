@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using NSec.Cryptography;
 
 namespace MyAiAssistant.Services;
 
@@ -89,6 +88,43 @@ public static class SignedUpdateManifest
         return value;
     }
 
+    /// <summary>
+    /// ECDSA P-256 over SHA-256, signature in IEEE P1363 form (r‖s, 64 bytes). The platform's own crypto
+    /// replaces a third-party Ed25519 library: one dependency fewer to license and audit, with a
+    /// verifier small enough to read.
+    /// </summary>
+    public const int PublicKeyBytes = 65;   // 0x04 ‖ X ‖ Y
+
+    public const int SignatureBytes = 64;   // r ‖ s
+
+    private static byte[] DecodePublicKey(string publicKey) => DecodeBase64(publicKey, PublicKeyBytes);
+
+    private static bool VerifySignature(byte[] publicKey, byte[] message, byte[] signature)
+    {
+        if (publicKey.Length != PublicKeyBytes || publicKey[0] != 0x04) return false;
+        if (signature.Length != SignatureBytes) return false;
+
+        try
+        {
+            using var ecdsa = ECDsa.Create(new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                Q = new ECPoint
+                {
+                    X = publicKey[1..33],
+                    Y = publicKey[33..65],
+                },
+            });
+
+            return ecdsa.VerifyData(message, signature, HashAlgorithmName.SHA256,
+                DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
+    }
+
     public static VerifiedUpdateManifest Verify(byte[] envelopeBytes, string publicKey, DateTimeOffset now)
     {
         using var document = Parse(envelopeBytes);
@@ -107,8 +143,7 @@ public static class SignedUpdateManifest
         var releases = manifest.GetProperty("releases");
         if (releases.ValueKind != JsonValueKind.Array || releases.GetArrayLength() is < 1 or > 3)
             throw new InvalidDataException("Invalid releases.");
-        var algorithm = SignatureAlgorithm.Ed25519;
-        var key = PublicKey.Import(algorithm, DecodeBase64(publicKey, 32), KeyBlobFormat.RawPublicKey);
+        var key = DecodePublicKey(publicKey);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         string? windowsVersion = null;
         foreach (var release in releases.EnumerateArray())
@@ -121,12 +156,12 @@ public static class SignedUpdateManifest
                 !Regex.IsMatch(Text(release.GetProperty("sha256")), @"\A[a-f0-9]{64}\z"))
                 throw new InvalidDataException("Invalid release fields.");
             SafeUrl(Text(release.GetProperty("url")));
-            if (!algorithm.Verify(key, Canonical(release, "signature"), DecodeBase64(Text(release.GetProperty("signature")), 64)))
+            if (!VerifySignature(key, Canonical(release, "signature"), DecodeBase64(Text(release.GetProperty("signature")), SignatureBytes)))
                 throw new InvalidDataException("Invalid release signature.");
             if (platform == "windows") windowsVersion = version;
         }
         var canonical = Canonical(manifest);
-        if (!algorithm.Verify(key, canonical, DecodeBase64(Text(envelope.GetProperty("signature")), 64)))
+        if (!VerifySignature(key, canonical, DecodeBase64(Text(envelope.GetProperty("signature")), SignatureBytes)))
             throw new InvalidDataException("Invalid envelope signature.");
         return new(sequence, Convert.ToHexString(SHA256.HashData(canonical)).ToLowerInvariant(), expires, windowsVersion);
     }

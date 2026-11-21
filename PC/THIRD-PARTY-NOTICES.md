@@ -18,10 +18,13 @@ This project includes the following third-party components. Their licenses apply
 - **CommunityToolkit.Mvvm** — MIT License
 - **Markdig / Markdig.Wpf** — BSD-2-Clause License
 - **Microsoft.Web.WebView2** — Microsoft proprietary (redistribution permitted)
-- **QRCoder** — MIT License
-- **NSec.Cryptography** — MIT License
 - **SQLitePCLRaw** — Apache-2.0 License
-- **BouncyCastle.Cryptography** — MIT License
+
+## Update signing
+
+- No third-party cryptography is used. Update manifests are signed and verified with **ECDSA P-256 over
+  SHA-256** from `System.Security.Cryptography` (signature in IEEE P1363 form, public key `0x04‖X‖Y`).
+  The private key is held offline by the release owner and is never in this repository.
 
 ## Apache-2.0 Components
 

@@ -70,7 +70,7 @@ public sealed class SignedUpdateService : IDisposable
             // The config file is user-writable; only the key compiled into this build is trusted.
             if (!string.Equals(publicKey.Trim(), _trustedKey, StringComparison.Ordinal)) { Status = "key-mismatch"; return; }
             var uri = SignedUpdateManifest.SafeUrl(url);
-            SignedUpdateManifest.DecodeBase64(publicKey, 32);
+            SignedUpdateManifest.DecodeBase64(publicKey, SignedUpdateManifest.PublicKeyBytes);
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             request.Headers.Accept.ParseAdd("application/json");
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
@@ -115,7 +115,7 @@ public sealed class SignedUpdateService : IDisposable
         // Exclusive access spans the read/compare/atomic replacement, including other app instances.
         using var stateLock = new FileStream(Path.Combine(_directory, "updates-state.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var path = Path.Combine(_directory, "updates-state.json");
-        var fingerprint = Convert.ToHexString(SHA256.HashData(SignedUpdateManifest.DecodeBase64(publicKey, 32))).ToLowerInvariant();
+        var fingerprint = Convert.ToHexString(SHA256.HashData(SignedUpdateManifest.DecodeBase64(publicKey, SignedUpdateManifest.PublicKeyBytes))).ToLowerInvariant();
         if (File.Exists(path))
         {
             using var old = SignedUpdateManifest.Parse(ReadFileAsync(path, token).GetAwaiter().GetResult());

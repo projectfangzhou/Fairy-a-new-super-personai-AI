@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Text.Encodings.Web;
 using System.Text.Json.Nodes;
 using MyAiAssistant.Services;
-using NSec.Cryptography;
 
 static JsonSerializerOptions IndentedOptions() => new()
 {
@@ -14,7 +13,7 @@ static JsonSerializerOptions IndentedOptions() => new()
 };
 
 // Offline update manifest signer for FairyAI.
-// The Ed25519 private key never enters the repository; keep it on offline media.
+// The ECDSA P-256 private key never enters the repository; keep it on offline media.
 
 return Run(args);
 
@@ -50,7 +49,7 @@ static void Usage()
     Console.Error.WriteLine("""
         Usage:
           UpdateSigner genkey <outDir>
-              Creates ed25519-private.key and ed25519-public.key in outDir (base64 raw).
+              Creates ecdsa-p256-private.pem (PKCS#8) and ecdsa-p256-public.key (base64 0x04||X||Y) in outDir.
               Move the private key to offline media; never commit it.
 
           UpdateSigner config <outFile> --manifest-url <https-url> --public-key <base64>
@@ -70,27 +69,39 @@ static string Require(string[] args, ref int i)
     return args[++i];
 }
 
+static byte[] PublicKeyBlob(ECDsa key)
+{
+    var parameters = key.ExportParameters(includePrivateParameters: false);
+    var blob = new byte[SignedUpdateManifest.PublicKeyBytes];
+    blob[0] = 0x04;
+    parameters.Q.X!.CopyTo(blob, 1);
+    parameters.Q.Y!.CopyTo(blob, 33);
+    return blob;
+}
+
+static byte[] Sign(ECDsa key, byte[] message) =>
+    key.SignData(message, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+
 static int GenKey(string[] args)
 {
     if (args.Length < 2) throw new ArgumentException("genkey requires an output directory.");
     var dir = Path.GetFullPath(args[1]);
     Directory.CreateDirectory(dir);
-    var privatePath = Path.Combine(dir, "ed25519-private.key");
-    var publicPath = Path.Combine(dir, "ed25519-public.key");
+    var privatePath = Path.Combine(dir, "ecdsa-p256-private.pem");
+    var publicPath = Path.Combine(dir, "ecdsa-p256-public.key");
     if (File.Exists(privatePath) || File.Exists(publicPath))
         throw new InvalidOperationException("Refusing to overwrite an existing keypair.");
 
-    var creation = new KeyCreationParameters { ExportPolicy = KeyExportPolicies.AllowPlaintextExport };
-    using var key = Key.Create(SignatureAlgorithm.Ed25519, creation);
-    var privateRaw = key.Export(KeyBlobFormat.RawPrivateKey);
-    var publicRaw = key.PublicKey.Export(KeyBlobFormat.RawPublicKey);
-    if (publicRaw.Length != 32) throw new InvalidOperationException("Unexpected public key length.");
+    using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+    var publicRaw = PublicKeyBlob(key);
+    if (publicRaw.Length != SignedUpdateManifest.PublicKeyBytes)
+        throw new InvalidOperationException("Unexpected public key length.");
 
-    File.WriteAllText(privatePath, Convert.ToBase64String(privateRaw), new UTF8Encoding(false));
+    File.WriteAllText(privatePath, key.ExportPkcs8PrivateKeyPem(), new UTF8Encoding(false));
     File.WriteAllText(publicPath, Convert.ToBase64String(publicRaw), new UTF8Encoding(false));
     TryRestrict(privatePath);
 
-    Console.WriteLine($"private key: {privatePath}");
+    Console.WriteLine($"private key: {privatePath} (PKCS#8 PEM, keep it offline)");
     Console.WriteLine($"public key : {publicPath}");
     Console.WriteLine($"public key (base64): {Convert.ToBase64String(publicRaw)}");
     Console.WriteLine("Store the private key offline. Anyone holding it can sign fake updates.");
@@ -113,7 +124,7 @@ static int WriteConfig(string[] args)
     }
     if (manifestUrl is null || publicKey is null) throw new ArgumentException("both --manifest-url and --public-key are required.");
     SignedUpdateManifest.SafeUrl(manifestUrl);
-    SignedUpdateManifest.DecodeBase64(publicKey, 32);
+    SignedUpdateManifest.DecodeBase64(publicKey, SignedUpdateManifest.PublicKeyBytes);
 
     var node = new JsonObject { ["manifest_url"] = manifestUrl, ["public_key"] = publicKey };
     Directory.CreateDirectory(Path.GetDirectoryName(outFile)!);
@@ -149,9 +160,9 @@ static int Sign(string[] args)
     if (sequence < 1 || sequence > SignedUpdateManifest.MaxSequence) throw new ArgumentException("sequence out of range.");
     if (expiresDays is < 1 or > 90) throw new ArgumentException("--expires-days must be 1..90.");
 
-    var privateRaw = Convert.FromBase64String(File.ReadAllText(keyPath).Trim());
-    using var key = Key.Import(SignatureAlgorithm.Ed25519, privateRaw, KeyBlobFormat.RawPrivateKey);
-    var publicKey = Convert.ToBase64String(key.PublicKey.Export(KeyBlobFormat.RawPublicKey));
+    using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+    key.ImportFromPem(File.ReadAllText(keyPath));
+    var publicKey = Convert.ToBase64String(PublicKeyBlob(key));
 
     var now = DateTimeOffset.UtcNow;
     var issued = now.AddMinutes(-1);
@@ -176,13 +187,13 @@ static int Sign(string[] args)
             ["url"] = url,
             ["sha256"] = sha256
         };
-        release["signature"] = Convert.ToBase64String(SignatureAlgorithm.Ed25519.Sign(key, Canonical(release)));
+        release["signature"] = Convert.ToBase64String(Sign(key, Canonical(release)));
         ((JsonArray)manifest["releases"]!).Add(release);
         Console.WriteLine($"{platform}: {version} sha256={sha256}");
     }
 
     var envelope = new JsonObject { ["manifest"] = manifest };
-    envelope["signature"] = Convert.ToBase64String(SignatureAlgorithm.Ed25519.Sign(key, Canonical(manifest)));
+    envelope["signature"] = Convert.ToBase64String(Sign(key, Canonical(manifest)));
 
     var bytes = Encoding.UTF8.GetBytes(envelope.ToJsonString(IndentedOptions()));
     // Self-verify so the tool can never emit an envelope the client would reject.

@@ -3,8 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
 
 namespace FairyAI_Android.Services;
 
@@ -90,12 +88,38 @@ public static class SignedUpdateManifest
         return value;
     }
 
-    private static bool VerifySignature(Ed25519PublicKeyParameters key, byte[] message, byte[] signature)
+    /// <summary>
+    /// ECDSA P-256 over SHA-256, signature in IEEE P1363 form (r‖s, 64 bytes). This uses the platform's
+    /// own crypto instead of a third-party Ed25519 library: one fewer dependency to license and audit,
+    /// and the verification code is small enough to read.
+    /// </summary>
+    public const int PublicKeyBytes = 65;   // 0x04 ‖ X ‖ Y
+    public const int SignatureBytes = 64;   // r ‖ s
+
+    private static bool VerifySignature(byte[] publicKey, byte[] message, byte[] signature)
     {
-        var signer = new Ed25519Signer();
-        signer.Init(false, key);
-        signer.BlockUpdate(message, 0, message.Length);
-        return signer.VerifySignature(signature);
+        if (publicKey.Length != PublicKeyBytes || publicKey[0] != 0x04) return false;
+        if (signature.Length != SignatureBytes) return false;
+
+        try
+        {
+            using var ecdsa = ECDsa.Create(new ECParameters
+            {
+                Curve = ECCurve.NamedCurves.nistP256,
+                Q = new ECPoint
+                {
+                    X = publicKey[1..33],
+                    Y = publicKey[33..65],
+                },
+            });
+
+            return ecdsa.VerifyData(message, signature, HashAlgorithmName.SHA256,
+                DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
     }
 
     public static VerifiedUpdateManifest Verify(byte[] envelopeBytes, string publicKey, DateTimeOffset now)
@@ -116,7 +140,7 @@ public static class SignedUpdateManifest
         var releases = manifest.GetProperty("releases");
         if (releases.ValueKind != JsonValueKind.Array || releases.GetArrayLength() is < 1 or > 3)
             throw new InvalidDataException("Invalid releases.");
-        var key = new Ed25519PublicKeyParameters(DecodeBase64(publicKey, 32), 0);
+        var key = DecodeBase64(publicKey, PublicKeyBytes);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         string? androidVersion = null;
         foreach (var release in releases.EnumerateArray())
@@ -129,12 +153,12 @@ public static class SignedUpdateManifest
                 !Regex.IsMatch(Text(release.GetProperty("sha256")), @"\A[a-f0-9]{64}\z"))
                 throw new InvalidDataException("Invalid release fields.");
             SafeUrl(Text(release.GetProperty("url")));
-            if (!VerifySignature(key, Canonical(release, "signature"), DecodeBase64(Text(release.GetProperty("signature")), 64)))
+            if (!VerifySignature(key, Canonical(release, "signature"), DecodeBase64(Text(release.GetProperty("signature")), SignatureBytes)))
                 throw new InvalidDataException("Invalid release signature.");
             if (platform == "android") androidVersion = version;
         }
         var canonical = Canonical(manifest);
-        if (!VerifySignature(key, canonical, DecodeBase64(Text(envelope.GetProperty("signature")), 64)))
+        if (!VerifySignature(key, canonical, DecodeBase64(Text(envelope.GetProperty("signature")), SignatureBytes)))
             throw new InvalidDataException("Invalid envelope signature.");
         return new(sequence, Convert.ToHexString(SHA256.HashData(canonical)).ToLowerInvariant(), expires, androidVersion);
     }

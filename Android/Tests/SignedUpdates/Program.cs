@@ -3,12 +3,23 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Security.Cryptography;
 using FairyAI_Android.Services;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Signers;
 
-var key = new Ed25519PrivateKeyParameters(Convert.FromHexString("9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60"), 0);
-var publicKey = Convert.ToBase64String(key.GeneratePublicKey().GetEncoded());
+// The update signature scheme uses the platform's ECDSA P-256 rather than a third-party Ed25519
+// library, so the fixtures sign with the same primitive the verifier uses.
+var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+var publicKey = PublicKeyBlob(key);
+
+static string PublicKeyBlob(ECDsa signer)
+{
+    var parameters = signer.ExportParameters(includePrivateParameters: false);
+    var blob = new byte[65];
+    blob[0] = 0x04;
+    parameters.Q.X!.CopyTo(blob, 1);
+    parameters.Q.Y!.CopyTo(blob, 33);
+    return Convert.ToBase64String(blob);
+}
 var now = DateTimeOffset.UtcNow;
 var issued = now.AddMinutes(-1).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
 var expires = now.AddDays(1).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -20,13 +31,8 @@ void Assert(bool condition, string name)
     checks++;
     Console.WriteLine("PASS: " + name);
 }
-string Sign(byte[] message)
-{
-    var signer = new Ed25519Signer();
-    signer.Init(true, key);
-    signer.BlockUpdate(message, 0, message.Length);
-    return Convert.ToBase64String(signer.GenerateSignature());
-}
+string Sign(byte[] message) => Convert.ToBase64String(key.SignData(
+    message, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation));
 // Fixtures are serialized in protocol order independently of production Canonical().
 byte[] Envelope(long sequence = 5, string version = "2.0.0", string? expiration = null,
     bool badRelease = false, bool badEnvelope = false, string platform = "android")
@@ -55,13 +61,23 @@ void Reject(byte[] data, string name, string? verificationKey = null)
     { Assert(true, name); return; }
     throw new Exception("Accepted invalid fixture: " + name);
 }
-Assert(Convert.ToHexString(Convert.FromBase64String(Sign([]))).Equals(
-    "E5564300C360AC729086E2CC806E828A84877F1EB8E5D974D873E065224901555FB8821590A33BACC61E39701CF9B46BD25BF5F0595BBE24655141438E7A100B", StringComparison.Ordinal), "RFC8032 Ed25519 vector");
+// A signature is 64 bytes (P1363 r‖s) and verifies against the key that produced it.
+Assert(Convert.FromBase64String(Sign([])).Length == SignedUpdateManifest.SignatureBytes, "signatures are P1363 r||s");
+Assert(Convert.FromBase64String(publicKey).Length == SignedUpdateManifest.PublicKeyBytes, "public keys are 0x04||X||Y");
+using (var other = ECDsa.Create(ECCurve.NamedCurves.nistP256))
+{
+    var message = Encoding.UTF8.GetBytes("self-check");
+    var signature = key.SignData(message, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation);
+    Assert(other.VerifyData(message, signature, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation) == false,
+        "a signature does not verify under another key");
+    Assert(key.VerifyData(message, signature, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation),
+        "a signature verifies under its own key");
+}
 Assert(SignedUpdateManifest.Verify(Envelope(), publicKey, now).AndroidVersion == "2.0.0", "real release and envelope signatures");
 Reject(Envelope(badRelease: true), "bad release signature despite valid envelope");
 Reject(Envelope(badEnvelope: true), "bad envelope signature");
 Reject(Envelope(expiration: now.AddSeconds(-1).ToString("yyyy-MM-dd'T'HH:mm:ss'Z'")), "expired manifest");
-Reject(Envelope(), "wrong public key", Convert.ToBase64String(new Ed25519PrivateKeyParameters(new byte[32], 0).GeneratePublicKey().GetEncoded()));
+Reject(Envelope(), "wrong public key", PublicKeyBlob(ECDsa.Create(ECCurve.NamedCurves.nistP256)));
 var tampered = JsonNode.Parse(Envelope())!;
 tampered["manifest"]!["releases"]![0]!["version"] = "9.0.0";
 Reject(Encoding.UTF8.GetBytes(tampered.ToJsonString()), "tampered version");
@@ -134,8 +150,7 @@ try
     File.Delete(Path.Combine(directory, "updates-state.json"));
 
     // Anyone able to write updates.json must not be able to swap the trust anchor.
-    var attackerKey = Convert.ToBase64String(
-        new Ed25519PrivateKeyParameters(new byte[32], 0).GeneratePublicKey().GetEncoded());
+    var attackerKey = PublicKeyBlob(ECDsa.Create(ECCurve.NamedCurves.nistP256));
     var callsBefore = handler.Calls;
     await Configure(configuredKey: attackerKey);
     using (var pinnedService = Create())

@@ -3,11 +3,24 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using MyAiAssistant.Services;
-using NSec.Cryptography;
+using System.Security.Cryptography;
 
 var now = DateTimeOffset.UtcNow;
-using var signingKey = Key.Create(SignatureAlgorithm.Ed25519);
-var publicKey = Convert.ToBase64String(signingKey.PublicKey.Export(KeyBlobFormat.RawPublicKey));
+using var signingKey = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+var publicKey = PublicKeyBlob(signingKey);
+
+static string PublicKeyBlob(ECDsa key)
+{
+    var parameters = key.ExportParameters(includePrivateParameters: false);
+    var blob = new byte[SignedUpdateManifest.PublicKeyBytes];
+    blob[0] = 0x04;
+    parameters.Q.X!.CopyTo(blob, 1);
+    parameters.Q.Y!.CopyTo(blob, 33);
+    return Convert.ToBase64String(blob);
+}
+
+static string Sign(ECDsa key, byte[] message) => Convert.ToBase64String(
+    key.SignData(message, HashAlgorithmName.SHA256, DSASignatureFormat.IeeeP1363FixedFieldConcatenation));
 var checks = 0;
 void Assert(bool condition, string name)
 {
@@ -19,18 +32,18 @@ byte[] Canonical(JsonNode node, string? omit = null)
     using var document = JsonDocument.Parse(node.ToJsonString());
     return SignedUpdateManifest.Canonical(document.RootElement, omit);
 }
-void SignEnvelope(JsonObject envelope, Key? key = null)
+void SignEnvelope(JsonObject envelope, ECDsa? key = null)
 {
-    envelope["signature"] = Convert.ToBase64String(SignatureAlgorithm.Ed25519.Sign(key ?? signingKey, Canonical(envelope["manifest"]!)));
+    envelope["signature"] = Sign(key ?? signingKey, Canonical(envelope["manifest"]!));
 }
-JsonObject Envelope(long sequence = 2, string version = "2.1.0", DateTimeOffset? expires = null, Key? key = null)
+JsonObject Envelope(long sequence = 2, string version = "2.1.0", DateTimeOffset? expires = null, ECDsa? key = null)
 {
     var release = new JsonObject
     {
         ["platform"] = "windows", ["version"] = version,
         ["url"] = "https://downloads.fairyai.com/FairyAI.exe", ["sha256"] = new string('a', 64)
     };
-    release["signature"] = Convert.ToBase64String(SignatureAlgorithm.Ed25519.Sign(key ?? signingKey, Canonical(release)));
+    release["signature"] = Sign(key ?? signingKey, Canonical(release));
     var manifest = new JsonObject
     {
         ["schemaVersion"] = 1, ["sequence"] = sequence,
@@ -51,7 +64,7 @@ void Reject(JsonObject envelope, string name)
     Assert(rejected, name);
 }
 var valid = Envelope();
-Assert(SignedUpdateManifest.Verify(Bytes(valid), publicKey, now).WindowsVersion == "2.1.0", "real Ed25519 valid");
+Assert(SignedUpdateManifest.Verify(Bytes(valid), publicKey, now).WindowsVersion == "2.1.0", "a real signature validates");
 valid["releases"] = new JsonArray(new JsonObject { ["version"] = "999.0" });
 Assert(SignedUpdateManifest.Verify(Bytes(valid), publicKey, now).WindowsVersion == "2.1.0", "ignore unsigned top-level releases");
 var tampered = Envelope();
@@ -67,7 +80,7 @@ tampered["manifest"]!["issuedAt"] = now.AddMinutes(2).ToString("yyyy-MM-dd'T'HH:
 SignEnvelope(tampered);
 Reject(tampered, "future issuance");
 Reject(Envelope(expires: now.AddDays(91)), "excess lifetime");
-using (var wrongKey = Key.Create(SignatureAlgorithm.Ed25519)) Reject(Envelope(key: wrongKey), "wrong key");
+using (var wrongKey = ECDsa.Create(ECCurve.NamedCurves.nistP256)) Reject(Envelope(key: wrongKey), "wrong key");
 tampered = Envelope();
 tampered["manifest"]!["releases"]![0]!["url"] = "http://downloads.fairyai.com/app.exe";
 SignEnvelope(tampered);
@@ -133,16 +146,16 @@ try
         await restarted.CheckOnceAsync();
         Assert(restarted.Status == "error", "rollback protection survives restart");
     }
-    using (var replacementKey = Key.Create(SignatureAlgorithm.Ed25519))
+    using (var replacementKey = ECDsa.Create(ECCurve.NamedCurves.nistP256))
     {
         await File.WriteAllTextAsync(Path.Combine(directory, "updates.json"), JsonSerializer.Serialize(new
         {
             manifest_url = "https://updates.fairyai.com/api/releases",
-            public_key = Convert.ToBase64String(replacementKey.PublicKey.Export(KeyBlobFormat.RawPublicKey))
+            public_key = PublicKeyBlob(replacementKey)
         }));
         using var changedKey = new SignedUpdateService("2.0.0", directory,
             new FakeHandler { Body = Bytes(Envelope(sequence: 4, key: replacementKey)) },
-            Convert.ToBase64String(replacementKey.PublicKey.Export(KeyBlobFormat.RawPublicKey)));
+            PublicKeyBlob(replacementKey));
         await changedKey.CheckOnceAsync();
         Assert(changedKey.Status == "error", "key rotation requires explicit state reset");
     }
@@ -167,12 +180,12 @@ try
     }
 
     // Anyone able to write updates.json must not be able to swap the trust anchor.
-    using (var attackerKey = Key.Create(SignatureAlgorithm.Ed25519))
+    using (var attackerKey = ECDsa.Create(ECCurve.NamedCurves.nistP256))
     {
         await File.WriteAllTextAsync(Path.Combine(directory, "updates.json"), JsonSerializer.Serialize(new
         {
             manifest_url = "https://updates.fairyai.com/api/releases",
-            public_key = Convert.ToBase64String(attackerKey.PublicKey.Export(KeyBlobFormat.RawPublicKey))
+            public_key = PublicKeyBlob(attackerKey)
         }));
         var pinHandler = new FakeHandler { Body = Bytes(Envelope(sequence: 9, key: attackerKey)) };
         using var pinned = new SignedUpdateService("2.0.0", directory, pinHandler, publicKey);
