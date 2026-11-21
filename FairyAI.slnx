@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Android/">
+    <Project Path="Android/FairyAI-Android.csproj" />
+  </Folder>
+  <Folder Name="/PC/">
+    <Project Path="PC/MyAiAssistant.csproj" />
+  </Folder>
+</Solution>
