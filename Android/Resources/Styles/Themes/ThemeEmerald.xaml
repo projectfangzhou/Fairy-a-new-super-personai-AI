@@ -1,4 +1,4 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<?xml version = "1.0" encoding = "UTF-8" ?>
 <!--
   主题四：翠（Emerald）。
 
@@ -6,6 +6,7 @@
   强调色 #34D399 是同亮度带里在深底上可读性最好的一档。
 -->
 <ResourceDictionary
+    x:Class="FairyAI_Android.Themes.ThemeEmerald"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 

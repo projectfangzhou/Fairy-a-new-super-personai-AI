@@ -1,18 +1,21 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <Shell xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        xmlns:pages="clr-namespace:FairyAI_Android.Pages"
        x:Class="FairyAI_Android.AppShell"
-       Shell.FlyoutBehavior="Disabled">
+       Shell.FlyoutBehavior="Disabled"
+       Shell.TabBarIsVisible="False">
 
     <!--
-      Shell 自带的 TabBar 换成了自绘的液态玻璃气泡栏（Controls/GlassTabBar.cs），
-      它浮在内容之上，所以这里不设 TabBar —— 否则内置那条会跟气泡栏叠在一起。
+      Shell 在这里只负责导航，不负责画标签栏。Shell 自带的 TabBar 只能设背景色，
+      做不出「胶囊气泡浮在内容之上」的效果，安卓上还默认不显示图标、高度也放不下气泡，
+      所以内置那条藏掉，改由 GlassTabBar 画在每一页底部。
 
-      气泡栏挂在 OverlayTab 那个 ShellItem 里：Shell 不接受直接往自己身上加子元素，
-      而这个 ShellItem 不在导航路由里，只用来承载覆盖层。
+      为什么要用 TabBar 而不是一个 Tab 装四个 ShellContent：后者会被 Shell 渲染成**顶部**标签条，
+      和气泡栏重复（TabBarIsVisible 管的是底部那条，管不到顶部）。一个 TabBar 装四个 ShellContent
+      才是「四个同级标签」的结构，隐藏后顶部底部都不再有内置标签栏。
     -->
-    <Tab>
+    <TabBar Shell.TabBarIsVisible="False">
         <ShellContent x:Name="ChatTab"
                       Title="对话"
                       Route="chat"/>
@@ -25,10 +28,6 @@
         <ShellContent x:Name="SettingsTab"
                       Title="设置"
                       Route="settings"/>
-    </Tab>
-
-    <ShellItem x:Name="OverlayItem">
-        <ShellContent x:Name="OverlayTab" Route="overlay" />
-    </ShellItem>
+    </TabBar>
 
 </Shell>

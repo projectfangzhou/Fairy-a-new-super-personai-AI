@@ -2,6 +2,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.Graphics;
+using FairyAI_Android.Services;
 using FairyAI_Android.Services.Theme;
 
 namespace FairyAI_Android.Controls;
@@ -65,6 +66,119 @@ public sealed class GlassTabBar : Grid
 
         _bar.Content = _row;
         Add(_bar);
+
+        SetItems(DefaultItems);
+    }
+
+    /// <summary>
+    /// 把一个标签栏挂到页面底部。
+    ///
+    /// 页面原本的内容整体挪到上面一行，气泡栏占下面一行——占真实布局空间而不是浮在上面，
+    /// 否则会盖住对话页的输入栏和列表最后一项。四个主标签页各调一次。
+    /// </summary>
+    public static GlassTabBar AttachTo(ContentPage page)
+    {
+        ArgumentNullException.ThrowIfNull(page);
+
+        var bar = new GlassTabBar();
+        var original = page.Content;
+
+        // Shell 的这条附加属性只有设在页面本身上才生效；设在 Shell 根节点或 Tab 上都不管用，
+        // 安卓上内置那条标签栏照样会画出来，跟气泡栏重复。
+        Shell.SetTabBarIsVisible(page, false);
+
+        var host = new Grid
+        {
+            RowDefinitions =
+            {
+                new RowDefinition(GridLength.Star),
+                new RowDefinition(GridLength.Auto),
+            },
+        };
+
+        if (original is not null)
+        {
+            host.Add(original);
+            Grid.SetRow(original, 0);
+        }
+
+        host.Add(bar);
+        Grid.SetRow(bar, 1);
+        page.Content = host;
+        return bar;
+    }
+
+    /// <summary>四个主标签。写死在这里，因为页面里的实例不该各自维护一份路由表。</summary>
+    private static readonly (string Title, string Icon, string Route)[] DefaultItems =
+    {
+        ("对话", "chat", "chat"),
+        ("看板", "dashboard", "dashboard"),
+        ("任务", "tasks", "tasks"),
+        ("设置", "settings", "settings"),
+    };
+
+    /// <summary>
+    /// 每页各挂一个实例，选中态要跟着 Shell 的导航走，所以在这里订阅。
+    /// 订阅前先退订，避免同一个实例被恢复视图时重复挂事件。
+    /// </summary>
+    protected override void OnHandlerChanged()
+    {
+        base.OnHandlerChanged();
+
+        if (HostShell is { } shell)
+        {
+            shell.Navigated -= OnShellNavigated;
+            if (Handler is not null) shell.Navigated += OnShellNavigated;
+        }
+
+        // 这个控件是 C# 画的，颜色在构造时就取成了具体值，没有 DynamicResource 帮忙刷新，
+        // 所以换主题必须自己重画一遍。挂在 handler 上是为了页面销毁时能干净退订。
+        ThemeManager.ThemeChanged -= OnThemeChanged;
+        if (Handler is not null) ThemeManager.ThemeChanged += OnThemeChanged;
+
+        RefreshSelection();
+    }
+
+    /// <summary>
+    /// 所属的 Shell。优先从父链往上找，找不到才退到 <see cref="Shell.Current"/>。
+    ///
+    /// 换主题时整个 Shell 会被重建（window.Page = new AppShell()），而 Shell.Current 未必
+    /// 立刻指向新的那个——直接用它会出现「气泡栏点了没反应」。沿父链找拿到的永远是真正承载
+    /// 本控件的那一个。
+    /// </summary>
+    private Shell? HostShell
+    {
+        get
+        {
+            Element? element = this;
+            while (element is not null)
+            {
+                if (element is Shell shell) return shell;
+                element = element.Parent;
+            }
+
+            return Shell.Current;
+        }
+    }
+
+    private void OnShellNavigated(object? sender, ShellNavigatedEventArgs e) => RefreshSelection();
+
+    private void OnThemeChanged(FairyTheme theme) => RefreshTheme();
+
+    /// <summary>按当前主题重画玻璃底、描边、发光与各标签的选中态。</summary>
+    private void RefreshTheme()
+    {
+        _bar.Background = BuildBarBackground();
+        _bar.Stroke = new SolidColorBrush(Glass.ReadColor("Theme.GlassBorder"));
+        _bar.Shadow = new Shadow
+        {
+            Brush = new SolidColorBrush(Glass.ReadColor("Theme.GlassShadow")),
+            Radius = 20,
+            Opacity = 0.5f,
+            Offset = new Point(0, 8),
+        };
+
+        RefreshSelection();
     }
 
     /// <summary>标签定义。调用一次即可，路由用 Shell 的绝对路由。</summary>
@@ -94,9 +208,9 @@ public sealed class GlassTabBar : Grid
         }
     }
 
-    private static string CurrentRoute()
+    private string CurrentRoute()
     {
-        var location = Shell.Current?.CurrentState?.Location?.OriginalString ?? string.Empty;
+        var location = HostShell?.CurrentState?.Location?.OriginalString ?? string.Empty;
         // Shell 的 CurrentState 给的是 "//chat" / "chat" / "//dashboard" 这种形式。
         var trimmed = location.TrimStart('/');
         var slash = trimmed.IndexOf('/');
@@ -214,9 +328,9 @@ public sealed class GlassTabBar : Grid
         };
     }
 
-    private static async Task GoToAsync(string route)
+    private async Task GoToAsync(string route)
     {
-        if (Shell.Current is null) return;
-        await Shell.Current.GoToAsync("//" + route);
+        if (HostShell is not { } shell) return;
+        await shell.GoToAsync("//" + route);
     }
 }

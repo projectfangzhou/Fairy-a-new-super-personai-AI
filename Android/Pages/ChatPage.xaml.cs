@@ -6,6 +6,7 @@ public partial class ChatPage : ContentPage
     {
         InitializeComponent();
         BindingContext = vm;
+        Controls.GlassTabBar.AttachTo(this);
     }
 
     private async void OnSettingsClicked(object sender, EventArgs e)

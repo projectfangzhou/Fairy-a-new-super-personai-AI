@@ -39,25 +39,22 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Applies the saved theme before the first frame. Reading the config can take a lock another
-    /// thread may be holding, so it happens on a worker; the dictionary swap itself is marshalled
-    /// back to the UI thread by ThemeManager.
+    /// Applies the saved theme before the first frame.
+    ///
+    /// 必须同步做完再建窗口。之前这里是 Task.Run 丢给后台线程的，结果是 CreateWindow 已经把
+    /// AppShell 和对话页建出来了、主题才换完一半——首屏就出现「底色是浅的、输入栏和文字还是深色」
+    /// 这种半旧半新的界面。配置只是一个小 JSON，同步读一次比首帧错色划算得多。
     /// </summary>
     private static void ApplyStartupTheme()
     {
-        var services = IPlatformApplication.Current?.Services;
-        if (services is null) return;
-
-        _ = Task.Run(() =>
+        try
         {
-            try
-            {
-                ThemeManager.ApplyFromConfig();            }
-            catch (Exception ex)
-            {
-                Log("Theme", ex);
-            }
-        });
+            ThemeManager.ApplyFromConfig();
+        }
+        catch (Exception ex)
+        {
+            Log("Theme", ex);
+        }
     }
 
     /// <summary>

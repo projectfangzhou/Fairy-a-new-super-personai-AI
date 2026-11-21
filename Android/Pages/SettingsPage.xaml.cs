@@ -26,6 +26,8 @@ public partial class SettingsPage : ContentPage
         _localModels = localModels;
         _embeddingRuntime = embeddingRuntime;
 
+        Controls.GlassTabBar.AttachTo(this);
+
         try
         {
             LanguagePicker.Items.Add("zh-CN");

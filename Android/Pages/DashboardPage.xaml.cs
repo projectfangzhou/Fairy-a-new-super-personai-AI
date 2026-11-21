@@ -30,6 +30,8 @@ public partial class DashboardPage : ContentPage
         _usage = usage;
         _notes = notes;
         _reminders = reminders;
+
+        Controls.GlassTabBar.AttachTo(this);
     }
 
     protected override void OnAppearing()

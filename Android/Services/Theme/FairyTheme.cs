@@ -44,15 +44,6 @@ public static class FairyThemeInfo
     /// <summary>该主题的浅色背景（用于状态栏图标等系统级反色判断）。</summary>
     public static bool IsLight(FairyTheme theme) => theme == FairyTheme.PureLight;
 
-    /// <summary>资源字典路径。切换时由 ThemeManager 合并进 Application.Resources。</summary>
-    public static string DictionaryPath(FairyTheme theme) => theme switch
-    {
-        FairyTheme.PureLight => "Resources/Styles/Themes/ThemePureLight.xaml",
-        FairyTheme.Cyan => "Resources/Styles/Themes/ThemeCyan.xaml",
-        FairyTheme.Emerald => "Resources/Styles/Themes/ThemeEmerald.xaml",
-        _ => "Resources/Styles/Themes/ThemeMonoDark.xaml",
-    };
-
     /// <summary>该主题的强调色 hex，用于原生层（状态栏、导航栏）取色。</summary>
     public static string AccentHex(FairyTheme theme) => theme switch
     {

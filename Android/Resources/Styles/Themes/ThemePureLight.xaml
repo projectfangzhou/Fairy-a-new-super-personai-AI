@@ -1,4 +1,4 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<?xml version = "1.0" encoding = "UTF-8" ?>
 <!--
   主题二：素白（Pure Light）。
 
@@ -7,6 +7,7 @@
   正文级别的青才够（5.1:1）。
 -->
 <ResourceDictionary
+    x:Class="FairyAI_Android.Themes.ThemePureLight"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 

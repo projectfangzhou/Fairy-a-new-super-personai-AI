@@ -32,3 +32,5 @@ PC/Dependencies/qwen3-embedding/
 # Scratch dir used by the PC test suites (TEMP redirect); never part of the build
 .tmp/
 
+# Emulator verification scratch (screenshots, uiautomator dumps)
+.ui-verify/

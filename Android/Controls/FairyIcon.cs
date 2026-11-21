@@ -14,8 +14,15 @@ namespace FairyAI_Android.Controls;
 /// 画法：所有图形都在 24×24 的坐标系里写，再按实际尺寸整体缩放，
 /// 这样图标在不同 dpi 下都保持同一套比例。
 /// </summary>
-public sealed class FairyIcon : View, IDrawable
+public sealed class FairyIcon : GraphicsView, IDrawable
 {
+    // GraphicsView 才有 handler 和真正会被调用的 IDrawable；裸 View 只是挂着这个方法，
+    // 两者都不到位：没有 handler 会抛 HandlerNotFoundException，Draw 也永远不会被调用。
+    public FairyIcon()
+    {
+        Drawable = this;
+    }
+
     public enum IconKind
     {
         Chat,
@@ -26,11 +33,11 @@ public sealed class FairyIcon : View, IDrawable
 
     public static readonly BindableProperty KindProperty = BindableProperty.Create(
         nameof(Kind), typeof(IconKind), typeof(FairyIcon), IconKind.Chat,
-        propertyChanged: (b, _, _) => ((FairyIcon)b).InvalidateMeasure());
+        propertyChanged: (b, _, _) => ((FairyIcon)b).Invalidate());
 
     public static readonly BindableProperty TintProperty = BindableProperty.Create(
         nameof(Tint), typeof(Color), typeof(FairyIcon), Colors.White,
-        propertyChanged: (b, _, _) => ((FairyIcon)b).InvalidateMeasure());
+        propertyChanged: (b, _, _) => ((FairyIcon)b).Invalidate());
 
     public IconKind Kind
     {
@@ -50,13 +57,15 @@ public sealed class FairyIcon : View, IDrawable
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
         var tint = Tint;
-        var size = Math.Min(Width, Height);
+        var width = dirtyRect.Width > 0 ? dirtyRect.Width : (float)Width;
+        var height = dirtyRect.Height > 0 ? dirtyRect.Height : (float)Height;
+        var size = Math.Min(width, height);
         if (size <= 0) return;
 
         // 画在 24×24 的坐标系里，再整体缩放到实际尺寸。
         var scale = (float)(size / 24.0);
         canvas.SaveState();
-        canvas.Translate((float)((Width - size) / 2), (float)((Height - size) / 2));
+        canvas.Translate(dirtyRect.X + (width - size) / 2, dirtyRect.Y + (height - size) / 2);
         canvas.Scale(scale, scale);
 
         canvas.StrokeSize = Stroke;

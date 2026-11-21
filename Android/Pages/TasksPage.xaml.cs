@@ -16,6 +16,7 @@ public partial class TasksPage : ContentPage
     {
         InitializeComponent();
         _desk = desk;
+        Controls.GlassTabBar.AttachTo(this);
     }
 
     protected override void OnAppearing()

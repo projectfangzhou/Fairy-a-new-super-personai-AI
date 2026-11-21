@@ -1,4 +1,4 @@
-﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<?xml version = "1.0" encoding = "UTF-8" ?>
 <!--
   主题三：青（Cyan）。
 
@@ -6,6 +6,7 @@
   因为 tint 与强调色同色时折射出来的边缘不会出现「脏边」。
 -->
 <ResourceDictionary
+    x:Class="FairyAI_Android.Themes.ThemeCyan"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
