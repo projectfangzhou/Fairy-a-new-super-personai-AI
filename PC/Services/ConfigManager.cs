@@ -30,8 +30,21 @@ public class AppConfig
     public PerformanceConfig Performance { get; set; } = new();
     public IslandUIConfig IslandUI { get; set; } = new();
 
+    /// <summary>外观：主题与相关偏好。</summary>
+    public AppearanceConfig Appearance { get; set; } = new();
+
     /// <summary>Configured chat-platform accounts. Secrets are stored encrypted per account.</summary>
     public List<Messaging.MessagingAccount> MessagingAccounts { get; set; } = new();
+}
+
+/// <summary>外观设置。</summary>
+public class AppearanceConfig
+{
+    /// <summary>主题名（FairyTheme 枚举）。空值按墨黑处理。</summary>
+    public string Theme { get; set; } = "MonoDark";
+
+    /// <summary>是否启用玻璃层。关掉后退回纯色面，给低性能设备留一条路。</summary>
+    public bool GlassEnabled { get; set; } = true;
 }
 
 /// <summary>

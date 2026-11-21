@@ -55,6 +55,7 @@ public sealed class DashboardApi
     private readonly IScreenSessionControl? _screenSession;
     private readonly IMcpStatus? _mcp;
     private readonly byte[] _token;
+    private readonly IAppearanceControl? _appearance;
 
     public DashboardApi(AgentControlCenter center, OperationAudit audit, string controlToken,
         ISettingsStore? settings = null, MessagingAccountStore? accounts = null,
@@ -63,7 +64,8 @@ public sealed class DashboardApi
         IPairingControl? pairing = null, ITransferControl? transfer = null,
         INotificationSettings? notificationSettings = null, NotificationCenter? notificationCenter = null,
         IHomeAssistantControl? homeAssistant = null, SystemNotificationRelay? systemNotifications = null,
-        ISummarySyncControl? summarySync = null, IScreenSessionControl? screenSession = null, IMcpStatus? mcp = null)
+        ISummarySyncControl? summarySync = null, IScreenSessionControl? screenSession = null, IMcpStatus? mcp = null,
+        IAppearanceControl? appearance = null)
     {
         _center = center ?? throw new ArgumentNullException(nameof(center));
         _audit = audit ?? throw new ArgumentNullException(nameof(audit));
@@ -84,6 +86,7 @@ public sealed class DashboardApi
         _summarySync = summarySync;
         _screenSession = screenSession;
         _mcp = mcp;
+        _appearance = appearance;
     }
 
     public DashboardResponse Get(string path, string? token)
@@ -103,6 +106,7 @@ public sealed class DashboardApi
             "/api/resources" => Resources(),
             "/api/audit" => Audit(),
             "/api/settings" => ReadSettings(),
+            "/api/appearance/theme" => ReadTheme(),
             "/api/platforms" => Platforms(),
             "/api/accounts" => Accounts(),
             "/api/fairycode" => FairyCodeSessions(),
@@ -124,6 +128,7 @@ public sealed class DashboardApi
         if (RequiresToken(path) && !TokenMatches(token)) return Unauthorized();
 
         if (path == "/api/settings") return UpdateSettings(body);
+        if (path == "/api/appearance/theme") return ApplyTheme(body);
         if (path == "/api/accounts") return AddAccount(body);
         if (path == "/api/fairycode/start") return await StartFairyCodeAsync(body).ConfigureAwait(false);
         if (path == "/api/fairycode/probe") return await ProbeFairyCodeAsync().ConfigureAwait(false);
@@ -826,6 +831,52 @@ public sealed class DashboardApi
             implemented = a.Implemented
         });
         return DashboardResponse.Json(JsonSerializer.Serialize(new { accounts }, JsonOptions));
+    }
+
+    /// <summary>
+    /// Reports the theme the desktop app is currently on, so the control centre opens on the
+    /// same one instead of its own browser-local default.
+    /// </summary>
+    private DashboardResponse ReadTheme()
+    {
+        if (_appearance is null) return Unavailable("外观设置不可用");
+        return DashboardResponse.Json(JsonSerializer.Serialize(new
+        {
+            theme = _appearance.CurrentTheme,
+        }, JsonOptions));
+    }
+
+    /// <summary>
+    /// Applies an appearance theme. The control centre runs in a WebView2, so its own theme
+    /// switcher only changed the page; going through the app keeps the two in step — the
+    /// native windows and the dashboard end up on the same theme.
+    /// </summary>
+    private DashboardResponse ApplyTheme(string? body)
+    {
+        if (_appearance is null) return Unavailable("外观设置不可用");
+        if (string.IsNullOrWhiteSpace(body)) return BadRequest("缺少请求体");
+
+        string name;
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return BadRequest("请求体必须是对象");
+            if (!root.TryGetProperty("theme", out var themeElement) ||
+                themeElement.ValueKind != JsonValueKind.String)
+                return BadRequest("缺少 theme 字段");
+
+            name = themeElement.GetString() ?? string.Empty;
+        }
+        catch (JsonException)
+        {
+            return BadRequest("请求体不是合法 JSON");
+        }
+
+        if (!_appearance.ApplyTheme(name))
+            return BadRequest($"未知主题：{name}");
+
+        return DashboardResponse.Json(JsonSerializer.Serialize(new { theme = name }, JsonOptions));
     }
 
     private DashboardResponse AddAccount(string? body)

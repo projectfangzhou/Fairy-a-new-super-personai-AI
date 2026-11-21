@@ -1,5 +1,17 @@
-<Application x:Class="MyAiAssistant.App"
+﻿<Application x:Class="MyAiAssistant.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--
+                  控件外观基线。先于主题字典合并：主题字典提供 SurfaceCardBrush 等
+                  动态资源，而这里的样式用 DynamicResource 引用它们，解析时机在
+                  窗口创建之后，所以顺序不影响最终效果。
+                -->
+                <ResourceDictionary Source="Themes/Controls.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

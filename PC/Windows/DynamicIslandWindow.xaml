@@ -20,8 +20,8 @@
 
     <Border x:Name="IslandBorder"
             CornerRadius="18"
-            Background="#ee111118"
-            BorderBrush="#337b68ee"
+            Background="{DynamicResource GlassTintStrongBrush}"
+            BorderBrush="{DynamicResource AccentBrush}"
             BorderThickness="1"
             Margin="0,0,0,4"
             RenderTransformOrigin="0.5,0">
@@ -33,7 +33,7 @@
         </Border.RenderTransform>
 
         <Border.Effect>
-            <DropShadowEffect Color="#7b68ee" BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
+            <DropShadowEffect Color="{DynamicResource AccentBrush}" BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
         </Border.Effect>
 
         <Grid Margin="16,12">
@@ -45,7 +45,7 @@
 
             <!-- Status bar -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                <Ellipse Width="6" Height="6" Fill="#40e0d0" Margin="0,0,6,0">
+                <Ellipse Width="6" Height="6" Fill="{DynamicResource SuccessBrush}" Margin="0,0,6,0">
                     <Ellipse.RenderTransform>
                         <ScaleTransform x:Name="StatusDot" ScaleX="1" ScaleY="1"/>
                     </Ellipse.RenderTransform>

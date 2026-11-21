@@ -5,7 +5,7 @@
         WindowStartupLocation="CenterScreen"
         Width="500" Height="540"
         ResizeMode="NoResize"
-        Background="#1a1a2e">
+        Background="{DynamicResource SurfaceSunkenBrush}">
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
@@ -17,20 +17,20 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Margin="0,0,0,16">
-            <TextBlock Text="仙灵" Foreground="#7b68ee" FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="首次配置 — 请填写 API Key" Foreground="#888" FontSize="12" Margin="0,4,0,0"/>
+            <TextBlock Text="仙灵" Foreground="{DynamicResource AccentBrush}" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="首次配置 — 请填写 API Key" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,4,0,0"/>
         </StackPanel>
 
         <!-- Steps indicator -->
-        <TextBlock Grid.Row="1" x:Name="StepIndicator" Text="步骤 1/13: 文本模型提供商" Foreground="#555" FontSize="11" Margin="0,0,0,12"/>
+        <TextBlock Grid.Row="1" x:Name="StepIndicator" Text="步骤 1/13: 文本模型提供商" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,12"/>
 
         <!-- Config panels (stacked, only one visible at a time) -->
         <Grid Grid.Row="2">
             <!-- Step 1: LLM -->
             <StackPanel x:Name="LLMPanel" Visibility="Visible" Margin="0,8">
-                <TextBlock Text="LLM 文本模型" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="选择提供商:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="LLMProviderCombo" Width="220" Margin="0,0,0,8" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="LLM 文本模型" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="选择提供商:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="LLMProviderCombo" Width="220" Margin="0,0,0,8" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                           SelectionChanged="OnLLMProviderChanged">
                     <ComboBoxItem Content="Kimi (月之暗面)" IsSelected="True"/>
                     <ComboBoxItem Content="DeepSeek"/>
@@ -41,58 +41,58 @@
                     <ComboBoxItem Content="Ollama (本地)"/>
                     <ComboBoxItem Content="自定义"/>
                 </ComboBox>
-                <TextBlock Text="API 端点 (选择，无需手填):" Foreground="#777" FontSize="11" Margin="0,4,0,4"/>
-                <ComboBox x:Name="LLMEndpointCombo" Width="380" Margin="0,0,0,8" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="API 端点 (选择，无需手填):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,4,0,4"/>
+                <ComboBox x:Name="LLMEndpointCombo" Width="380" Margin="0,0,0,8" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="https://api.moonshot.cn/v1/chat/completions" IsSelected="True"/>
                 </ComboBox>
-                <TextBlock Text="API Key:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="LLMApiKeyBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="API Key:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="LLMApiKeyBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
-                <TextBlock Text="→ 下一步将填写模型名称" Foreground="#7b68ee" FontSize="11" Margin="0,12,0,0"/>
+                <TextBlock Text="→ 下一步将填写模型名称" Foreground="{DynamicResource AccentBrush}" FontSize="11" Margin="0,12,0,0"/>
             </StackPanel>
 
             <!-- Step 2: Model Names (dedicated step) -->
             <StackPanel x:Name="ModelNamePanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="★ 填写模型名称 (必填)" Foreground="#ff6b6b" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
-                <TextBlock Text="每个模型都必须填写完整名称，留空将无法使用。" Foreground="#aaa" FontSize="12" Margin="0,0,0,16"/>
+                <TextBlock Text="★ 填写模型名称 (必填)" Foreground="{DynamicResource ErrorBrush}" FontSize="18" FontWeight="Bold" Margin="0,0,0,12"/>
+                <TextBlock Text="每个模型都必须填写完整名称，留空将无法使用。" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,16"/>
 
-                <Border Background="#2a1a1a" BorderBrush="#ff6b6b" BorderThickness="2" Padding="12" Margin="0,0,0,12" CornerRadius="6">
+                <Border Background="{DynamicResource ErrorSurfaceBrush}" BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="2" Padding="12" Margin="0,0,0,12" CornerRadius="6">
                     <StackPanel>
-                        <TextBlock Text="文本模型名称 (LLM):" Foreground="#ff6b6b" FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
-                        <TextBox x:Name="LLMModelNameBox" Width="360" Height="36" Background="#2a2a3e" Foreground="#ddd"
-                                 BorderBrush="#ff6b6b" Padding="8,4" FontSize="14"/>
-                        <TextBlock Text="例: kimi-k2.6 / deepseek-chat / gpt-4o-mini / mimo-v2.5" Foreground="#888" FontSize="10" Margin="0,4,0,0"/>
+                        <TextBlock Text="文本模型名称 (LLM):" Foreground="{DynamicResource ErrorBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <TextBox x:Name="LLMModelNameBox" Width="360" Height="36" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource ErrorBrush}" Padding="8,4" FontSize="14"/>
+                        <TextBlock Text="例: kimi-k2.6 / deepseek-chat / gpt-4o-mini / mimo-v2.5" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <Border Background="#2a1a1a" BorderBrush="#ff6b6b" BorderThickness="2" Padding="12" Margin="0,0,0,12" CornerRadius="6">
+                <Border Background="{DynamicResource ErrorSurfaceBrush}" BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="2" Padding="12" Margin="0,0,0,12" CornerRadius="6">
                     <StackPanel>
-                        <TextBlock Text="视觉模型名称 (Vision):" Foreground="#ff6b6b" FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
-                        <TextBox x:Name="VisionModelNameBox" Width="360" Height="36" Background="#2a2a3e" Foreground="#ddd"
-                                 BorderBrush="#ff6b6b" Padding="8,4" FontSize="14"/>
-                        <TextBlock Text="例: gpt-4o-mini / gemini-2.0-flash / mimo-v2.5" Foreground="#888" FontSize="10" Margin="0,4,0,0"/>
+                        <TextBlock Text="视觉模型名称 (Vision):" Foreground="{DynamicResource ErrorBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <TextBox x:Name="VisionModelNameBox" Width="360" Height="36" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource ErrorBrush}" Padding="8,4" FontSize="14"/>
+                        <TextBlock Text="例: gpt-4o-mini / gemini-2.0-flash / mimo-v2.5" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <Border Background="#2a1a1a" BorderBrush="#ff6b6b" BorderThickness="2" Padding="12" Margin="0,0,0,12" CornerRadius="6">
+                <Border Background="{DynamicResource ErrorSurfaceBrush}" BorderBrush="{DynamicResource ErrorBrush}" BorderThickness="2" Padding="12" Margin="0,0,0,12" CornerRadius="6">
                     <StackPanel>
-                        <TextBlock Text="语音合成模型名称 (TTS):" Foreground="#ff6b6b" FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
-                        <TextBox x:Name="TTSModelNameBox" Width="360" Height="36" Background="#2a2a3e" Foreground="#ddd"
-                                 BorderBrush="#ff6b6b" Padding="8,4" FontSize="14"/>
-                        <TextBlock Text="例: mi-tts-v2.5 / tts-1 (系统语音可留空)" Foreground="#888" FontSize="10" Margin="0,4,0,0"/>
+                        <TextBlock Text="语音合成模型名称 (TTS):" Foreground="{DynamicResource ErrorBrush}" FontSize="14" FontWeight="Bold" Margin="0,0,0,6"/>
+                        <TextBox x:Name="TTSModelNameBox" Width="360" Height="36" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource ErrorBrush}" Padding="8,4" FontSize="14"/>
+                        <TextBlock Text="例: mi-tts-v2.5 / tts-1 (系统语音可留空)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,4,0,0"/>
                     </StackPanel>
                 </Border>
 
                 <Button x:Name="TestAllModelsBtn" Content="测试全部模型连接" Width="220" Height="40" HorizontalAlignment="Left"
-                        Background="#40e0d0" Foreground="#1a1a2e" BorderThickness="0" FontWeight="Bold" FontSize="13" Click="OnTestAllModels"/>
-                <TextBlock x:Name="ModelTestSummary" Text="" Foreground="#40e0d0" FontSize="12" Margin="0,10,0,0"/>
+                        Background="{DynamicResource SuccessBrush}" Foreground="{DynamicResource SurfaceSunkenBrush}" BorderThickness="0" FontWeight="Bold" FontSize="13" Click="OnTestAllModels"/>
+                <TextBlock x:Name="ModelTestSummary" Text="" Foreground="{DynamicResource SuccessBrush}" FontSize="12" Margin="0,10,0,0"/>
             </StackPanel>
 
             <!-- Step 3: Vision -->
             <StackPanel x:Name="VisionPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="视觉模型 (屏幕识别)" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="选择提供商:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="VisionProviderCombo" Width="220" Margin="0,0,0,8" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="视觉模型 (屏幕识别)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="选择提供商:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="VisionProviderCombo" Width="220" Margin="0,0,0,8" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                           SelectionChanged="OnVisionProviderChanged">
                     <ComboBoxItem Content="OpenAI (GPT-4o)" IsSelected="True"/>
                     <ComboBoxItem Content="Google Gemini"/>
@@ -103,38 +103,38 @@
                     <ComboBoxItem Content="Azure OpenAI"/>
                     <ComboBoxItem Content="自定义"/>
                 </ComboBox>
-                <TextBlock Text="API 端点 (选择，无需手填):" Foreground="#777" FontSize="11" Margin="0,4,0,4"/>
-                <ComboBox x:Name="VisionEndpointCombo" Width="380" Margin="0,0,0,8" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="API 端点 (选择，无需手填):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,4,0,4"/>
+                <ComboBox x:Name="VisionEndpointCombo" Width="380" Margin="0,0,0,8" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="https://api.openai.com/v1/chat/completions" IsSelected="True"/>
                 </ComboBox>
-                <TextBlock Text="API Key:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="VisionApiKeyBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="API Key:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="VisionApiKeyBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
-                <TextBlock Text="模型名称将在专门的步骤填写" Foreground="#7b68ee" FontSize="11" Margin="0,12,0,0"/>
+                <TextBlock Text="模型名称将在专门的步骤填写" Foreground="{DynamicResource AccentBrush}" FontSize="11" Margin="0,12,0,0"/>
             </StackPanel>
 
             <!-- Step 3: ASR -->
             <StackPanel x:Name="ASRPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="ASR 语音识别" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="选择提供商:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="ASRProviderCombo" Width="200" Margin="0,0,0,12" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="ASR 语音识别" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="选择提供商:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="ASRProviderCombo" Width="200" Margin="0,0,0,12" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="MiMo-V2.5-ASR" IsSelected="True"/>
                     <ComboBoxItem Content="OpenAI Whisper"/>
                     <ComboBoxItem Content="Google Speech"/>
                     <ComboBoxItem Content="Microsoft Azure Speech"/>
                     <ComboBoxItem Content="系统语音 (免费)"/>
                 </ComboBox>
-                <TextBlock Text="API Key:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="ASRApiKeyBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="API Key:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="ASRApiKeyBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
-                <TextBlock Text="可选 — 不填则使用系统语音识别" Foreground="#555" FontSize="10" Margin="0,4,0,0"/>
+                <TextBlock Text="可选 — 不填则使用系统语音识别" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0"/>
             </StackPanel>
 
             <!-- Step 4: TTS -->
             <StackPanel x:Name="TTSPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="TTS 语音合成" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="选择提供商:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="TTSProviderCombo" Width="220" Margin="0,0,0,8" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="TTS 语音合成" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="选择提供商:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="TTSProviderCombo" Width="220" Margin="0,0,0,8" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="MiMo-V2.5-TTS" IsSelected="True"/>
                     <ComboBoxItem Content="MiMo TokenPlan (小米)"/>
                     <ComboBoxItem Content="OpenAI TTS"/>
@@ -144,16 +144,16 @@
                     <ComboBoxItem Content="OpenRouter"/>
                     <ComboBoxItem Content="系统语音 (免费)"/>
                 </ComboBox>
-                <TextBlock Text="API 端点 (选择，无需手填):" Foreground="#777" FontSize="11" Margin="0,4,0,4"/>
-                <ComboBox x:Name="TTSEndpointCombo" Width="380" Margin="0,0,0,8" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="API 端点 (选择，无需手填):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,4,0,4"/>
+                <ComboBox x:Name="TTSEndpointCombo" Width="380" Margin="0,0,0,8" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="https://api.xiaomimimo.com/v1/audio/speech" IsSelected="True"/>
                 </ComboBox>
-                <TextBlock Text="API Key:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="TTSApiKeyBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="API Key:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="TTSApiKeyBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
-                <TextBlock Text="模型名称将在专门的步骤填写" Foreground="#7b68ee" FontSize="11" Margin="0,12,0,0"/>
-                <TextBlock Text="音色:" Foreground="#777" FontSize="11" Margin="0,8,0,4"/>
-                <ComboBox x:Name="TTSVoiceCombo" Width="200" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="模型名称将在专门的步骤填写" Foreground="{DynamicResource AccentBrush}" FontSize="11" Margin="0,12,0,0"/>
+                <TextBlock Text="音色:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,8,0,4"/>
+                <ComboBox x:Name="TTSVoiceCombo" Width="200" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="茉莉 (温柔)" IsSelected="True"/>
                     <ComboBoxItem Content="冰糖 (甜美)"/>
                     <ComboBoxItem Content="苏打 (活泼)"/>
@@ -162,24 +162,24 @@
                     <ComboBoxItem Content="Chloe"/>
                 </ComboBox>
                 <!-- GPT-SoVITS voice clone settings -->
-                <TextBlock x:Name="VoiceCloneHint" Text="GPT-SoVITS 语音克隆设置" Foreground="#7b68ee" FontSize="12" FontWeight="SemiBold" Margin="0,12,0,8" Visibility="Collapsed"/>
-                <TextBlock x:Name="VoiceCloneFileHint" Text="参考音频文件 (用于克隆声音，支持 WAV/MP3):" Foreground="#777" FontSize="11" Margin="0,0,0,4" Visibility="Collapsed"/>
+                <TextBlock x:Name="VoiceCloneHint" Text="GPT-SoVITS 语音克隆设置" Foreground="{DynamicResource AccentBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,12,0,8" Visibility="Collapsed"/>
+                <TextBlock x:Name="VoiceCloneFileHint" Text="参考音频文件 (用于克隆声音，支持 WAV/MP3):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4" Visibility="Collapsed"/>
                 <Grid Visibility="Collapsed" x:Name="VoiceCloneFileGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="VoiceCloneAudioPathBox" Grid.Column="0" Width="300" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                    <TextBox x:Name="VoiceCloneAudioPathBox" Grid.Column="0" Width="300" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderBrush="#444" Padding="8,4" FontSize="12" IsReadOnly="True" Margin="0,0,8,0"/>
                     <Button x:Name="VoiceCloneBrowseBtn" Grid.Column="1" Content="浏览..." Width="70" Height="30"
-                            Background="#7b68ee" Foreground="White" BorderBrush="#7b68ee" Click="OnBrowseVoiceClone"/>
+                            Background="{DynamicResource AccentBrush}" Foreground="White" BorderBrush="{DynamicResource AccentBrush}" Click="OnBrowseVoiceClone"/>
                 </Grid>
-                <TextBlock x:Name="VoiceClonePromptHint" Text="参考音频描述 (可选，帮助模型更好理解声音):" Foreground="#777" FontSize="11" Margin="0,8,0,4" Visibility="Collapsed"/>
-                <TextBox x:Name="VoiceClonePromptTextBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock x:Name="VoiceClonePromptHint" Text="参考音频描述 (可选，帮助模型更好理解声音):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,8,0,4" Visibility="Collapsed"/>
+                <TextBox x:Name="VoiceClonePromptTextBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" Visibility="Collapsed"
                          Text="一段温柔的女性声音，语速适中"/>
-                <TextBlock x:Name="VoiceCloneLangHint" Text="参考音频语言:" Foreground="#777" FontSize="11" Margin="0,8,0,4" Visibility="Collapsed"/>
-                <ComboBox x:Name="VoiceCloneLangCombo" Width="120" Background="#2a2a3e" Foreground="#ddd" Visibility="Collapsed">
+                <TextBlock x:Name="VoiceCloneLangHint" Text="参考音频语言:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,8,0,4" Visibility="Collapsed"/>
+                <ComboBox x:Name="VoiceCloneLangCombo" Width="120" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Visibility="Collapsed">
                     <ComboBoxItem Content="zh" IsSelected="True"/>
                     <ComboBoxItem Content="en"/>
                     <ComboBoxItem Content="ja"/>
@@ -188,90 +188,90 @@
 
             <!-- Step 5: Fallback LLM -->
             <StackPanel x:Name="FallbackLLMPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="备用文本模型 (可选)" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="当主模型报错时自动切换" Foreground="#555" FontSize="11" Margin="0,0,0,8"/>
-                <TextBlock Text="选择提供商:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="FallbackLLMProviderCombo" Width="200" Margin="0,0,0,12" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="备用文本模型 (可选)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="当主模型报错时自动切换" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <TextBlock Text="选择提供商:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="FallbackLLMProviderCombo" Width="200" Margin="0,0,0,12" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="Kimi (月之暗面)" IsSelected="True"/>
                     <ComboBoxItem Content="DeepSeek"/>
                     <ComboBoxItem Content="MiMo (小米)"/>
                     <ComboBoxItem Content="OpenAI"/>
                     <ComboBoxItem Content="Ollama (本地)"/>
                 </ComboBox>
-                <TextBlock Text="API Key:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="FallbackLLMApiKeyBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="API Key:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="FallbackLLMApiKeyBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
-                <TextBlock x:Name="FallbackLLMHint" Text="可选 — 不填则不启用备用模型" Foreground="#555" FontSize="10" Margin="0,4,0,0"/>
+                <TextBlock x:Name="FallbackLLMHint" Text="可选 — 不填则不启用备用模型" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0"/>
             </StackPanel>
 
             <!-- Step 6: Local Vision Model -->
             <StackPanel x:Name="LocalVisionPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="本地视觉模型 (离线识图)" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="无需网络，使用本地小型模型识别屏幕" Foreground="#555" FontSize="11" Margin="0,0,0,8"/>
-                <CheckBox x:Name="EnableLocalVisionCheckBox" Content="启用本地视觉模型" Foreground="#aaa" FontSize="12" Margin="0,0,0,8"/>
-                <TextBlock Text="选择模型:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="LocalVisionModelCombo" Width="200" Margin="0,0,0,12" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="本地视觉模型 (离线识图)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="无需网络，使用本地小型模型识别屏幕" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <CheckBox x:Name="EnableLocalVisionCheckBox" Content="启用本地视觉模型" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,8"/>
+                <TextBlock Text="选择模型:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="LocalVisionModelCombo" Width="200" Margin="0,0,0,12" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="llava-phi3 (推荐, ~2GB)" IsSelected="True"/>
                     <ComboBoxItem Content="llava-1.5-7b (~4GB)"/>
                     <ComboBoxItem Content="bakllava (~4GB)"/>
                 </ComboBox>
-                <TextBlock Text="说明: 首次使用需下载模型文件，约 2-4GB" Foreground="#555" FontSize="10" Margin="0,4,0,0"/>
-                <TextBlock Text="模型将保存在应用目录的 models 文件夹中" Foreground="#555" FontSize="10" Margin="0,2,0,0"/>
+                <TextBlock Text="说明: 首次使用需下载模型文件，约 2-4GB" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,0"/>
+                <TextBlock Text="模型将保存在应用目录的 models 文件夹中" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
             </StackPanel>
 
             <!-- Step 7: Live2D Model -->
             <StackPanel x:Name="Live2DPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="Live2D 虚拟形象 (可选)" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="启用 Live2D 虚拟角色，支持口型同步和表情动画" Foreground="#555" FontSize="11" Margin="0,0,0,8"/>
-                <CheckBox x:Name="EnableLive2DCheckBox" Content="启用 Live2D 虚拟形象" Foreground="#aaa" FontSize="12" Margin="0,0,0,8"/>
-                <TextBlock Text="模型文件夹路径:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
+                <TextBlock Text="Live2D 虚拟形象 (可选)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="启用 Live2D 虚拟角色，支持口型同步和表情动画" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <CheckBox x:Name="EnableLive2DCheckBox" Content="启用 Live2D 虚拟形象" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,8"/>
+                <TextBlock Text="模型文件夹路径:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="Live2DModelPathBox" Grid.Column="0" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                    <TextBox x:Name="Live2DModelPathBox" Grid.Column="0" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderBrush="#444" Padding="8,4" FontSize="12" VerticalContentAlignment="Center"/>
                     <Button x:Name="BrowseLive2DBtn" Grid.Column="1" Content="浏览..." Width="60" Height="30" Margin="8,0,0,0"
-                            Background="#444" Foreground="#aaa" BorderThickness="0" Click="OnBrowseLive2D"/>
+                            Background="#444" Foreground="{DynamicResource TextSecondaryBrush}" BorderThickness="0" Click="OnBrowseLive2D"/>
                 </Grid>
-                <TextBlock Text="包含 model3.json 的文件夹，例如: D:\Live2D\haru" Foreground="#555" FontSize="10" Margin="0,2,0,0"/>
-                <TextBlock Text="MMD模型 (.pmx/.pmd) 也会被识别" Foreground="#555" FontSize="10" Margin="0,2,0,0"/>
+                <TextBlock Text="包含 model3.json 的文件夹，例如: D:\Live2D\haru" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
+                <TextBlock Text="MMD模型 (.pmx/.pmd) 也会被识别" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
             </StackPanel>
 
             <!-- Step 8: Personality -->
             <StackPanel x:Name="PersonalityPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="AI 人格设定" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="定义AI助手的性格和说话风格" Foreground="#555" FontSize="11" Margin="0,0,0,8"/>
-                <TextBlock Text="人格描述:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="PersonalityPromptBox" Width="380" Height="80" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="AI 人格设定" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="定义AI助手的性格和说话风格" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <TextBlock Text="人格描述:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="PersonalityPromptBox" Width="380" Height="80" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" TextWrapping="Wrap" AcceptsReturn="True"
                          Text="你是 Fairy，一个温柔、友善的AI助手。你说话亲切自然，像朋友一样和用户交流。"/>
-                <TextBlock Text="示例: 像原神中的派蒙一样活泼可爱 / 像温柔的大姐姐" Foreground="#555" FontSize="10" Margin="0,4,0,8"/>
-                <CheckBox x:Name="IsGameCharacterCheckBox" Content="人格基于游戏角色（将自动搜索原作待机音效）" Foreground="#aaa" FontSize="11" Margin="0,0,0,4"/>
-                <TextBlock Text="角色名 (如: 派蒙、雷电将军):" Foreground="#777" FontSize="11" Margin="0,4,0,4"/>
-                <TextBox x:Name="GameCharacterNameBox" Width="200" Height="28" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="示例: 像原神中的派蒙一样活泼可爱 / 像温柔的大姐姐" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,8"/>
+                <CheckBox x:Name="IsGameCharacterCheckBox" Content="人格基于游戏角色（将自动搜索原作待机音效）" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBlock Text="角色名 (如: 派蒙、雷电将军):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,4,0,4"/>
+                <TextBox x:Name="GameCharacterNameBox" Width="200" Height="28" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
             </StackPanel>
 
             <!-- Step 9: Wake Word & UI -->
             <StackPanel x:Name="WakeWordPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="唤醒词与界面" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="自定义唤醒词:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="WakeWordBox" Width="200" Height="28" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="唤醒词与界面" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="自定义唤醒词:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="WakeWordBox" Width="200" Height="28" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" Text="Fairy"/>
-                <TextBlock Text="输入框显示:" Foreground="#777" FontSize="11" Margin="0,12,0,4"/>
-                <CheckBox x:Name="ShowInputBoxCheckBox" Content="在灵动岛显示输入框" Foreground="#aaa" FontSize="11" Margin="0,0,0,8" IsChecked="True"/>
-                <TextBlock Text="输入框位置:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <ComboBox x:Name="InputBoxPositionCombo" Width="150" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="输入框显示:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,12,0,4"/>
+                <CheckBox x:Name="ShowInputBoxCheckBox" Content="在灵动岛显示输入框" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,8" IsChecked="True"/>
+                <TextBlock Text="输入框位置:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <ComboBox x:Name="InputBoxPositionCombo" Width="150" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="左下" />
                     <ComboBoxItem Content="右下" IsSelected="True"/>
                     <ComboBoxItem Content="中下" />
                 </ComboBox>
-                <TextBlock Text="上下文压缩:" Foreground="#777" FontSize="11" Margin="0,12,0,4"/>
-                <CheckBox x:Name="EnableContextCompressionCheckBox" Content="启用上下文自动压缩 (每256K token)" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <TextBlock Text="性能模式:" Foreground="#777" FontSize="11" Margin="0,8,0,4"/>
-                <ComboBox x:Name="PerformanceModeCombo" Width="150" Background="#2a2a3e" Foreground="#ddd">
+                <TextBlock Text="上下文压缩:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,12,0,4"/>
+                <CheckBox x:Name="EnableContextCompressionCheckBox" Content="启用上下文自动压缩 (每256K token)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <TextBlock Text="性能模式:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,8,0,4"/>
+                <ComboBox x:Name="PerformanceModeCombo" Width="150" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
                     <ComboBoxItem Content="高性能"/>
                     <ComboBoxItem Content="均衡" IsSelected="True"/>
                     <ComboBoxItem Content="低占用"/>
@@ -280,40 +280,40 @@
 
             <!-- Step 10: Custom Platform & Intro -->
             <StackPanel x:Name="CustomPlatformPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="自定义平台与说明" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="FairyAI 是您的个人AI助手，支持语音对话、屏幕识别、" Foreground="#888" FontSize="11" Margin="0,0,0,4"/>
-                <TextBlock Text="Live2D虚拟形象、文件分析、智能知识库等功能。" Foreground="#888" FontSize="11" Margin="0,0,0,12"/>
-                <CheckBox x:Name="EnableCustomPlatformCheckBox" Content="使用自定义API平台 (自行填写Base URL)" Foreground="#aaa" FontSize="11" Margin="0,0,0,8"/>
-                <TextBlock Text="文本模型 Base URL:" Foreground="#777" FontSize="11" Margin="0,0,0,4" Visibility="Collapsed" x:Name="CustomTextUrlHint"/>
-                <TextBox x:Name="CustomTextBaseUrlBox" Width="380" Height="28" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="自定义平台与说明" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="FairyAI 是您的个人AI助手，支持语音对话、屏幕识别、" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBlock Text="Live2D虚拟形象、文件分析、智能知识库等功能。" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,12"/>
+                <CheckBox x:Name="EnableCustomPlatformCheckBox" Content="使用自定义API平台 (自行填写Base URL)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <TextBlock Text="文本模型 Base URL:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4" Visibility="Collapsed" x:Name="CustomTextUrlHint"/>
+                <TextBox x:Name="CustomTextBaseUrlBox" Width="380" Height="28" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" Visibility="Collapsed"/>
-                <TextBlock Text="文本模型名称:" Foreground="#777" FontSize="11" Margin="0,4,0,4" Visibility="Collapsed" x:Name="CustomTextModelHint"/>
-                <TextBox x:Name="CustomTextModelBox" Width="200" Height="28" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="文本模型名称:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,4,0,4" Visibility="Collapsed" x:Name="CustomTextModelHint"/>
+                <TextBox x:Name="CustomTextModelBox" Width="200" Height="28" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" Visibility="Collapsed"/>
-                <TextBlock x:Name="CustomMultimodalHint" Text="多模态模型 (填入后无需填文本和图像模型):" Foreground="#7b68ee" FontSize="11" Margin="0,12,0,4" Visibility="Collapsed"/>
-                <TextBox x:Name="CustomMultimodalBaseUrlBox" Width="380" Height="28" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock x:Name="CustomMultimodalHint" Text="多模态模型 (填入后无需填文本和图像模型):" Foreground="{DynamicResource AccentBrush}" FontSize="11" Margin="0,12,0,4" Visibility="Collapsed"/>
+                <TextBox x:Name="CustomMultimodalBaseUrlBox" Width="380" Height="28" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" Visibility="Collapsed"/>
-                <TextBox x:Name="CustomMultimodalModelBox" Width="200" Height="28" Background="#2a2a3e" Foreground="#ddd"
+                <TextBox x:Name="CustomMultimodalModelBox" Width="200" Height="28" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12" Visibility="Collapsed" Margin="0,4,0,0"/>
             </StackPanel>
 
             <!-- Step 11: Skills Selection -->
             <StackPanel x:Name="SkillsPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="选择AI技能" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="选择要启用的AI技能 (使用前AI会阅读对应README):" Foreground="#555" FontSize="11" Margin="0,0,0,8"/>
-                <CheckBox x:Name="SkillSummarize" Content="总结 (summarize) — 总结对话/文档" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <CheckBox x:Name="SkillTranslate" Content="翻译 (translate) — 多语言翻译" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <CheckBox x:Name="SkillCode" Content="代码 (code) — 代码编写/解释" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <CheckBox x:Name="SkillEmail" Content="邮件 (email) — 邮件撰写" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <CheckBox x:Name="SkillBrainstorm" Content="头脑风暴 (brainstorm) — 创意思考" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <CheckBox x:Name="SkillAnalyze" Content="分析 (analyze) — 数据分析洞察" Foreground="#aaa" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
-                <TextBlock Text="已选技能的README.md将被AI在使用前仔细阅读" Foreground="#555" FontSize="10" Margin="0,8,0,0"/>
+                <TextBlock Text="选择AI技能" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="选择要启用的AI技能 (使用前AI会阅读对应README):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,8"/>
+                <CheckBox x:Name="SkillSummarize" Content="总结 (summarize) — 总结对话/文档" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <CheckBox x:Name="SkillTranslate" Content="翻译 (translate) — 多语言翻译" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <CheckBox x:Name="SkillCode" Content="代码 (code) — 代码编写/解释" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <CheckBox x:Name="SkillEmail" Content="邮件 (email) — 邮件撰写" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <CheckBox x:Name="SkillBrainstorm" Content="头脑风暴 (brainstorm) — 创意思考" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <CheckBox x:Name="SkillAnalyze" Content="分析 (analyze) — 数据分析洞察" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,0,4" IsChecked="True"/>
+                <TextBlock Text="已选技能的README.md将被AI在使用前仔细阅读" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,8,0,0"/>
             </StackPanel>
 
             <!-- Step 12: Messaging accounts (platform dropdown + multiple accounts) -->
             <StackPanel x:Name="BotLoginPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="消息平台账号" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                <TextBlock Text="先选平台再添加。可以加多个账号（例如主号、测试群各一个）；未实现的平台不会出现在列表里，之后也能在控制中心继续增删。" Foreground="#555" FontSize="10" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                <TextBlock Text="消息平台账号" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock Text="先选平台再添加。可以加多个账号（例如主号、测试群各一个）；未实现的平台不会出现在列表里，之后也能在控制中心继续增删。" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
                 <Grid Margin="0,0,0,10">
                     <Grid.ColumnDefinitions>
@@ -322,70 +322,70 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <ComboBox x:Name="PlatformPicker" Grid.Column="0" Height="30" Margin="0,0,8,0"
-                              Background="#2a2a3e" Foreground="#ddd" BorderBrush="#444"
+                              Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="#444"
                               SelectionChanged="OnPlatformSelectionChanged"/>
                     <TextBox x:Name="AccountNameBox" Grid.Column="1" Height="30" Margin="0,0,8,0" Text="主号"
-                             Background="#2a2a3e" Foreground="#ddd" BorderBrush="#444" Padding="8,4" FontSize="12"/>
+                             Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="#444" Padding="8,4" FontSize="12"/>
                     <Button x:Name="AddAccountBtn" Grid.Column="2" Content="添加" Width="88" Height="30"
-                            Background="#7b68ee" Foreground="White" BorderThickness="0" Click="OnAddMessagingAccount"/>
+                            Background="{DynamicResource AccentBrush}" Foreground="White" BorderThickness="0" Click="OnAddMessagingAccount"/>
                 </Grid>
 
                 <StackPanel x:Name="CredentialFieldHost" Margin="0,0,0,10"/>
 
-                <TextBlock x:Name="AccountListHeader" Text="凭据加密保存，界面不会回显。" Foreground="#555"
+                <TextBlock x:Name="AccountListHeader" Text="凭据加密保存，界面不会回显。" Foreground="{DynamicResource TextMutedBrush}"
                            FontSize="10" Margin="0,0,0,4" TextWrapping="Wrap"/>
                 <StackPanel x:Name="AccountListHost"/>
 
-                <TextBlock Text="跳过也可以，核心功能不受影响；Bot 相关能力在添加账号后才启用。" Foreground="#555"
+                <TextBlock Text="跳过也可以，核心功能不受影响；Bot 相关能力在添加账号后才启用。" Foreground="{DynamicResource TextMutedBrush}"
                            FontSize="10" Margin="0,10,0,0" TextWrapping="Wrap"/>
             </StackPanel>
 
             <!-- Step 13: Cloudflare Relay -->
             <StackPanel x:Name="RelayPanel" Visibility="Collapsed" Margin="0,8">
-                <TextBlock Text="中转网站配置 (可选)" Foreground="#aaa" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
-                <TextBlock Text="用于PC-手机跨网络同步（不在同一局域网时）" Foreground="#555" FontSize="11" Margin="0,0,0,8"/>
+                <TextBlock Text="中转网站配置 (可选)" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <TextBlock Text="用于PC-手机跨网络同步（不在同一局域网时）" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,8"/>
 
-                <Border Background="#1e1c2c" BorderBrush="#3d3560" BorderThickness="1"
+                <Border Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1"
                         CornerRadius="4" Padding="10,8" Margin="0,0,0,10">
                     <StackPanel>
                         <TextBlock Text="建议：接 Cloudflare 中转前，先用 Cloudflare MCP 登录一次"
-                                   Foreground="#b3a6f7" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="10"
+                                   Foreground="{DynamicResource AccentBrush}" FontSize="11" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10"
                                    Text="在支持 MCP 的客户端里连接 https://mcp.cloudflare.com/mcp 并完成授权，就能读到账户真实的 R2 使用量与额度，再据此设定上限。"/>
-                        <TextBlock TextWrapping="Wrap" Foreground="#888" FontSize="10" Margin="0,4,0,0"
+                        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,4,0,0"
                                    Text="不接也能用：仙灵先按免费额度硬拦——单文件 2 GB、单次分享 5 GB，达到上限直接拒绝，不会传到一半才报错。这两个数字不是承诺，是防止超支的默认值。"/>
                     </StackPanel>
                 </Border>
 
-                <TextBlock Text="中转网站地址:" Foreground="#777" FontSize="11" Margin="0,0,0,4"/>
-                <TextBox x:Name="RelayUrlBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="中转网站地址:" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,0,0,4"/>
+                <TextBox x:Name="RelayUrlBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"
                          Text="https://fairyai-sync.your-subdomain.workers.dev"/>
-                <TextBlock Text="填入Cloudflare Worker的完整URL" Foreground="#555" FontSize="10" Margin="0,4,0,8"/>
+                <TextBlock Text="填入Cloudflare Worker的完整URL" Foreground="{DynamicResource TextMutedBrush}" FontSize="10" Margin="0,4,0,8"/>
 
-                <TextBlock Text="共享密钥 (必须与Worker环境变量FAIRYAI_SECRET一致):" Foreground="#777" FontSize="11" Margin="0,4,0,4"/>
-                <TextBox x:Name="RelaySecretBox" Width="380" Height="30" Background="#2a2a3e" Foreground="#ddd"
+                <TextBlock Text="共享密钥 (必须与Worker环境变量FAIRYAI_SECRET一致):" Foreground="{DynamicResource TextMutedBrush}" FontSize="11" Margin="0,4,0,4"/>
+                <TextBox x:Name="RelaySecretBox" Width="380" Height="30" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="#444" Padding="8,4" FontSize="12"/>
 
-                <TextBlock Text="Cloudflare Worker部署步骤:" Foreground="#7b68ee" FontSize="11" FontWeight="Bold" Margin="0,12,0,4"/>
-                <TextBlock Text="1. 登录 dash.cloudflare.com → Workers &amp; Pages" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
-                <TextBlock Text="2. 创建Worker，粘贴安装目录下的 cloudflare-worker.js" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
-                <TextBlock Text="3. 设置环境变量 FAIRYAI_SECRET = 你的共享密钥" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
-                <TextBlock Text="4. 部署后复制Worker URL填入上方" Foreground="#888" FontSize="10" Margin="0,0,0,2"/>
-                <TextBlock Text="Worker源码位置: 安装目录\\cloudflare-worker.js" Foreground="#40e0d0" FontSize="10" Margin="0,8,0,0"/>
+                <TextBlock Text="Cloudflare Worker部署步骤:" Foreground="{DynamicResource AccentBrush}" FontSize="11" FontWeight="Bold" Margin="0,12,0,4"/>
+                <TextBlock Text="1. 登录 dash.cloudflare.com → Workers &amp; Pages" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,0,0,2"/>
+                <TextBlock Text="2. 创建Worker，粘贴安装目录下的 cloudflare-worker.js" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,0,0,2"/>
+                <TextBlock Text="3. 设置环境变量 FAIRYAI_SECRET = 你的共享密钥" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,0,0,2"/>
+                <TextBlock Text="4. 部署后复制Worker URL填入上方" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="10" Margin="0,0,0,2"/>
+                <TextBlock Text="Worker源码位置: 安装目录\\cloudflare-worker.js" Foreground="{DynamicResource SuccessBrush}" FontSize="10" Margin="0,8,0,0"/>
             </StackPanel>
         </Grid>
 
         <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
             <Button x:Name="BackBtn" Content="上一步" Width="80" Height="32" Margin="0,0,8,0"
-                    Background="#333" Foreground="#aaa" BorderThickness="0"
+                    Background="#333" Foreground="{DynamicResource TextSecondaryBrush}" BorderThickness="0"
                     Click="OnBackClick" Visibility="Collapsed"/>
             <Button x:Name="NextBtn" Content="下一步" Width="80" Height="32"
-                    Background="#7b68ee" Foreground="white" BorderThickness="0"
+                    Background="{DynamicResource AccentBrush}" Foreground="white" BorderThickness="0"
                     Click="OnNextClick"/>
             <Button x:Name="FinishBtn" Content="完成" Width="80" Height="32" Margin="8,0,0,0"
-                    Background="#40e0d0" Foreground="white" BorderThickness="0"
+                    Background="{DynamicResource SuccessBrush}" Foreground="white" BorderThickness="0"
                     Click="OnFinishClick" Visibility="Collapsed"/>
         </StackPanel>
     </Grid>

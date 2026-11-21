@@ -4,6 +4,6 @@
         Title="Agent 控制中心" Width="1100" Height="760"
         MinWidth="720" MinHeight="520"
         WindowStartupLocation="CenterScreen"
-        Background="#1a1a2e">
+        Background="{DynamicResource SurfaceSunkenBrush}">
     <Grid x:Name="Host"/>
 </Window>

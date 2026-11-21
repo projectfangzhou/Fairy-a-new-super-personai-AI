@@ -4,7 +4,7 @@
         Title="剪贴板历史 - Fairy AI"
         Width="420" Height="560"
         WindowStartupLocation="CenterScreen"
-        Background="#1a1a2e">
+        Background="{DynamicResource SurfaceSunkenBrush}">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -16,20 +16,20 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="剪贴板历史" Foreground="#7b68ee" FontSize="16" FontWeight="Bold"
+            <TextBlock Grid.Column="0" Text="剪贴板历史" Foreground="{DynamicResource AccentBrush}" FontSize="16" FontWeight="Bold"
                        VerticalAlignment="Center"/>
             <Button Grid.Column="1" Content="清空" Width="60" Height="28"
-                    Background="#333" Foreground="#aaa" BorderThickness="0"
+                    Background="#333" Foreground="{DynamicResource TextSecondaryBrush}" BorderThickness="0"
                     Click="OnClearClick"/>
         </Grid>
 
-        <ListBox Grid.Row="1" x:Name="HistoryList" Background="#2a2a3e" Foreground="#ddd"
+        <ListBox Grid.Row="1" x:Name="HistoryList" Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                  BorderThickness="0" SelectionMode="Single"
                  MouseDoubleClick="OnHistoryDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="4">
-                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="#ddd"
+                        <TextBlock Text="{Binding Text}" TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}"
                                    MaxHeight="60" TextTrimming="CharacterEllipsis" FontSize="13"/>
                         <TextBlock Text="{Binding Timestamp, StringFormat=HH:mm:ss}" Foreground="#666"
                                    FontSize="10" Margin="0,2,0,0"/>

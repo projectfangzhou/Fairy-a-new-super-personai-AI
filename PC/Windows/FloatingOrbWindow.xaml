@@ -41,15 +41,15 @@
         <!-- Green active dot (shown when island is open) -->
         <Ellipse x:Name="ActiveDot" Width="8" Height="8"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Fill="#40e0d0" Visibility="Collapsed">
+                 Fill="{DynamicResource SuccessBrush}" Visibility="Collapsed">
             <Ellipse.Effect>
-                <DropShadowEffect Color="#40e0d0" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
+                <DropShadowEffect Color="{DynamicResource SuccessBrush}" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
             </Ellipse.Effect>
         </Ellipse>
 
         <!-- Center dot (shown when inactive) -->
         <Ellipse x:Name="InactiveDot" Width="6" Height="6"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                 Fill="#ddbbccff"/>
+                 Fill="{DynamicResource TextSecondaryBrush}"/>
     </Grid>
 </Window>

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="仙灵 · Fairy Code" Height="800" Width="1240" MinHeight="620" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
-        Background="#08080A" Foreground="#E8E8ED"
+        Background="{DynamicResource SurfaceCardBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
         FontFamily="Microsoft YaHei UI, Segoe UI">
 
     <Window.Resources>
@@ -11,7 +11,7 @@
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#C9C9D2"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="8,7"/>
             <Setter Property="Margin" Value="0,1"/>
@@ -25,10 +25,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Chrome" Property="Background" Value="#17171C"/>
+                                <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="#5A5A66"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -38,29 +38,29 @@
 
         <!-- Small pill used for state, counts and the model name. -->
         <Style x:Key="Pill" TargetType="Border">
-            <Setter Property="Background" Value="#17171C"/>
-            <Setter Property="BorderBrush" Value="#26262E"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="8,2"/>
         </Style>
 
         <Style x:Key="SectionTitle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#8A8A96"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
         <Style x:Key="FieldLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#6F6F7C"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Margin" Value="0,0,0,2"/>
         </Style>
 
-        <Style x:Key="GhostButton" TargetType="Button">            <Setter Property="Background" Value="#1C1C22"/>
-            <Setter Property="Foreground" Value="#D6D6E0"/>
-            <Setter Property="BorderBrush" Value="#2C2C35"/>
+        <Style x:Key="GhostButton" TargetType="Button">            <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="12,4"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -93,7 +93,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#2A2A33" CornerRadius="4" Margin="2,0"/>
+                                                <Border Background="{DynamicResource BorderStrongBrush}" CornerRadius="4" Margin="2,0"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -111,15 +111,17 @@
         <Style TargetType="ScrollBar" BasedOn="{StaticResource ThinScrollBar}"/>
     </Window.Resources>
 
-    <Grid Background="#08080A" TextElement.Foreground="#E8E8ED">
+    <Grid Background="{DynamicResource SurfaceCardBrush}" TextElement.Foreground="{DynamicResource TextPrimaryBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="248"/>
+            <!-- 侧栏收窄：248 → 204。文字放不下就靠 Tooltip 和图标兜底。 -->
+            <ColumnDefinition Width="204"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="312"/>
+            <ColumnDefinition Width="300"/>
         </Grid.ColumnDefinitions>
 
         <!-- ======== Sidebar: actions, then the sessions this machine has run ======== -->
-        <Border Grid.Column="0" Background="#0C0C0F" BorderBrush="#1B1B21" BorderThickness="0,0,1,0">
+        <Border Grid.Column="0" Background="{DynamicResource SurfaceSunkenBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,1,0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -129,16 +131,16 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="16,16,12,10">
+                <Grid Grid.Row="0" Margin="14,16,10,10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="仙灵 · Fairy Code" FontSize="15" FontWeight="SemiBold"
-                               Foreground="#F4F4F8" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     <Button x:Name="NewTaskButton" Grid.Column="1" Style="{StaticResource NavButton}"
                             Padding="6,4" ToolTip="新建任务（结束当前会话）">
-                        <Path Data="M12 5v14 M5 12h14" Stroke="#B3A6F7" StrokeThickness="1.6"
+                        <Path Data="M12 5v14 M5 12h14" Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.6"
                               StrokeStartLineCap="Round" StrokeEndLineCap="Round" Width="14" Height="14"
                               Stretch="Uniform"/>
                     </Button>
@@ -153,11 +155,11 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Path Grid.Column="0" Data="M6 9a6 6 0 1 1 12 0v3.5l1.6 3.2H4.4L6 12.5z M10 18.5a2 2 0 0 0 4 0"
-                                  Stroke="#8A8A96" StrokeThickness="1.4" StrokeLineJoin="Round" Width="15" Height="15"
+                                  Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" StrokeLineJoin="Round" Width="15" Height="15"
                                   Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Grid.Column="1" Text="待审批" Margin="9,0,0,0" FontSize="13" VerticalAlignment="Center"/>
                             <Border x:Name="PendingBadge" Grid.Column="2" Style="{StaticResource Pill}" Visibility="Collapsed">
-                                <TextBlock x:Name="PendingNavCount" Text="0" FontSize="10.5" Foreground="#F0B0A8"
+                                <TextBlock x:Name="PendingNavCount" Text="0" FontSize="10.5" Foreground="{DynamicResource ErrorBrush}"
                                            FontFamily="Cascadia Mono, Consolas"/>
                             </Border>
                         </Grid>
@@ -165,7 +167,7 @@
 
                     <Button x:Name="StopButton" Style="{StaticResource NavButton}" IsEnabled="False" ToolTip="停止当前会话">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M7.5 7.5h9v9h-9z" Stroke="#8A8A96" StrokeThickness="1.4" Width="15" Height="15"
+                            <Path Data="M7.5 7.5h9v9h-9z" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" Width="15" Height="15"
                                   Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Text="停止" Margin="9,0,0,0" FontSize="13" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -173,7 +175,7 @@
 
                     <Button x:Name="ClearButton" Style="{StaticResource NavButton}" ToolTip="清空当前对话显示">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M4 16.5l7.5-7.5 5 5-4.5 4.5H7z M13 20.5h7" Stroke="#8A8A96" StrokeThickness="1.4"
+                            <Path Data="M4 16.5l7.5-7.5 5 5-4.5 4.5H7z M13 20.5h7" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4"
                                   StrokeLineJoin="Round" Width="15" Height="15" Stretch="Uniform" VerticalAlignment="Center"/>
                             <TextBlock Text="清屏" Margin="9,0,0,0" FontSize="13" VerticalAlignment="Center"/>
                         </StackPanel>
@@ -194,12 +196,12 @@
                     <StackPanel x:Name="SessionList" Margin="8,0,8,8"/>
                 </ScrollViewer>
 
-                <Border Grid.Row="4" Background="#0A0A0D" BorderBrush="#1B1B21" BorderThickness="0,1,0,0"
+                <Border Grid.Row="4" Background="{DynamicResource SurfaceSunkenBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
                         Padding="14,10">
                     <StackPanel>
-                        <TextBlock x:Name="SidebarStatus" Text="待命" Foreground="#C9C9D2" FontSize="12"
+                        <TextBlock x:Name="SidebarStatus" Text="待命" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"
                                    TextTrimming="CharacterEllipsis"/>
-                        <TextBlock x:Name="SidebarModel" Text="引擎未启动" Foreground="#6F6F7C" FontSize="10.5"
+                        <TextBlock x:Name="SidebarModel" Text="引擎未启动" Foreground="{DynamicResource TextMutedBrush}" FontSize="10.5"
                                    Margin="0,3,0,0" FontFamily="Cascadia Mono, Consolas"
                                    TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
@@ -216,16 +218,16 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Padding="20,14,20,10" BorderBrush="#16161B" BorderThickness="0,0,0,1">
+            <Border Grid.Row="0" Padding="20,14,20,10" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock x:Name="HeaderTitle" Grid.Column="0" Text="新会话" FontSize="15" FontWeight="SemiBold"
-                               Foreground="#F1F1F6" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
                     <Border Grid.Column="1" Style="{StaticResource Pill}" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock x:Name="HeaderState" Text="待命" FontSize="11" Foreground="#9C9CA8"/>
+                        <TextBlock x:Name="HeaderState" Text="待命" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                     </Border>
                 </Grid>
             </Border>
@@ -234,11 +236,11 @@
                 <StackPanel x:Name="TranscriptHost" Margin="20,10,20,18"/>
             </ScrollViewer>
 
-            <Border Grid.Row="2" Margin="18,0,18,10" Background="#141417" BorderBrush="#26262E"
+            <Border Grid.Row="2" Margin="18,0,18,10" Background="{DynamicResource SurfaceSunkenBrush}" BorderBrush="{DynamicResource BorderBrush}"
                     BorderThickness="1" CornerRadius="14" Padding="14,12,14,10">
                 <StackPanel>
                     <TextBox x:Name="InputBox" MinHeight="26" MaxHeight="120" Padding="0" BorderThickness="0"
-                             Background="Transparent" Foreground="#ECECF2" CaretBrush="#B3A6F7"
+                             Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}" CaretBrush="{DynamicResource AccentBrush}"
                              FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" VerticalContentAlignment="Top"
                              ToolTip="Enter 发送，Shift+Enter 换行"/>
                     <Grid Margin="0,8,0,0">
@@ -248,16 +250,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Style="{StaticResource Pill}" Background="#1B1B22">
-                            <TextBlock x:Name="ModelPill" Text="引擎未检测" FontSize="11" Foreground="#A9A9B8"
+                        <Border Grid.Column="0" Style="{StaticResource Pill}" Background="{DynamicResource SurfaceRaisedBrush}">
+                            <TextBlock x:Name="ModelPill" Text="引擎未检测" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                        FontFamily="Cascadia Mono, Consolas"/>
                         </Border>
 
-                        <TextBlock Grid.Column="1" Text="Enter 发送 · Shift+Enter 换行" Foreground="#5C5C68"
+                        <TextBlock Grid.Column="1" Text="Enter 发送 · Shift+Enter 换行" Foreground="{DynamicResource TextMutedBrush}"
                                    FontSize="10.5" VerticalAlignment="Center" Margin="10,0,0,0"/>
 
                         <Button x:Name="SendButton" Grid.Column="2" Width="30" Height="30" Padding="0"
-                                Background="#EDEDF3" Foreground="#0C0C0F" BorderThickness="0" Cursor="Hand"
+                                Background="{DynamicResource TextPrimaryBrush}" Foreground="{DynamicResource SurfaceSunkenBrush}" BorderThickness="0" Cursor="Hand"
                                 ToolTip="发送">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
@@ -273,33 +275,33 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock x:Name="StatusText" Grid.Row="3" Text="未连接" Foreground="#5C5C68" FontSize="10.5"
+            <TextBlock x:Name="StatusText" Grid.Row="3" Text="未连接" Foreground="{DynamicResource TextMutedBrush}" FontSize="10.5"
                        HorizontalAlignment="Center" Margin="0,0,0,10"/>
         </Grid>
 
         <!-- ======== Right panel: the session it is attached to, and what it touched ======== -->
-        <Border Grid.Column="2" Background="#0C0C0F" BorderBrush="#1B1B21" BorderThickness="1,0,0,0">
+        <Border Grid.Column="2" Background="{DynamicResource SurfaceSunkenBrush}" BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="14,16,14,16">
 
                     <TextBlock Text="会话" Style="{StaticResource SectionTitle}"/>
-                    <Border Background="#121216" BorderBrush="#1F1F26" BorderThickness="1" CornerRadius="10"
+                    <Border Background="{DynamicResource SurfaceSunkenBrush}" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1" CornerRadius="10"
                             Padding="11,9" Margin="0,0,0,14">
                         <StackPanel>
                             <TextBlock Text="任务" Style="{StaticResource FieldLabel}"/>
-                            <TextBlock x:Name="PanelTaskId" Text="—" Foreground="#D6D6E0" FontSize="11.5"
+                            <TextBlock x:Name="PanelTaskId" Text="—" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"
                                        FontFamily="Cascadia Mono, Consolas" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="状态" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
-                            <TextBlock x:Name="PanelState" Text="待命" Foreground="#D6D6E0" FontSize="11.5"/>
+                            <TextBlock x:Name="PanelState" Text="待命" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
                             <TextBlock Text="引擎 / 模型" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
-                            <TextBlock x:Name="PanelModel" Text="未启动" Foreground="#D6D6E0" FontSize="11.5"
+                            <TextBlock x:Name="PanelModel" Text="未启动" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"
                                        FontFamily="Cascadia Mono, Consolas" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <TextBlock Text="工作区" Style="{StaticResource SectionTitle}"/>
                     <TextBox x:Name="WorkspaceBox" Padding="8,6" Margin="0,0,0,14" MaxHeight="64"
-                             Background="#121216" Foreground="#D6D6E0" BorderBrush="#1F1F26" BorderThickness="1"
+                             Background="{DynamicResource SurfaceSunkenBrush}" Foreground="{DynamicResource TextSecondaryBrush}" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1"
                              FontFamily="Cascadia Mono, Consolas" FontSize="11" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto"
                              ToolTip="工作区：必须是一个已存在的目录"/>
@@ -311,12 +313,12 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="待审批" Style="{StaticResource SectionTitle}"/>
                         <Border x:Name="PendingPanelBadge" Grid.Column="1" Style="{StaticResource Pill}">
-                            <TextBlock x:Name="PendingPanelCount" Text="0" FontSize="10.5" Foreground="#F0B0A8"
+                            <TextBlock x:Name="PendingPanelCount" Text="0" FontSize="10.5" Foreground="{DynamicResource ErrorBrush}"
                                        FontFamily="Cascadia Mono, Consolas"/>
                         </Border>
                     </Grid>
                     <StackPanel x:Name="PendingList" Margin="0,0,0,14"/>
-                    <TextBlock x:Name="PendingEmpty" Text="没有待确认的动作。" Foreground="#5C5C68" FontSize="11"
+                    <TextBlock x:Name="PendingEmpty" Text="没有待确认的动作。" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
                                Margin="0,0,0,14"/>
 
                     <Grid Margin="0,0,0,6">
@@ -329,7 +331,7 @@
                                    FontFamily="Cascadia Mono, Consolas"/>
                     </Grid>
                     <StackPanel x:Name="ToolList"/>
-                    <TextBlock x:Name="ToolEmpty" Text="本次会话还没有调用工具。" Foreground="#5C5C68" FontSize="11"/>
+                    <TextBlock x:Name="ToolEmpty" Text="本次会话还没有调用工具。" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"/>
                 </StackPanel>
             </ScrollViewer>
         </Border>

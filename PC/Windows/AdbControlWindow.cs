@@ -28,11 +28,18 @@ public sealed class AdbControlWindow : Window
     {
         Title = "仙灵 · USB ADB 手机操控";
         Width = 580; Height = 750; MinWidth = 450; MinHeight = 500;
+
+        // 这个窗口整个界面是代码建出来的，没有自己的资源字典。
+        // 不套这层样式的话它会用 WPF 默认的浅色外观，在深色应用里像外来物。
+        if (Application.Current?.TryFindResource("FairyWindow") is Style windowStyle)
+            Style = windowStyle;
+
         Content = new ScrollViewer { Content = _panel, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
         _panel.Children.Add(new TextBlock
         {
             Text = "连接 USB，在手机上开启 USB 调试并确认此电脑的 RSA 授权。选择官方 platform-tools 的 adb.exe，刷新后显式选择手机。只有点击测试按钮才会发送动作。Shizuku 尚未集成。",
-            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12)
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12),
+            Foreground = (Brush)Application.Current.TryFindResource("TextSecondaryBrush")
         });
         AddField("adb.exe 完整路径", _path);
         AddButton("浏览 adb.exe", () =>
@@ -80,13 +87,27 @@ public sealed class AdbControlWindow : Window
 
     private void AddField(string label, Control control)
     {
-        _panel.Children.Add(new TextBlock { Text = label, Margin = new Thickness(0, 8, 0, 3) });
+        _panel.Children.Add(new TextBlock
+        {
+            Text = label,
+            Margin = new Thickness(0, 8, 0, 3),
+            Foreground = (Brush)Application.Current.TryFindResource("TextSecondaryBrush")
+        });
+        if (control is TextBox box && Application.Current?.TryFindResource("FairyTextBox") is Style textStyle)
+            box.Style = textStyle;
         _panel.Children.Add(control);
     }
 
     private void AddButton(string label, Func<Task> action)
     {
-        var button = new Button { Content = label, Margin = new Thickness(0, 8, 0, 0), Padding = new Thickness(8) };
+        var button = new Button
+        {
+            Content = label,
+            Margin = new Thickness(0, 8, 0, 0),
+            Padding = new Thickness(8),
+        };
+        if (Application.Current?.TryFindResource("FairyButton") is Style buttonStyle)
+            button.Style = buttonStyle;
         button.Click += async (_, _) =>
         {
             _panel.IsEnabled = false;

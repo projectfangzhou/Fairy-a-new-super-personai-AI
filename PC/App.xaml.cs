@@ -12,6 +12,7 @@ using MyAiAssistant.Services.FairyCode;
 using MyAiAssistant.Services.HomeAssistant;
 using MyAiAssistant.Services.Mcp;
 using MyAiAssistant.Services.Messaging;
+using MyAiAssistant.Services.Theme;
 using MyAiAssistant.Services.Transfer;
 using MyAiAssistant.Services.Notifications;
 using MyAiAssistant.Services.Pairing;
@@ -61,6 +62,10 @@ public partial class App : Application
 
         try
         {
+            // 主题必须在任何窗口创建之前应用：窗口一创建就会解析 DynamicResource，
+            // 晚一步的话窗口会先用默认色画一帧。
+            ThemeManager.ApplyFromConfig();
+
             // Check for setup-complete flag (from installer) — show welcome but DON'T skip wizard
             if (e.Args.Contains("--setup-complete"))
             {
@@ -245,7 +250,8 @@ public partial class App : Application
                 sp.GetRequiredService<SystemNotificationRelay>(),
                 sp.GetRequiredService<ISummarySyncControl>(),
                 sp.GetRequiredService<IScreenSessionControl>(),
-                sp.GetRequiredService<IMcpStatus>()));
+                sp.GetRequiredService<IMcpStatus>(),
+                appearance: new MyAiAssistant.Services.Appearance.AppearanceControl()));
             sc.AddSingleton<ConnectivityManager>();
             sc.AddSingleton<FairyViewModel>();
 

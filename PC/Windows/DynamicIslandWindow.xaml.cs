@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
+using MyAiAssistant.Services.Theme;
 
 namespace MyAiAssistant.Windows;
 
@@ -27,11 +28,17 @@ public partial class DynamicIslandWindow : Window
 
     private void InitWaveformBars()
     {
+        // 灵动岛的波形和 WaveformVisualizer 是同一个视觉元素，但各画各的
+        // （一个在控件里、一个在窗口里），所以颜色也得取同一套主题色。
+        var accent = ThemeManager.GetColor("Theme.Accent", Colors.DeepSkyBlue);
+        var success = ThemeManager.GetColor("Theme.Success", Colors.MediumSpringGreen);
+        var accentSoft = ThemeManager.GetColor("Theme.AccentSoft", Colors.SteelBlue);
+
         var colors = new Brush[]
         {
-            new LinearGradientBrush(Colors.Magenta, Colors.Blue, 90),
-            new LinearGradientBrush(Colors.Orange, Colors.Cyan, 90),
-            new LinearGradientBrush(Colors.Yellow, Colors.MediumPurple, 90),
+            new LinearGradientBrush(accent, accentSoft, 90),
+            new LinearGradientBrush(success, accent, 90),
+            new LinearGradientBrush(accentSoft, accent, 90),
         };
 
         for (int i = 0; i < _waveBars.Length; i++)

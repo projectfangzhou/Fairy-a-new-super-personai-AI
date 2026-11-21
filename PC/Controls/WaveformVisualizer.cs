@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using MyAiAssistant.Services.Theme;
 
 namespace MyAiAssistant.Controls;
 
@@ -15,12 +16,35 @@ public class WaveformVisualizer : ContentControl
     private readonly DispatcherTimer _timer;
     private double _amplitude;
 
-    private static readonly Brush[] BarBrushes =
-    [
-        new LinearGradientBrush(Colors.Magenta, Colors.Blue, 90),
-        new LinearGradientBrush(Colors.Orange, Colors.Cyan, 90),
-        new LinearGradientBrush(Colors.Yellow, Colors.MediumPurple, 90),
-    ];
+    /// <summary>
+    /// The three bar gradients follow the theme: the accent, the success colour and a
+    /// softer variant of the accent. They are built lazily because the theme can change
+    /// while the app is running, and a gradient made at construction time would keep
+    /// the old colours.
+    /// </summary>
+    private static Brush[] BuildBarBrushes()
+    {
+        var accent = ThemeManager.GetColor("Theme.Accent", Colors.DeepSkyBlue);
+        var success = ThemeManager.GetColor("Theme.Success", Colors.MediumSpringGreen);
+        var accentSoft = ThemeManager.GetColor("Theme.AccentSoft", Colors.SteelBlue);
+
+        return
+        [
+            MakeGradient(accent, accentSoft),
+            MakeGradient(success, accent),
+            MakeGradient(accentSoft, accent),
+        ];
+    }
+
+    private static Brush MakeGradient(Color from, Color to) =>
+        new LinearGradientBrush(from, to, 90);
+
+    private static Brush[]? _barBrushes;
+
+    private static Brush[] BarBrushes => _barBrushes ??= BuildBarBrushes();
+
+    /// <summary>Called when the theme changes so the bars pick up the new colours.</summary>
+    public static void RefreshTheme() => _barBrushes = BuildBarBrushes();
 
     public double Amplitude
     {

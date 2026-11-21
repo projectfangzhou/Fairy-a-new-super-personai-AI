@@ -31,7 +31,7 @@ public sealed class WebDashboardService
         INotificationSettings? notificationSettings = null, NotificationCenter? notificationCenter = null,
         IHomeAssistantControl? homeAssistant = null, SystemNotificationRelay? systemNotifications = null,
         ISummarySyncControl? summarySync = null, IScreenSessionControl? screenSession = null,
-        IMcpStatus? mcp = null, int port = 8080)
+        IMcpStatus? mcp = null, int port = 8080, Dashboard.IAppearanceControl? appearance = null)
     {
         ArgumentNullException.ThrowIfNull(center);
         ArgumentNullException.ThrowIfNull(audit);
@@ -39,7 +39,7 @@ public sealed class WebDashboardService
         // Generated per session and never written to disk, so a local process cannot read
         // it to approve an action on the user's behalf.
         ControlToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
-        _api = new Dashboard.DashboardApi(center, audit, ControlToken, settings, accounts, accountService, fairyCode, localSend, localSendPeers, pairing, transfer, notificationSettings, notificationCenter, homeAssistant, systemNotifications, summarySync, screenSession, mcp);
+        _api = new Dashboard.DashboardApi(center, audit, ControlToken, settings, accounts, accountService, fairyCode, localSend, localSendPeers, pairing, transfer, notificationSettings, notificationCenter, homeAssistant, systemNotifications, summarySync, screenSession, mcp, appearance);
         _port = port;
         _server = new LocalHttpServer(HandleAsync);
     }
@@ -109,46 +109,204 @@ public sealed class WebDashboardService
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8"><title>仙灵 · Agent 控制中心</title>
 <style>
-:root{--ink:#1f2430;--sub:#6b6880;--line:#e3e1ef;--accent:#7b68ee;--bg:#fbfbfe;--card:#fff;--warn:#b4453c}
+/* ══════════════════════════════════════════════════════════════
+   液态玻璃控制中心
+
+   这里能做出**真·折射**：控制中心跑在 WebView2 里，而 WebView2 是 Chromium，
+   Chromium 支持把 SVG 滤镜（feDisplacementMap）用作 backdrop-filter。
+   所以这里的玻璃是真的会把背后的内容掰弯，不是画的假象。
+
+   折射用一张 SVG 位移贴图实现：贴图只画玻璃边缘一圈「斜面」，
+   中间是平的 —— 中间平、边缘斜，光学上就是一块有厚度的玻璃。
+   贴图随容器尺寸重建（ResizeObserver），所以卡片怎么变都不会错位。
+
+   非 Chromium 浏览器降级为普通毛玻璃（blur），观感差一点但不出错。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 四套主题 ── */
+:root,
+:root[data-theme="mono"]{
+  --ink:#e9e9e9;--sub:#9ca3af;--muted:#6b7280;--line:#1f2937;--line-strong:#2a3547;
+  --accent:#38bdf8;--accent-soft:#0e7490;--on-accent:#0a0d12;
+  --bg:#05070c;--bg-mid:#0a0d12;--bg-bottom:#0f131c;
+  --card:#161d2b;--raised:#1e2636;--sunken:#0f131c;--tile:#111823;
+  --success:#6ee7b7;--warn:#e9a568;--error:#fca5a5;--error-surface:#2a1f2f;
+  --glass-tint:rgba(255,255,255,.08);--glass-tint-strong:rgba(255,255,255,.13);
+  --glass-border:rgba(255,255,255,.16);--glass-highlight:rgba(255,255,255,.38);
+  --glass-sheen:rgba(255,255,255,.10);--glass-shadow:rgba(0,0,0,.45);
+  --glass-blur:18px;--glass-refract:26px;--glass-thickness:100px;--glass-refractive:1.5;
+}
+:root[data-theme="light"]{
+  --ink:#101828;--sub:#5a6478;--muted:#8b94a6;--line:#e3e7ef;--line-strong:#cbd2e0;
+  --accent:#0e7490;--accent-soft:#67c5de;--on-accent:#ffffff;
+  --bg:#f7f8fa;--bg-mid:#ffffff;--bg-bottom:#eef1f5;
+  --card:#ffffff;--raised:#ffffff;--sunken:#f1f3f7;--tile:#f4f6fa;
+  --success:#0f9d63;--warn:#b26a12;--error:#c23b3b;--error-surface:#fbeded;
+  --glass-tint:rgba(255,255,255,.55);--glass-tint-strong:rgba(255,255,255,.72);
+  --glass-border:rgba(16,24,40,.12);--glass-highlight:rgba(255,255,255,.95);
+  --glass-sheen:rgba(255,255,255,.55);--glass-shadow:rgba(16,24,40,.14);
+  --glass-blur:20px;--glass-refract:22px;--glass-thickness:80px;--glass-refractive:1.45;
+}
+:root[data-theme="cyan"]{
+  --ink:#e4f4f8;--sub:#93b7c4;--muted:#5e818e;--line:#173c46;--line-strong:#1e5060;
+  --accent:#22d3ee;--accent-soft:#0e7490;--on-accent:#04141a;
+  --bg:#04141a;--bg-mid:#082028;--bg-bottom:#0c2c36;
+  --card:#0e2630;--raised:#143039;--sunken:#0a1e26;--tile:#0b222b;
+  --success:#5eead4;--warn:#f0b872;--error:#fca5a5;--error-surface:#2b1a22;
+  --glass-tint:rgba(34,211,238,.10);--glass-tint-strong:rgba(34,211,238,.16);
+  --glass-border:rgba(34,211,238,.22);--glass-highlight:rgba(103,232,245,.42);
+  --glass-sheen:rgba(34,211,238,.14);--glass-shadow:rgba(0,20,24,.48);
+  --glass-blur:18px;--glass-refract:28px;--glass-thickness:110px;--glass-refractive:1.52;
+}
+:root[data-theme="emerald"]{
+  --ink:#e4f5ec;--sub:#96b9a6;--muted:#628073;--line:#1b3b2c;--line-strong:#234b38;
+  --accent:#34d399;--accent-soft:#0f7a52;--on-accent:#04140e;
+  --bg:#05140e;--bg-mid:#0a1e16;--bg-bottom:#0e2a1e;
+  --card:#10231a;--raised:#163024;--sunken:#0b1c14;--tile:#0d2018;
+  --success:#6ee7b7;--warn:#e9b872;--error:#f2a0a0;--error-surface:#2a1a1e;
+  --glass-tint:rgba(52,211,153,.10);--glass-tint-strong:rgba(52,211,153,.16);
+  --glass-border:rgba(52,211,153,.22);--glass-highlight:rgba(110,231,183,.42);
+  --glass-sheen:rgba(52,211,153,.14);--glass-shadow:rgba(0,20,14,.48);
+  --glass-blur:18px;--glass-refract:28px;--glass-thickness:110px;--glass-refractive:1.52;
+}
+
 *{box-sizing:border-box}
-body{margin:0;padding:24px;background:var(--bg);color:var(--ink);
- font:14px/1.6 -apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
-h1{font-size:18px;font-weight:500;margin:0 0 4px}
-h2{font-size:13px;font-weight:500;margin:0 0 12px;color:var(--sub);letter-spacing:.02em}
-h3{font-size:12px;font-weight:500;margin:14px 0 6px;color:var(--sub)}
-.sub{color:var(--sub);font-size:12px;margin:0 0 20px}
-section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+html{scroll-behavior:smooth}
+body{margin:0;padding:24px 24px 80px;color:var(--ink);
+  background:
+    radial-gradient(1100px 620px at 12% -8%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 62%),
+    radial-gradient(900px 520px at 92% 4%, color-mix(in srgb, var(--accent-soft) 20%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-mid) 52%, var(--bg-bottom) 100%);
+  background-attachment:fixed;
+  font:14px/1.65 -apple-system,'SF Pro Text','PingFang SC','Microsoft YaHei',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  transition:background-color .35s ease,color .35s ease}
+
+h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em}
+h2{font-size:13px;font-weight:600;margin:0 0 12px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+h3{font-size:12px;font-weight:600;margin:18px 0 7px;color:var(--muted);letter-spacing:.04em}
+.sub{color:var(--sub);font-size:12.5px;margin:0 0 18px;line-height:1.6}
+.mono{font-family:ui-monospace,'Cascadia Code',Consolas,monospace;font-size:12px;color:var(--sub);word-break:break-all}
+
+/* ── 玻璃容器 ── */
+.glass{
+  position:relative;
+  isolation:isolate;
+  background:var(--glass-tint);
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+  box-shadow:
+    0 1px 2px var(--glass-shadow),
+    0 8px 26px -8px var(--glass-shadow),
+    inset 0 1px 0 var(--glass-highlight);
+  backdrop-filter:blur(var(--glass-blur)) saturate(165%);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(165%);
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1),box-shadow .28s cubic-bezier(.34,1.56,.64,1),
+             background-color .28s ease,border-color .28s ease;
+}
+/* 上缘斜向高光：玻璃厚度的主要来源 */
+.glass::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
+  background:linear-gradient(135deg,var(--glass-highlight) 0%,transparent 26%,transparent 72%,var(--glass-sheen) 100%);
+  opacity:.5;
+}
+.glass>*{position:relative;z-index:1}
+
+section{padding:18px 20px;margin-bottom:16px}
+section:hover{transform:translateY(-1px);
+  box-shadow:0 2px 4px var(--glass-shadow),0 14px 34px -10px var(--glass-shadow),inset 0 1px 0 var(--glass-highlight)}
+
+/* ── 排版 ── */
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-weight:400;color:var(--sub);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
-td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:11px;padding:7px 10px;
+  border-bottom:1px solid var(--line);letter-spacing:.05em;text-transform:uppercase}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:none}
-button{font:inherit;font-size:12px;padding:5px 12px;border-radius:6px;border:1px solid var(--line);
- background:#fff;color:var(--ink);cursor:pointer;margin-right:6px}
-button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+td:first-child,th:first-child{padding-left:2px}
+td:last-child,th:last-child{padding-right:2px}
+
+button{font:inherit;font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:9px;
+  border:1px solid var(--glass-border);background:var(--glass-tint);color:var(--ink);cursor:pointer;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:transform .2s cubic-bezier(.34,1.56,.64,1),background-color .2s ease,border-color .2s ease,color .2s ease}
+button:hover:not(:disabled){background:var(--glass-tint-strong);border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+button:active:not(:disabled){transform:scale(.97)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button:disabled{opacity:.38;cursor:not-allowed}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-button.danger:hover:not(:disabled){border-color:var(--warn);color:var(--warn)}
-input,textarea{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;width:100%}
-textarea{resize:vertical}
-label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
-.empty{color:var(--sub);font-size:13px;padding:4px 0}
-.state{font-size:12px;padding:1px 7px;border-radius:10px;background:#f0eefc;color:#4b3fb0}
-.state.terminal{background:#f2f2f6;color:var(--sub)}
-.state.failed{background:#fdeceb;color:var(--warn)}
-.mono{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--sub);word-break:break-all}
-.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-.grow{flex:1;min-width:220px}
-.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-.login{max-width:360px;margin:12vh auto 0;background:var(--card);border:1px solid var(--line);
- border-radius:12px;padding:28px}
-.login h1{font-size:20px}
-.login button{width:100%;height:36px;margin-top:14px;font-size:14px}
-.err{color:var(--warn);font-size:12px;margin:10px 0 0}
-.ok{color:#2f7a52;font-size:12px}
+button.primary{background:var(--accent);border-color:transparent;color:var(--on-accent);
+  box-shadow:0 4px 14px -4px var(--accent),inset 0 1px 0 rgba(255,255,255,.25)}
+button.primary:hover:not(:disabled){background:var(--accent);color:var(--on-accent);filter:brightness(1.08)}
+button.danger:hover:not(:disabled){border-color:var(--error);color:var(--error)}
+
+input,textarea,select{font:inherit;font-size:13px;padding:8px 11px;border-radius:9px;width:100%;
+  border:1px solid var(--line);background:var(--sunken);color:var(--ink);
+  transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+/* 下拉框：原生 select 的下拉列表由系统绘制，选项区跟随系统主题，
+   所以只保证收起状态和箭头跟主题一致。 */
+select{
+  appearance:none;-webkit-appearance:none;
+  padding-right:32px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),
+                   linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 55%,calc(100% - 11px) 55%;
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+}
+select option{background:var(--sunken);color:var(--ink)}
+::-webkit-calendar-picker-indicator{filter:invert(.6)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+textarea{resize:vertical;line-height:1.6}
+input[type=checkbox]{width:auto;margin-right:8px;accent-color:var(--accent);height:15px;width:15px;vertical-align:-2px}
+label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:9px 0 4px;letter-spacing:.03em}
+
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:230px}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.state{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;display:inline-block;
+  background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
+.state.terminal{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--sub)}
+.state.failed{background:color-mix(in srgb,var(--error) 16%,transparent);color:var(--error)}
+.state.ok{background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--success)}
+.err{color:var(--error);font-size:12px;margin:10px 0 0}
+.ok{color:var(--success);font-size:12px}
+
+/* ── 顶栏 ── */
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+.topbar .sub{margin-bottom:0}
+
+/* ── 主题切换 ── */
+.themes{display:flex;gap:6px;padding:5px}
+.themes button{padding:6px 12px;font-size:12px;border-radius:8px}
+.themes button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:transparent;
+  box-shadow:0 3px 10px -3px var(--accent)}
+
+/* ── 登录 ── */
+.login{max-width:380px;margin:14vh auto 0;padding:30px}
+.login h1{font-size:21px}
+.login button{width:100%;height:40px;margin-top:16px;font-size:14px}
+
+/* ── 折射贴图容器 ──
+   .refract 会被 JS 加上 SVG 滤镜引用；不支持的浏览器自动降级为毛玻璃。 */
+.refract{position:relative}
+/* 滤镜用的 SVG 必须绝对定位且不占布局，否则它会把内容顶下去。 */
+.glass > svg.glass-filter{
+  position:absolute;top:0;left:0;
+  width:0;height:0;
+  pointer-events:none;z-index:0;
+}
+/* 不支持 SVG backdrop 的浏览器：退回普通毛玻璃，不做折射。 */
+.no-refract .glass{backdrop-filter:blur(var(--glass-blur)) saturate(165%);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(165%)}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
 </style></head><body>
 
-<div id="login" class="login">
+<div id="login" class="login glass">
   <h1>Agent 控制中心</h1>
   <p class="sub">输入应用内「Agent 控制中心」窗口显示的会话令牌</p>
   <input id="tokenInput" type="password" placeholder="会话令牌" autocomplete="off">
@@ -159,10 +317,18 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
 <div id="app" hidden>
   <div class="topbar">
     <div><h1>Agent 控制中心</h1><p class="sub">数据来自本机真实运行状态</p></div>
-    <button id="logoutBtn">退出</button>
+    <div class="row">
+      <div class="themes glass" role="group" aria-label="外观主题">
+        <button data-theme-set="mono" aria-pressed="true">墨黑</button>
+        <button data-theme-set="light" aria-pressed="false">素白</button>
+        <button data-theme-set="cyan" aria-pressed="false">青</button>
+        <button data-theme-set="emerald" aria-pressed="false">翠</button>
+      </div>
+      <button id="logoutBtn">退出</button>
+    </div>
   </div>
 
-  <section>
+  <section class="glass">
     <h2>设置</h2>
     <p class="sub" style="margin-bottom:4px">留空的字段不会修改。密钥只写不读回，页面永远看不到已保存的密钥。</p>
 
@@ -212,7 +378,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     </div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>消息平台账号</h2>
     <p class="sub">先选平台再添加。可以加多个账号，之后随时在这里管理；未实现的平台不会出现在可选列表里。</p>
     <div class="row">
@@ -227,7 +393,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="accountsEmpty" class="empty" hidden>还没有添加账号。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>局域网接收（LocalSend）</h2>
     <p class="sub">默认关闭。开启后会在所有网卡上监听 53317 端口；别人发来的文件必须先经过待审批区，你同意后才会写盘，拒绝会回 403。</p>
     <div class="row">
@@ -257,7 +423,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     </div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>配对设备组</h2>
     <p class="sub">配对是后面所有跨设备能力的底座：每个设备组有自己的密钥和自己的数据空间，组与组之间默认互相看不见。端口默认关闭，开了之后同一网络里的设备才能连进来。配对码只显示一次、十分钟内有效、错满次数就作废；配对成功不等于授权，任何能力都要你在这里逐项给。</p>
     <div class="row">
@@ -291,7 +457,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="prInvitesEmpty" class="empty" hidden>当前没有待使用的配对码。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>跨设备传输</h2>
     <p class="sub">走已配对设备之间的点对点通道（WebRTC 数据通道），信令经本机配对端口转发，不经过任何公网服务。对方发来的文件会先进入「待审批 - 待回答」，你同意之后才会落盘；落盘前校验整文件哈希，不合格直接丢弃。</p>
     <div class="row">
@@ -314,7 +480,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="trJobsEmpty" class="empty" hidden>还没有传输记录。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>通知</h2>
     <p class="sub">这里是仙灵自己的通知历史，不和系统通知混在一起。任务完成、失败、待审批、待回答都会进这里；免打扰时段只静默普通通知，待审批仍然会提醒——把它静音等于让任务停在原地。</p>
     <div class="row">
@@ -343,7 +509,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="ntEmpty" class="empty" hidden>还没有通知。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>MCP 后端</h2>
     <p class="sub">可选的外部感知/操作后端（例如 Windows-MCP）。它发布的每个工具都会出现在工具表里，但每次调用仍要你逐次批准，并受上面的暂停/停止与审计约束。未配置或未启用时不会启动任何进程。</p>
     <div class="row">
@@ -355,7 +521,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <p class="sub mono" id="mcpTools"></p>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>屏幕操作</h2>
     <p class="sub">暂停在当前动作做完之后生效，下一个动作不会执行；停止之后一律不执行，继续也不会恢复。每一次点击/输入都要单独审批，未批准的动作不会碰鼠标。</p>
     <div class="row">
@@ -367,7 +533,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <p class="sub mono" id="scDetail"></p>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>手机任务摘要</h2>
     <p class="sub">允许已配对的手机读取任务摘要：只有任务名、状态和时间，不含任务内容、输出或文件。默认关闭；手机端也要各自打开。撤销某台设备后，它必须重新配对。</p>
     <div class="row">
@@ -382,7 +548,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="ssEmpty" class="empty" hidden>还没有持有令牌的设备。手机完成配对后会出现在这里。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>Home Assistant</h2>
     <p class="sub">可选客户端，服务端仍是你自己的 Home Assistant，本程序不附带也不嵌入它。读状态不需要确认；控制设备、执行场景、触发自动化都会先进待审批，你点同意才发得出去。</p>
     <label>服务器地址</label>
@@ -418,7 +584,7 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="haEmpty" class="empty" hidden>还没有连接到 Home Assistant。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>Fairy Code</h2>
     <p class="sub">Pi Agent 主循环。每一次工具调用都会先经过审批闸门：文件覆盖、命令执行、凭据路径都需要你在这里点同意。</p>
     <div class="row">
@@ -438,32 +604,32 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
     <div id="fcEmpty" class="empty" hidden>还没有启动过 Fairy Code 任务。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>任务</h2>
     <table><thead><tr><th>任务</th><th>状态</th><th>进度</th><th>引擎 / 模型</th><th>操作</th></tr></thead>
     <tbody id="tasks"></tbody></table>
     <div id="tasksEmpty" class="empty" hidden>当前没有任务。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>待审批 / 待回答</h2>
     <table><thead><tr><th>类型</th><th>内容</th><th>风险</th><th>操作</th></tr></thead>
     <tbody id="pending"></tbody></table>
     <div id="pendingEmpty" class="empty" hidden>没有待处理项。</div>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>资源</h2>
     <table><tbody id="resources"></tbody></table>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>最近事件</h2>
     <table><thead><tr><th>时间</th><th>类型</th><th>详情</th></tr></thead>
     <tbody id="events"></tbody></table>
   </section>
 
-  <section>
+  <section class="glass">
     <h2>操作审计</h2>
     <table><thead><tr><th>时间</th><th>动作</th><th>类别</th><th>决策</th><th>理由</th></tr></thead>
     <tbody id="audit"></tbody></table>
@@ -474,6 +640,216 @@ label{display:block;font-size:11px;color:var(--sub);margin:8px 0 3px}
 const $ = id => document.getElementById(id);
 let token = sessionStorage.getItem('fairyToken') || '';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ══════════════════════════════════════════════════════════════
+   液态玻璃：真·折射
+
+   做法和参考实现同源，但只保留必要的部分：
+     1. 给每个玻璃容器生成一张 SVG 位移贴图（feDisplacementMap 用的 R/G 通道）
+     2. 贴图只在边缘画一圈「斜面」，中间是平的 —— 这就是玻璃的厚度
+     3. 用 backdrop-filter: url(#filter) 把贴图作用到容器背后的内容上
+   Chromium 支持把 SVG 滤镜用作 backdrop-filter，所以 WebView2 里这是真折射。
+   其它浏览器不支持时自动退回毛玻璃（.no-refract），不会花屏。
+
+   贴图必须按容器的 border-box 尺寸生成：contentRect 不含 padding，
+   贴图偏小会让折射区往内缩，看起来像「双层容器」。
+   ══════════════════════════════════════════════════════════════ */
+const supportsSvgBackdrop = (() => {
+  if (typeof CSS === 'undefined' || !CSS.supports) return false;
+  try { return CSS.supports('backdrop-filter', 'url(#x)'); }
+  catch (e) { return false; }
+})();
+
+/** 表面方程：x∈[0,1] → 高度。squircle 是苹果那种圆角方。 */
+function glassSurface(x) {
+  return Math.pow(1 - Math.pow(1 - x, 4), 1 / 4);
+}
+
+/**
+ * 一维折射位移曲线（Snell 折射：垂直光线穿过 squircle 表面后的水平偏移）。
+ * gt=玻璃厚度, bw=棱镜宽, ri=折射率。返回沿半径的采样点位移量（像素）。
+ */
+function glassDisplacementCurve(gt, bw, ri, samples) {
+  const e = 1 / ri;
+  const r = new Array(samples);
+  for (let i = 0; i < samples; i++) {
+    const x = i / samples;
+    const y = glassSurface(x);
+    const dx = x < 1 ? 0.0001 : -0.0001;
+    const d = (glassSurface(Math.max(0, Math.min(1, x + dx))) - y) / dx;
+    const m = Math.sqrt(d * d + 1);
+    const n = [-d / m, -1 / m];
+    const dt = n[1];
+    const k = 1 - e * e * (1 - dt * dt);
+    if (k < 0) {
+      r[i] = 0;                     // 全反射
+    } else {
+      const rf = [
+        -(e * dt + Math.sqrt(k)) * n[0],
+        e - (e * dt + Math.sqrt(k)) * n[1],
+      ];
+      r[i] = rf[0] * ((y * bw + gt) / rf[1]);
+    }
+  }
+  return r;
+}
+
+/**
+ * 把一维曲线铺成二维位移贴图（canvas 位图），返回 data URL。
+ * R 通道存 x 方向位移、G 通道存 y 方向位移，中心是 128（= 不位移）。
+ * 圆角矩形用「折算到最近圆角中心」的距离场算，所以四条边的圆角对称。
+ *
+ * 这段必须逐像素算：之前用 SVG 滤镜链现画，结果整个 backdrop 被毁掉。
+ */
+function buildDisplacementMap(w, h, radius, bezel, thickness, refractive) {
+  const cw = Math.max(1, Math.round(w));
+  const ch = Math.max(1, Math.round(h));
+  const rad = Math.min(radius, Math.min(cw, ch) / 2);
+  const bw = Math.max(1, Math.round(bezel));
+
+  const pMap = glassDisplacementCurve(thickness, bw, refractive, 128);
+  let maxDisplacement = 0;
+  for (const v of pMap) maxDisplacement = Math.max(maxDisplacement, Math.abs(v));
+  if (!maxDisplacement) maxDisplacement = 1;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  const img = ctx.createImageData(cw, ch);
+  const data = img.data;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = 128; data[i + 1] = 128; data[i + 2] = 0; data[i + 3] = 255;
+  }
+
+  const rSq = rad * rad;
+  const rp1Sq = (rad + 1) ** 2;
+  const rmBwSq = Math.max(0, rad - bw) ** 2;
+  const wB = cw - rad * 2;
+  const hB = ch - rad * 2;
+
+  for (let y1 = 0; y1 < ch; y1++) {
+    for (let x1 = 0; x1 < cw; x1++) {
+      const x = x1 < rad ? x1 - rad : x1 >= cw - rad ? x1 - rad - wB : 0;
+      const y = y1 < rad ? y1 - rad : y1 >= ch - rad ? y1 - rad - hB : 0;
+      const dSq = x * x + y * y;
+
+      if (dSq <= rp1Sq && dSq >= rmBwSq) {
+        const dist = Math.sqrt(dSq);
+        const op = dSq < rSq ? 1 : 1 - (dist - rad) / (Math.sqrt(rp1Sq) - rad);
+        const bIdx = Math.floor(
+          Math.max(0, Math.min(1, (rad - dist) / bw)) * (pMap.length - 1),
+        );
+        const dVal = pMap[bIdx] || 0;
+        const dX = dist > 0 ? -(x / dist) * dVal / maxDisplacement : 0;
+        const dY = dist > 0 ? -(y / dist) * dVal / maxDisplacement : 0;
+
+        const idx = (y1 * cw + x1) * 4;
+        data[idx] = Math.max(0, Math.min(255, Math.round(128 + dX * 127 * op)));
+        data[idx + 1] = Math.max(0, Math.min(255, Math.round(128 + dY * 127 * op)));
+      }
+    }
+  }
+
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL();
+}
+
+let refractObserver = null;
+function enableRefraction(root) {
+  if (!supportsSvgBackdrop) {
+    document.documentElement.classList.add('no-refract');
+    return;
+  }
+  const nodes = (root || document).querySelectorAll('.glass');
+  if (!nodes.length) return;
+
+  const apply = (el) => {
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const cs = getComputedStyle(el);
+    const radius = parseFloat(cs.borderTopLeftRadius) || 14;
+    const bezel = parseFloat(cs.getPropertyValue('--glass-refract')) || 26;
+    const thickness = parseFloat(cs.getPropertyValue('--glass-thickness')) || 100;
+    const refractive = parseFloat(cs.getPropertyValue('--glass-refractive')) || 1.5;
+
+    const mapUrl = buildDisplacementMap(
+      rect.width, rect.height, radius, bezel, thickness, refractive);
+    if (!mapUrl) return;
+
+    if (!el.id) el.id = 'g' + Math.random().toString(36).slice(2);
+    const filterId = 'lgr-' + el.id;
+
+    let svg = el.querySelector(':scope > svg.glass-filter');
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'glass-filter');
+      svg.setAttribute('aria-hidden', 'true');
+      el.prepend(svg);
+    }
+    // 不设 width/height 属性：绝对定位 + CSS 尺寸 0 才是零占位。
+    svg.setAttribute('width', '0');
+    svg.setAttribute('height', '0');
+    svg.setAttribute('viewBox', `0 0 ${Math.round(rect.width)} ${Math.round(rect.height)}`);
+    svg.innerHTML =
+      `<defs><filter id="${filterId}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">` +
+        `<feImage href="${mapUrl}" result="map" x="0" y="0" width="${rect.width}" height="${rect.height}"/>` +
+        `<feDisplacementMap in="SourceGraphic" in2="map" scale="${bezel}" xChannelSelector="R" yChannelSelector="G"/>` +
+      `</filter></defs>`;
+
+    // 折射只作用在 backdrop 上：容器自己的内容是另外一层，不受影响。
+    el.style.backdropFilter =
+      `blur(var(--glass-blur)) saturate(165%) url(#${filterId})`;
+    el.style.webkitBackdropFilter = el.style.backdropFilter;
+  };
+
+  nodes.forEach(el => {
+    if (!el.id) el.id = 'g' + Math.random().toString(36).slice(2);
+    apply(el);
+  });
+
+  if (refractObserver) refractObserver.disconnect();
+  refractObserver = new ResizeObserver(entries => {
+    for (const entry of entries) apply(entry.target);
+  });
+  nodes.forEach(el => refractObserver.observe(el));
+}
+
+/* ── 主题切换 ── */
+const THEME_KEY = 'fairyTheme';
+const THEMES = ['mono', 'light', 'cyan', 'emerald'];
+const THEME_TO_APP = { mono: 'MonoDark', light: 'PureLight', cyan: 'Cyan', emerald: 'Emerald' };
+function setTheme(name, notifyApp) {
+  if (!THEMES.includes(name)) name = 'mono';
+  document.documentElement.setAttribute('data-theme', name);
+  sessionStorage.setItem(THEME_KEY, name);
+  document.querySelectorAll('[data-theme-set]').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.themeSet === name)));
+  // 主题换了，玻璃贴图要重建（滤镜里的颜色和强度都跟着变）。
+  requestAnimationFrame(() => enableRefraction());
+  // 通知桌面应用，让原生窗口和这里用同一套主题。
+  if (notifyApp) {
+    const appName = THEME_TO_APP[name];
+    if (appName) post('/api/appearance/theme', { theme: appName }).catch(() => {});
+  }
+}
+function initTheme() {
+  const saved = sessionStorage.getItem(THEME_KEY) || 'mono';
+  setTheme(saved, false);
+  document.querySelectorAll('[data-theme-set]').forEach(b =>
+    b.addEventListener('click', () => setTheme(b.dataset.themeSet, true)));
+
+  // 桌面应用可能已经在另一套主题上（比如在原生窗口里切过），
+  // 那就以应用为准，别让两处显示得不一样。
+  api('/api/appearance/theme').then(r => {
+    if (!r || r.status !== 200 || !r.body) return;
+    const appTheme = r.body.theme;
+    const webTheme = Object.keys(THEME_TO_APP).find(k => THEME_TO_APP[k] === appTheme);
+    if (webTheme && webTheme !== sessionStorage.getItem(THEME_KEY)) setTheme(webTheme, false);
+  }).catch(() => {});
+}
 
 const endpointFields = {
   llm: ['provider','baseUrl','model','apiKey'],
@@ -505,6 +881,8 @@ async function post(path, payload){
 function showApp(){
   $('login').hidden = true;
   $('app').hidden = false;
+  // 玻璃折射要在内容显示之后再建：隐藏时元素尺寸是 0，贴图会算错。
+  requestAnimationFrame(() => enableRefraction());
   refresh();
   setInterval(refresh, 2000);
 }
@@ -513,6 +891,7 @@ function showLogin(message){
   $('app').hidden = true;
   $('login').hidden = false;
   if (message) { $('loginError').textContent = message; $('loginError').hidden = false; }
+  requestAnimationFrame(() => enableRefraction());
 }
 
 async function login(){
@@ -1375,6 +1754,7 @@ document.addEventListener('click', ev => {
 });
 
 (async () => {
+  initTheme();
   if (token) {
     const { status } = await api('/api/session');
     if (status === 200) { showApp(); loadSettings(); loadPlatforms(); return; }

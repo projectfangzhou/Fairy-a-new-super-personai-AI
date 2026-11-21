@@ -6,6 +6,7 @@ using System.Windows.Media;
 using MyAiAssistant.Services.AgentControl;
 using MyAiAssistant.Services.FairyCode;
 using MyAiAssistant.Services.Permissions;
+using MyAiAssistant.Services.Theme;
 
 namespace MyAiAssistant.Windows;
 
@@ -21,13 +22,22 @@ namespace MyAiAssistant.Windows;
 /// </summary>
 public partial class FairyCodeWindow : Window
 {
-    private static readonly Brush AssistantBrush = Paint("#E6E6EF");
-    private static readonly Brush UserBrush = Paint("#EDEDF3");
-    private static readonly Brush AccentBrush = Paint("#B3A6F7");
-    private static readonly Brush WarnBrush = Paint("#FF9D94");
-    private static readonly Brush OkBrush = Paint("#86E0A8");
-    private static readonly Brush DimBrush = Paint("#8A8A96");
-    private static readonly Brush ErrorBrush = Paint("#FF7B72");
+    // These brushes are read from the active theme rather than hard-coded, so the window
+    // follows a theme switch instead of staying on the old palette.
+    private static Brush AssistantBrush => ThemeManager.GetBrush("TextPrimaryBrush", Paint("#E6E6EF"));
+    private static Brush UserBrush => ThemeManager.GetBrush("TextPrimaryBrush", Paint("#EDEDF3"));
+    private static Brush AccentBrush => ThemeManager.GetBrush("AccentBrush", Paint("#B3A6F7"));
+    private static Brush WarnBrush => ThemeManager.GetBrush("ErrorBrush", Paint("#FF9D94"));
+    private static Brush OkBrush => ThemeManager.GetBrush("SuccessBrush", Paint("#86E0A8"));
+    private static Brush DimBrush => ThemeManager.GetBrush("TextMutedBrush", Paint("#8A8A96"));
+    private static Brush ErrorBrush => ThemeManager.GetBrush("ErrorBrush", Paint("#FF7B72"));
+
+    /// <summary>
+    /// A brush from the active theme, falling back to the old hard-coded value when the
+    /// window is built before the theme dictionary is in place.
+    /// </summary>
+    private static Brush Themed(string key, string fallback) =>
+        ThemeManager.GetBrush(key, Paint(fallback));
 
 
     private readonly AgentControlCenter _center;
@@ -249,7 +259,7 @@ public partial class FairyCodeWindow : Window
 
         var bubble = new Border
         {
-            Background = Paint("#1E1E25"),
+            Background = Themed("SurfaceRaisedBrush", "#1E1E25"),
             CornerRadius = new CornerRadius(12),
             Padding = new Thickness(12, 9, 12, 9),
             Margin = new Thickness(72, 8, 0, 8),
@@ -340,8 +350,8 @@ public partial class FairyCodeWindow : Window
 
         var card = new Border
         {
-            Background = Paint("#121217"),
-            BorderBrush = Paint("#1F1F26"),
+            Background = Themed("SurfaceSunkenBrush", "#121217"),
+            BorderBrush = Themed("BorderStrongBrush", "#1F1F26"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
             Padding = new Thickness(12, 9, 12, 9),
@@ -385,8 +395,8 @@ public partial class FairyCodeWindow : Window
 
         var card = new Border
         {
-            Background = Paint("#1E1416"),
-            BorderBrush = Paint("#4A2A2C"),
+            Background = Themed("ErrorSurfaceBrush", "#1E1416"),
+            BorderBrush = Themed("ErrorBrush", "#4A2A2C"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
             Padding = new Thickness(12, 9, 12, 9),
@@ -474,7 +484,7 @@ public partial class FairyCodeWindow : Window
         var allow = new Button
         {
             Content = "允许", Style = (Style)FindResource("GhostButton"), Margin = new Thickness(0, 9, 6, 0),
-            Tag = item.Id, Background = Paint("#1F2A22"), BorderBrush = Paint("#2E4636"), Foreground = OkBrush
+            Tag = item.Id, Background = Themed("SuccessBrush", "#1F2A22"), BorderBrush = Themed("SuccessBrush", "#2E4636"), Foreground = OkBrush
         };
         allow.Click += (_, _) => Answer(item.Id, true);
 
@@ -495,8 +505,8 @@ public partial class FairyCodeWindow : Window
 
         var border = new Border
         {
-            Background = Paint("#191317"),
-            BorderBrush = Paint("#4A3030"),
+            Background = Themed("ErrorSurfaceBrush", "#191317"),
+            BorderBrush = Themed("ErrorBrush", "#4A3030"),
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(12),
             Padding = new Thickness(12, 10, 12, 10),
@@ -530,8 +540,8 @@ public partial class FairyCodeWindow : Window
             button.IsEnabled = false;
             button.Content = "已处理";
         }
-        border.BorderBrush = Paint("#2A2A33");
-        border.Background = Paint("#141418");
+        border.BorderBrush = Themed("BorderStrongBrush", "#2A2A33");
+        border.Background = Themed("SurfaceSunkenBrush", "#141418");
         SetStatus("已处理");
     }
 
@@ -560,7 +570,7 @@ public partial class FairyCodeWindow : Window
                 SessionList.Children.Add(new TextBlock
                 {
                     Text = day,
-                    Foreground = Paint("#5C5C68"),
+                    Foreground = Themed("TextMutedBrush", "#5C5C68"),
                     FontSize = 10.5,
                     FontWeight = FontWeights.SemiBold,
                     Margin = new Thickness(8, 10, 0, 4)
@@ -583,8 +593,8 @@ public partial class FairyCodeWindow : Window
         {
             var row = new Border
             {
-                Background = Paint("#191317"),
-                BorderBrush = Paint("#4A3030"),
+                Background = Themed("ErrorSurfaceBrush", "#191317"),
+                BorderBrush = Themed("ErrorBrush", "#4A3030"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(8),
                 Padding = new Thickness(9, 7, 9, 7),
@@ -618,7 +628,7 @@ public partial class FairyCodeWindow : Window
             {
                 Foreground = allowed switch { true => OkBrush, false => WarnBrush, _ => AccentBrush }
             });
-            line.Inlines.Add(new Run(FirstLine(text)) { Foreground = Paint("#A9A9B8") });
+            line.Inlines.Add(new Run(FirstLine(text)) { Foreground = Themed("TextSecondaryBrush", "#A9A9B8") });
             ToolList.Children.Add(line);
         }
         ToolEmpty.Visibility = _tools.Count > 0 ? Visibility.Collapsed : Visibility.Visible;
@@ -639,7 +649,7 @@ public partial class FairyCodeWindow : Window
         var title = new TextBlock
         {
             Text = task.Title,
-            Foreground = isCurrent ? Paint("#F1F1F6") : Paint("#C9C9D2"),
+            Foreground = isCurrent ? Themed("TextPrimaryBrush", "#F1F1F6") : Themed("TextSecondaryBrush", "#C9C9D2"),
             FontSize = 12.5,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
@@ -647,7 +657,7 @@ public partial class FairyCodeWindow : Window
         var meta = new TextBlock
         {
             Text = $"{task.Id} · {task.State}",
-            Foreground = Paint("#5C5C68"),
+            Foreground = Themed("TextMutedBrush", "#5C5C68"),
             FontSize = 10,
             FontFamily = new FontFamily("Cascadia Mono, Consolas"),
             TextTrimming = TextTrimming.CharacterEllipsis,
@@ -660,7 +670,7 @@ public partial class FairyCodeWindow : Window
 
         return new Border
         {
-            Background = isCurrent ? Paint("#191920") : Brushes.Transparent,
+            Background = isCurrent ? Themed("SurfaceRaisedBrush", "#191920") : Brushes.Transparent,
             CornerRadius = new CornerRadius(8),
             Padding = new Thickness(9, 7, 9, 7),
             Margin = new Thickness(0, 1, 0, 1),

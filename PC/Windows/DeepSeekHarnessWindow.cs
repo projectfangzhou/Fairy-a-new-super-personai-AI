@@ -22,6 +22,12 @@ public sealed class DeepSeekHarnessWindow : Window
         Height = 700;
         MinWidth = 560;
         MinHeight = 500;
+
+        // 整个界面是代码建出来的，套上应用的窗口外观，
+        // 否则它会保持 WPF 默认的浅色，在深色应用里像个外来窗口。
+        if (Application.Current?.TryFindResource("FairyWindow") is Style windowStyle)
+            Style = windowStyle;
+
         var root = new DockPanel { Margin = new Thickness(18) };
         var form = new StackPanel();
         DockPanel.SetDock(form, Dock.Top);
@@ -29,7 +35,8 @@ public sealed class DeepSeekHarnessWindow : Window
         form.Children.Add(new TextBlock
         {
             Text = "复用仙灵当前 LLM 设置（OpenAI Chat Completions）。此入口禁用 Shell、文件和 MCP 工具，仅处理你提供的文本，不读取工作目录内容。每次运行是独立会话。需安装支持 sdk-minimal 和 llm-pi-ai 的运行时；可选 dsh.exe，或 node.exe 加已构建的 dsh lib/bin.js。",
-            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12)
+            TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12),
+            Foreground = (Brush)Application.Current.TryFindResource("TextSecondaryBrush")
         });
         AddPath(form, "dsh.exe 或 node.exe 路径", _executable, () =>
         {
@@ -46,12 +53,25 @@ public sealed class DeepSeekHarnessWindow : Window
             var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "选择本次工作目录", Multiselect = false };
             if (dialog.ShowDialog(this) == true) _workspace.Text = dialog.FolderName;
         });
-        form.Children.Add(new TextBlock { Text = "任务 / 待分析文本", Margin = new Thickness(0, 10, 0, 4) });
+        form.Children.Add(new TextBlock
+        {
+            Text = "任务 / 待分析文本",
+            Margin = new Thickness(0, 10, 0, 4),
+            Foreground = (Brush)Application.Current.TryFindResource("TextSecondaryBrush")
+        });
+        if (Application.Current?.TryFindResource("FairyTextBox") is Style promptStyle)
+            _prompt.Style = promptStyle;
         form.Children.Add(_prompt);
         var actions = new StackPanel { Orientation = Orientation.Horizontal };
+        if (Application.Current?.TryFindResource("FairyPrimaryButton") is Style runStyle)
+            _run.Style = runStyle;
+        if (Application.Current?.TryFindResource("FairyButton") is Style cancelStyle)
+            _cancel.Style = cancelStyle;
         actions.Children.Add(_run);
         actions.Children.Add(_cancel);
         form.Children.Add(actions);
+        if (Application.Current?.TryFindResource("FairyTextBox") is Style outputStyle)
+            _output.Style = outputStyle;
         root.Children.Add(_output);
         Content = root;
         _run.Click += Run;
@@ -61,12 +81,21 @@ public sealed class DeepSeekHarnessWindow : Window
 
     private static void AddPath(Panel form, string label, TextBox field, Action browse)
     {
-        form.Children.Add(new TextBlock { Text = label, Margin = new Thickness(0, 6, 0, 4) });
+        form.Children.Add(new TextBlock
+        {
+            Text = label,
+            Margin = new Thickness(0, 6, 0, 4),
+            Foreground = (Brush)Application.Current.TryFindResource("TextSecondaryBrush")
+        });
         var row = new DockPanel();
         var button = new Button { Content = "浏览…", Margin = new Thickness(8, 0, 0, 0) };
+        if (Application.Current?.TryFindResource("FairyButton") is Style buttonStyle)
+            button.Style = buttonStyle;
         button.Click += (_, _) => browse();
         DockPanel.SetDock(button, Dock.Right);
         row.Children.Add(button);
+        if (Application.Current?.TryFindResource("FairyTextBox") is Style textStyle)
+            field.Style = textStyle;
         row.Children.Add(field);
         form.Children.Add(row);
     }

@@ -14,14 +14,16 @@ namespace MyAiAssistant.Windows;
 /// It rests as a few pixels of edge so it cannot swallow a window's close button, and slides
 /// out when the pointer reaches it. Icons are stroked vector paths loaded from Assets/Dock so
 /// artwork can be replaced without a build.
+///
+/// 背景是纯黑：它常驻在屏幕右缘，深灰在很多壁纸和窗口边框上会显出一道缝，纯黑不会。
 /// </summary>
 public partial class DesktopDockWindow : Window
 {
     /// <summary>Width while collapsed. Small enough to sit outside a title bar's close button.</summary>
-    public const double CollapsedWidth = 6;
+    public const double CollapsedWidth = 4;
 
     /// <summary>Width while the pointer is over the rail.</summary>
-    public const double ExpandedWidth = 40;
+    public const double ExpandedWidth = 34;
 
     private static readonly SolidColorBrush IconBrush = new(System.Windows.Media.Color.FromRgb(0xC9, 0xC7, 0xD8));
     private static readonly SolidColorBrush AccentBrush = new(System.Windows.Media.Color.FromRgb(0x7B, 0x68, 0xEE));
@@ -68,22 +70,52 @@ public partial class DesktopDockWindow : Window
 
             if (icon.Vector is not null)
             {
-                var path = new Path
+                // 「描边 + 实心」的混合图标：主线用描边，强调部分（点、滑块、指针轴心）
+                // 单独一层用填充。WPF 的 Path 没法对同一个 Geometry 同时描边一部分、填充另一部分，
+                // 所以拆成两层叠在一起。
+                var group = new Grid { Width = 18, Height = 18 };
+
+                var line = new Path
                 {
                     Data = icon.Vector,
                     Stroke = IconBrush,
-                    StrokeThickness = 1.4,
+                    StrokeThickness = 1.5,
                     StrokeLineJoin = PenLineJoin.Round,
                     StrokeStartLineCap = PenLineCap.Round,
                     StrokeEndLineCap = PenLineCap.Round,
                     Fill = System.Windows.Media.Brushes.Transparent,
                     Stretch = Stretch.Uniform,
-                    Width = 17,
-                    Height = 17,
                     SnapsToDevicePixels = true
                 };
-                artwork = path;
-                tint = brush => path.Stroke = brush;
+                group.Children.Add(line);
+
+                Path? accent = null;
+                if (!string.IsNullOrWhiteSpace(entry.AccentData))
+                {
+                    try
+                    {
+                        accent = new Path
+                        {
+                            Data = Geometry.Parse(entry.AccentData),
+                            Fill = IconBrush,
+                            Stroke = System.Windows.Media.Brushes.Transparent,
+                            Stretch = Stretch.Uniform,
+                            SnapsToDevicePixels = true
+                        };
+                        group.Children.Add(accent);
+                    }
+                    catch (FormatException)
+                    {
+                        // 图标数据坏了就退回纯描边，不让整条栏出不来。
+                    }
+                }
+
+                artwork = group;
+                tint = brush =>
+                {
+                    line.Stroke = brush;
+                    if (accent is not null) accent.Fill = brush;
+                };
             }
             else
             {
@@ -92,8 +124,8 @@ public partial class DesktopDockWindow : Window
                 var mask = new ImageBrush(icon.Bitmap) { Stretch = Stretch.Uniform };
                 var shape = new Rectangle
                 {
-                    Width = 17,
-                    Height = 17,
+                    Width = 18,
+                    Height = 18,
                     Fill = IconBrush,
                     OpacityMask = mask,
                     Stretch = Stretch.Uniform
@@ -105,8 +137,8 @@ public partial class DesktopDockWindow : Window
             var button = new Button
             {
                 Content = artwork,
-                Width = 32,
-                Height = 32,
+                Width = 30,
+                Height = 30,
                 Margin = new Thickness(0, 2, 0, 2),
                 Padding = new Thickness(0),
                 Background = System.Windows.Media.Brushes.Transparent,
