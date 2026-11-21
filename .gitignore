@@ -28,3 +28,7 @@ PC/Installer/Output/
 
 # Local embedding models: hundreds of MB, downloaded or imported per machine, never committed
 PC/Dependencies/qwen3-embedding/
+
+# Scratch dir used by the PC test suites (TEMP redirect); never part of the build
+.tmp/
+

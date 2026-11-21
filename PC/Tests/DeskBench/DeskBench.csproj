@@ -14,6 +14,10 @@
     <Compile Include="../../Services/ApiKeyProtector.cs" Link="Production/ApiKeyProtector.cs" />
     <Compile Include="../../Services/ISyncService.cs" Link="Production/ISyncService.cs" />
     <Compile Include="../../Services/PairedTaskBridge.cs" Link="Production/PairedTaskBridge.cs" />
+    <!-- LanSyncService exposes the note bridge endpoint, so the bench has to see those types too. -->
+    <Compile Include="../../Services/ToolContracts.cs" Link="Production/ToolContracts.cs" />
+    <Compile Include="../../Services/NoteService.cs" Link="Production/NoteService.cs" />
+    <Compile Include="../../Services/PairedNoteBridge.cs" Link="Production/PairedNoteBridge.cs" />
     <Compile Include="../../Services/SummarySync.cs" Link="Production/SummarySync.cs" />
     <Compile Include="../../Services/CustomPlatformConfig.cs" Link="Production/CustomPlatformConfig.cs" />
     <!-- Only the account record: ConfigManager mentions it, the registry would drag in the bot code. -->
