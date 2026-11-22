@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vm="clr-namespace:FairyAI_Android.ViewModels"
              xmlns:models="clr-namespace:FairyAI_Android.Models"
+             xmlns:controls="clr-namespace:FairyAI_Android.Controls"
              x:Class="FairyAI_Android.Pages.ChatPage"
              x:DataType="vm:MainViewModel"
              Title="仙灵">
@@ -79,27 +80,42 @@
                     </VerticalStackLayout>
 
                     <!-- 导出 -->
-                    <Button Grid.Column="2"
-                            Text="⤓"
-                            FontSize="20"
-                            WidthRequest="44"
-                            HeightRequest="44"
-                            Margin="0,0,8,0"
-                            BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
-                            TextColor="{DynamicResource Theme.TextSecondary}"
-                            CornerRadius="22"
-                            Clicked="OnExportClicked"/>
+                    <Grid Grid.Column="2"
+                          WidthRequest="44"
+                          HeightRequest="44"
+                          Margin="0,0,8,0">
+                        <Border BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
+                                StrokeShape="RoundRectangle 22"
+                                StrokeThickness="0"/>
+                        <controls:FairyIcon Kind="Download"
+                                            WidthRequest="28"
+                                            HeightRequest="28"
+                                            Tint="{DynamicResource Theme.TextSecondary}"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            InputTransparent="True"/>
+                        <!-- 图标本身不可点，点击交给盖在上面的透明 Button -->
+                        <Button BackgroundColor="Transparent"
+                                Clicked="OnExportClicked"/>
+                    </Grid>
 
                     <!-- 设置 -->
-                    <Button Grid.Column="3"
-                            Text="⚙"
-                            FontSize="20"
-                            WidthRequest="44"
-                            HeightRequest="44"
-                            BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
-                            TextColor="{DynamicResource Theme.TextSecondary}"
-                            CornerRadius="22"
-                            Clicked="OnSettingsClicked"/>
+                    <Grid Grid.Column="3"
+                          WidthRequest="44"
+                          HeightRequest="44">
+                        <Border BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
+                                StrokeShape="RoundRectangle 22"
+                                StrokeThickness="0"/>
+                        <controls:FairyIcon Kind="Settings"
+                                            WidthRequest="28"
+                                            HeightRequest="28"
+                                            Tint="{DynamicResource Theme.TextSecondary}"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            InputTransparent="True"/>
+                        <Button BackgroundColor="Transparent"
+                                Clicked="OnSettingsClicked"/>
+                    </Grid>
                 </Grid>
             </Border>
         </Grid>
@@ -182,7 +198,7 @@
                         BackgroundColor="{DynamicResource Theme.Success}"
                         StrokeShape="RoundRectangle 4"
                         VerticalOptions="Center"/>
-                <Label Text="🎙 唤醒词监听中..."
+                <Label Text="唤醒词监听中..."
                        TextColor="{DynamicResource Theme.Success}"
                        FontSize="13"
                        VerticalOptions="Center"/>
@@ -239,12 +255,26 @@
                             BackgroundColor="{DynamicResource Theme.GlassTintStrong}"
                             StrokeShape="RoundRectangle 24"
                             StrokeThickness="0">
-                        <Button Text="🎤"
-                                FontSize="22"
-                                BackgroundColor="Transparent"
-                                TextColor="{DynamicResource Theme.TextSecondary}"
-                                Command="{Binding StartListeningCommand}"
-                                IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+                        <Grid>
+                            <controls:FairyIcon Kind="Microphone"
+                                                WidthRequest="32"
+                                                HeightRequest="32"
+                                                Tint="{DynamicResource Theme.TextSecondary}"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center"
+                                                InputTransparent="True">
+                                <controls:FairyIcon.Triggers>
+                                    <DataTrigger TargetType="controls:FairyIcon"
+                                                 Binding="{Binding IsProcessing}"
+                                                 Value="True">
+                                        <Setter Property="Opacity" Value="0.4"/>
+                                    </DataTrigger>
+                                </controls:FairyIcon.Triggers>
+                            </controls:FairyIcon>
+                            <Button BackgroundColor="Transparent"
+                                    Command="{Binding StartListeningCommand}"
+                                    IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+                        </Grid>
                     </Border>
 
                     <!-- 发送 -->
@@ -258,12 +288,26 @@
                             <Shadow Brush="{DynamicResource Theme.AccentBrush}"
                                     Opacity="0.45" Radius="16" Offset="0,4"/>
                         </Border.Shadow>
-                        <Button Text="➤"
-                                FontSize="22"
-                                BackgroundColor="Transparent"
-                                TextColor="{DynamicResource Theme.TextOnAccent}"
-                                Command="{Binding SendMessageCommand}"
-                                IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+                        <Grid>
+                            <controls:FairyIcon Kind="Send"
+                                                WidthRequest="32"
+                                                HeightRequest="32"
+                                                Tint="{DynamicResource Theme.TextOnAccent}"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center"
+                                                InputTransparent="True">
+                                <controls:FairyIcon.Triggers>
+                                    <DataTrigger TargetType="controls:FairyIcon"
+                                                 Binding="{Binding IsProcessing}"
+                                                 Value="True">
+                                        <Setter Property="Opacity" Value="0.4"/>
+                                    </DataTrigger>
+                                </controls:FairyIcon.Triggers>
+                            </controls:FairyIcon>
+                            <Button BackgroundColor="Transparent"
+                                    Command="{Binding SendMessageCommand}"
+                                    IsEnabled="{Binding IsProcessing, Converter={StaticResource InvertBool}}"/>
+                        </Grid>
                     </Border>
                 </Grid>
             </Border>

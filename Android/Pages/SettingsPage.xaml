@@ -13,7 +13,7 @@
     </ContentPage.Background>
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="16">
+        <VerticalStackLayout Padding="16" Spacing="20">
 
             <!-- ═══ 外观：四套主题 ═══ -->
             <Border BackgroundColor="{DynamicResource Theme.SurfaceCard}"
@@ -21,7 +21,7 @@
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="14">
-                    <Label Text="🎨 外观"
+                    <Label Text="外观"
                            TextColor="{DynamicResource Theme.TextPrimary}"
                            FontSize="18"
                            FontAttributes="Bold"/>
@@ -77,13 +77,13 @@
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
-                <VerticalStackLayout Spacing="16">
-                    <Label Text="🤖 AI 人格" 
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="AI 人格" 
                            TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="角色名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -95,7 +95,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="系统提示词" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -108,7 +108,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="语言" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
@@ -119,7 +119,11 @@
                     </VerticalStackLayout>
 
                     <HorizontalStackLayout Spacing="12">
-                        <CheckBox x:Name="EnableEmotionCheckBox" 
+                        <CheckBox x:Name="EnableEmotionCheckBox"
+                                  WidthRequest="24"
+                                  HeightRequest="24"
+                                  MinimumWidthRequest="24"
+                                  MinimumHeightRequest="24"
                                   IsChecked="True"
                                   Color="{DynamicResource Theme.Accent}"/>
                         <Label Text="启用情感表达" 
@@ -135,13 +139,13 @@
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
-                <VerticalStackLayout Spacing="16">
-                    <Label Text="🧠 大语言模型" 
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="大语言模型" 
                            TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="供应商" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
@@ -151,7 +155,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <HorizontalStackLayout Spacing="4">
                             <Label Text="模型名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                             <Label Text="*" TextColor="{DynamicResource Theme.Error}" FontSize="13"/>
@@ -167,7 +171,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="API Key" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -182,7 +186,7 @@
                     </VerticalStackLayout>
 
                     <!-- Vision model: what 识屏 uses -->
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="视觉模型（识屏用）" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -232,7 +236,7 @@
                     </VerticalStackLayout>
 
                     <!-- Fallback LLM -->
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="备用 LLM 供应商" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
@@ -242,7 +246,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="备用 API Key" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -263,13 +267,13 @@
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
-                <VerticalStackLayout Spacing="16">
-                    <Label Text="🎵 语音合成" 
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="语音合成" 
                            TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="TTS 供应商" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
@@ -280,7 +284,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <HorizontalStackLayout Spacing="4">
                             <Label Text="模型名称" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                             <Label Text="*" TextColor="{DynamicResource Theme.Error}" FontSize="13"/>
@@ -296,7 +300,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="音色" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
@@ -306,7 +310,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="API Key" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -373,8 +377,8 @@
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
-                <VerticalStackLayout Spacing="16">
-                    <Label Text="🎙️ 唤醒词" 
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="唤醒词" 
                            TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
@@ -384,7 +388,11 @@
                            FontSize="13"/>
 
                     <HorizontalStackLayout Spacing="12">
-                        <CheckBox x:Name="WakeWordEnabledCheckBox" 
+                        <CheckBox x:Name="WakeWordEnabledCheckBox"
+                                  WidthRequest="24"
+                                  HeightRequest="24"
+                                  MinimumWidthRequest="24"
+                                  MinimumHeightRequest="24"
                                   IsChecked="False"
                                   Color="{DynamicResource Theme.Accent}"/>
                         <Label Text="启用唤醒词" 
@@ -393,7 +401,7 @@
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="唤醒词" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -406,7 +414,7 @@
                         </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="备用唤醒词 (逗号分隔)" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -420,7 +428,11 @@
                     </VerticalStackLayout>
 
                     <HorizontalStackLayout Spacing="12">
-                        <CheckBox x:Name="WakeWordTtsCheckBox" 
+                        <CheckBox x:Name="WakeWordTtsCheckBox"
+                                  WidthRequest="24"
+                                  HeightRequest="24"
+                                  MinimumWidthRequest="24"
+                                  MinimumHeightRequest="24"
                                   IsChecked="True"
                                   Color="{DynamicResource Theme.Accent}"/>
                         <Label Text="唤醒后语音回应" 
@@ -429,7 +441,7 @@
                                VerticalOptions="Center"/>
                     </HorizontalStackLayout>
 
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="回应语" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12"
@@ -450,7 +462,7 @@
                     StrokeThickness="0"
                     Padding="20">
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="🔗 连接与权限"
+                    <Label Text="连接与权限"
                            TextColor="{DynamicResource Theme.TextPrimary}"
                            FontSize="18"
                            FontAttributes="Bold"/>
@@ -471,14 +483,14 @@
                     StrokeShape="RoundRectangle 16"
                     StrokeThickness="0"
                     Padding="20">
-                <VerticalStackLayout Spacing="16">
-                    <Label Text="⚡ 高级功能" 
+                <VerticalStackLayout Spacing="18">
+                    <Label Text="高级功能" 
                            TextColor="{DynamicResource Theme.TextPrimary}" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     
                     <!-- Performance -->
-                    <VerticalStackLayout Spacing="8">
+                    <VerticalStackLayout Spacing="6">
                         <Label Text="性能模式" TextColor="{DynamicResource Theme.TextSecondary}" FontSize="13"/>
                         <Border BackgroundColor="{DynamicResource Theme.SurfaceSunken}"
                                 StrokeShape="RoundRectangle 12">
@@ -489,7 +501,11 @@
                     </VerticalStackLayout>
 
                     <HorizontalStackLayout Spacing="12">
-                        <CheckBox x:Name="ContextCompressionCheckBox" 
+                        <CheckBox x:Name="ContextCompressionCheckBox"
+                                  WidthRequest="24"
+                                  HeightRequest="24"
+                                  MinimumWidthRequest="24"
+                                  MinimumHeightRequest="24"
                                   IsChecked="True"
                                   Color="{DynamicResource Theme.Accent}"/>
                         <Label x:Name="ContextCompressionLabel"
@@ -506,7 +522,7 @@
 
                     <!-- Knowledge Base -->
                     <VerticalStackLayout Spacing="12" Margin="0,8,0,0">
-                        <Label Text="📚 知识库" 
+                        <Label Text="知识库" 
                                TextColor="{DynamicResource Theme.Success}" 
                                FontSize="15" 
                                FontAttributes="Bold"/>
@@ -524,6 +540,10 @@
                         <!-- Vector retrieval: off unless an embedding model is configured -->
                         <HorizontalStackLayout Spacing="12">
                             <CheckBox x:Name="VectorSearchCheckBox"
+                                      WidthRequest="24"
+                                      HeightRequest="24"
+                                      MinimumWidthRequest="24"
+                                      MinimumHeightRequest="24"
                                       Color="{DynamicResource Theme.Accent}"/>
                             <Label Text="用向量检索（需要接口支持 /embeddings）"
                                    TextColor="{DynamicResource Theme.TextPrimary}"

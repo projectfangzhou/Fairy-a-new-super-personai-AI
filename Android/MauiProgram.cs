@@ -21,6 +21,17 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+#if ANDROID
+        // 安卓的 EditText 自带一条下划线。它画在圆角输入框的里面，看起来像把方框切断了；
+        // 只把 BackgroundColor 设成 Transparent 去不掉，得直接清掉平台控件的背景。
+        builder.ConfigureMauiHandlers(handlers =>
+        {
+            Microsoft.Maui.Handlers.EntryHandler.Mapper.AppendToMapping("FairyFlatField", (handler, _) => ClearPlatformBackground(handler.PlatformView));
+            Microsoft.Maui.Handlers.EditorHandler.Mapper.AppendToMapping("FairyFlatField", (handler, _) => ClearPlatformBackground(handler.PlatformView));
+            Microsoft.Maui.Handlers.PickerHandler.Mapper.AppendToMapping("FairyFlatField", (handler, _) => ClearPlatformBackground(handler.PlatformView));
+        });
+#endif
+
         // Services
         builder.Services.AddSingleton<ILlmService, LlmService>();
         builder.Services.AddSingleton<IIntentAnalyzer, IntentAnalyzer>();
@@ -219,4 +230,15 @@ public static class MauiProgram
 
         return builder.Build();
     }
+
+#if ANDROID
+    /// <summary>清掉平台输入控件的默认背景（那条下划线就在背景里）。</summary>
+    private static void ClearPlatformBackground(Android.Views.View? view)
+    {
+        if (view is null) return;
+
+        view.Background = null;
+        view.SetBackgroundColor(Android.Graphics.Color.Transparent);
+    }
+#endif
 }

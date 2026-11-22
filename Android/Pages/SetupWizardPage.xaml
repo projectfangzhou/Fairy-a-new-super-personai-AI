@@ -55,7 +55,7 @@
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="🧠 选择 LLM 供应商" 
+                            <Label Text="选择 LLM 供应商" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
@@ -95,7 +95,7 @@
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="⚙️ 配置模型名称" 
+                            <Label Text="配置模型名称" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
@@ -130,7 +130,7 @@
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="👁️ 视觉识别服务" 
+                            <Label Text="视觉识别服务" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
@@ -179,7 +179,7 @@
                         Padding="24">
                     <VerticalStackLayout Spacing="20">
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="🎵 语音合成服务" 
+                            <Label Text="语音合成服务" 
                                    FontSize="22" 
                                    FontAttributes="Bold" 
                                    TextColor="{DynamicResource Theme.TextPrimary}"/>
