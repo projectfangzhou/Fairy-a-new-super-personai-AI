@@ -61,7 +61,7 @@ public static class DockCatalog
         // 模型库：立方体线框 + 实心顶点
         new(DockAction.ModelLibrary, "模型库", "model-library",
             "M12,3 L20,7.5 V16.5 L12,21 L4,16.5 V7.5 Z M4,7.5 L12,12 L20,7.5 M12,12 V21",
-            false, "尚未实现 · 计划中",
+            true, null,
             "M12,12 m-1.7,0 a1.7,1.7 0 1,0 3.4,0 a1.7,1.7 0 1,0 -3.4,0"),
 
         // 设置：三条滑轨 + 实心滑块

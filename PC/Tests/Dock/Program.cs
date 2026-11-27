@@ -23,10 +23,11 @@ internal static class Program
             Assert(entries.Select(e => e.Title).Distinct().Count() == 6, "titles are unique");
 
             var enabled = entries.Where(e => e.IsEnabled).Select(e => e.Action).ToArray();
-            Assert(enabled.Length == 3
+            Assert(enabled.Length == 4
                    && enabled.Contains(DockAction.ControlCenter)
                    && enabled.Contains(DockAction.Chat)
-                   && enabled.Contains(DockAction.FairyCode),
+                   && enabled.Contains(DockAction.FairyCode)
+                   && enabled.Contains(DockAction.ModelLibrary),
                 "only the implemented surfaces are clickable");
             Assert(entries.Where(e => !e.IsEnabled).All(e => !string.IsNullOrWhiteSpace(e.UnavailableReason)),
                 "every disabled entry says why");
@@ -125,8 +126,8 @@ internal static class Program
             var buttons = host.Children.OfType<Button>().Concat(bottomHost.Children.OfType<Button>()).ToArray();
             Assert(host.Children.Count == 5, "five entries stack from the top");
             Assert(bottomHost.Children.Count == 1, "settings is pinned to the bottom");
-            Assert(buttons.Count(b => b.IsEnabled) == 3, "three buttons are enabled");
-            Assert(buttons.Count(b => !b.IsEnabled) == 3, "three buttons are disabled");
+            Assert(buttons.Count(b => b.IsEnabled) == 4, "four buttons are enabled");
+            Assert(buttons.Count(b => !b.IsEnabled) == 2, "two buttons are disabled");
 
             var disabledWithTooltip = buttons.Where(b => !b.IsEnabled)
                 .All(b => b.ToolTip is string tip && tip.Contains("计划中", StringComparison.Ordinal) ||
@@ -137,16 +138,19 @@ internal static class Program
             var chatButton = buttons[1];
             var terminalButton = buttons[2];
             var fairyCodeButton = buttons[3];
+            var modelLibraryButton = buttons[4];
 
             controlCenterButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             chatButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             terminalButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             fairyCodeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            modelLibraryButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
 
-            Assert(clicks.Count == 3, "only enabled entries activate");
+            Assert(clicks.Count == 4, "only enabled entries activate");
             Assert(clicks[0] == DockAction.ControlCenter
                    && clicks[1] == DockAction.Chat
-                   && clicks[2] == DockAction.FairyCode,
+                   && clicks[2] == DockAction.FairyCode
+                   && clicks[3] == DockAction.ModelLibrary,
                 "clicks route to the right action");
 
             // 6. The rail hugs the right edge of the work area at full height.

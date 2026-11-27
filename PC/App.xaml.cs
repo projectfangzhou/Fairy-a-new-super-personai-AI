@@ -45,6 +45,7 @@ public partial class App : Application
     private DashboardAccessWindow? _dashboardWindow;
     private ControlCenterWindow? _controlCenterWindow;
     private FairyCodeWindow? _fairyCodeWindow;
+    private ModelLibraryWindow? _modelLibraryWindow;
     private DesktopDockWindow? _dock;
     private GlobalKeyboardHook? _keyboardHook;
     private const int InactivityTimeoutMs = 30_000;
@@ -589,6 +590,20 @@ public partial class App : Application
         });
     }
 
+    private void ShowModelLibrary()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            if (_modelLibraryWindow is null)
+            {
+                _modelLibraryWindow = new ModelLibraryWindow();
+                _modelLibraryWindow.Closed += (_, _) => _modelLibraryWindow = null;
+            }
+            _modelLibraryWindow.Show();
+            _modelLibraryWindow.Activate();
+        });
+    }
+
     private void OnDockAction(DockAction action)
     {
         switch (action)
@@ -598,6 +613,7 @@ public partial class App : Application
             // Fairy Code is a terminal, not a page: the dock opens the session surface where
             // the engine's output and its approval prompts actually appear.
             case DockAction.FairyCode: ShowFairyCode(); break;
+            case DockAction.ModelLibrary: ShowModelLibrary(); break;
         }
     }
 

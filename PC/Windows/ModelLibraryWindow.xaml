@@ -1,0 +1,168 @@
+<Window x:Class="MyAiAssistant.Windows.ModelLibraryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="模型库 - Fairy AI"
+        Width="780" Height="680"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BgBrush}">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis" />
+
+        <!--
+          Controls.xaml carries no ScrollBar style, so the default WPF chrome would paint a bright
+          white rail over the dark glass. Scoped here for now instead of app-wide: only this window
+          has been checked against it.
+        -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="Transparent">
+                            <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb MinHeight="28">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border Margin="1,0"
+                                                        Background="{DynamicResource BorderStrongBrush}"
+                                                        CornerRadius="3" />
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageDownCommand"
+                                                  Focusable="False" Opacity="0" />
+                                </Track.IncreaseRepeatButton>
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.PageUpCommand"
+                                                  Focusable="False" Opacity="0" />
+                                </Track.DecreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="模型库"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
+                       FontSize="20" FontWeight="SemiBold" />
+            <TextBlock x:Name="SummaryText"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Border Grid.Row="1" Margin="0,16,0,16" Padding="14,10"
+                Background="{DynamicResource SurfaceCardBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                CornerRadius="8">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="当前使用"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           FontSize="12" VerticalAlignment="Center" />
+                <TextBlock x:Name="ActiveText"
+                           Foreground="{DynamicResource AccentBrush}"
+                           FontSize="13" FontWeight="SemiBold"
+                           Margin="10,0,0,0" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <ListBox x:Name="EntryList" Grid.Row="2"
+                 Background="Transparent" BorderThickness="0" BorderBrush="Transparent"
+                 Padding="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                    <Setter Property="BorderThickness" Value="0" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Focusable" Value="False" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Padding="14,12"
+                            Background="{DynamicResource SurfaceCardBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                            CornerRadius="8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontSize="14" FontWeight="SemiBold" />
+                                    <Border Background="{DynamicResource SurfaceTileBrush}"
+                                            CornerRadius="4" Padding="6,1" Margin="8,1,0,0">
+                                        <TextBlock Text="{Binding SourceLabel}"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="10" />
+                                    </Border>
+                                    <Border Background="{DynamicResource AccentSoftBrush}"
+                                            CornerRadius="4" Padding="6,1" Margin="6,1,0,0"
+                                            Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="当前使用"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontSize="10" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Detail}"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding BlockedReason}"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1" Content="使用"
+                                    Width="72" Height="30" Margin="12,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource AccentBrush}"
+                                    Foreground="{DynamicResource TextOnAccentBrush}"
+                                    BorderThickness="0" Cursor="Hand"
+                                    Visibility="{Binding CanActivate, Converter={StaticResource BoolToVis}}"
+                                    Click="OnUseClick" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <TextBlock x:Name="StatusText"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       FontSize="12" VerticalAlignment="Center" Margin="0,0,16,0" />
+            <Button x:Name="RefreshButton" Content="刷新"
+                    Width="88" Height="32"
+                    Background="{DynamicResource SurfaceRaisedBrush}"
+                    Foreground="{DynamicResource TextPrimaryBrush}"
+                    BorderThickness="0" Cursor="Hand"
+                    Click="OnRefreshClick" />
+            <Button Content="关闭"
+                    Width="88" Height="32" Margin="10,0,0,0"
+                    Background="{DynamicResource SurfaceRaisedBrush}"
+                    Foreground="{DynamicResource TextPrimaryBrush}"
+                    BorderThickness="0" Cursor="Hand"
+                    Click="OnCloseClick" />
+        </StackPanel>
+    </Grid>
+</Window>
