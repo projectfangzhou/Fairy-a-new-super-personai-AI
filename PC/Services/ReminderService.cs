@@ -79,7 +79,7 @@ public class ReminderService
             Save();
             Log($"Reminder fired: {item.Title}");
             ReminderFired?.Invoke(item);
-            _onTriggered?.Invoke($"鎻愰啋: {item.Title}", item.Message);
+            _onTriggered?.Invoke($"提醒: {item.Title}", item.Message);
         }
     }
 
@@ -131,7 +131,7 @@ public class SetReminderTool : ITool
 
     public Task<string> ExecuteAsync(JsonObject args)
     {
-        var title = args["title"]?.GetValue<string>() ?? "鎻愰啋";
+        var title = args["title"]?.GetValue<string>() ?? "提醒";
         var message = args["message"]?.GetValue<string>() ?? title;
         var minutes = args["minutes_from_now"]?.GetValue<double>() ?? 5;
 
@@ -156,7 +156,7 @@ public class ListRemindersTool : ITool
         var pending = _reminders.GetPendingReminders();
         if (pending.Count == 0) return Task.FromResult("No pending reminders.");
 
-        var lines = pending.Select(r => $"- [{r.Id}] {r.Title} 鈥?{r.TriggerAt:yyyy-MM-dd HH:mm}");
+        var lines = pending.Select(r => $"- [{r.Id}] {r.Title} — {r.TriggerAt:yyyy-MM-dd HH:mm}");
         return Task.FromResult(string.Join("\n", lines));
     }
 }

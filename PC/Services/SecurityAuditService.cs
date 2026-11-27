@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace MyAiAssistant.Services;
 
 /// <summary>
-/// Security and compliance service 鈥?zero trust, device fingerprinting,
+/// Security and compliance service — zero trust, device fingerprinting,
 /// behavioral baseline, anomaly detection, audit logging.
 /// </summary>
 public class SecurityAuditService

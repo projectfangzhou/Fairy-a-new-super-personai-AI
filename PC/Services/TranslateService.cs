@@ -11,7 +11,12 @@ namespace MyAiAssistant.Services;
 /// </summary>
 public class TranslateService
 {
-    private readonly HttpClient _http = new() { Timeout = TimeSpan.FromSeconds(30) };
+    private readonly HttpClient _http;
+
+    public TranslateService(HttpClient? http = null)
+    {
+        _http = http ?? new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+    }
 
     /// <summary>Translate text using the configured LLM endpoint.</summary>
     public async Task<string> TranslateAsync(string text, string targetLanguage, string endpoint, string model, string? apiKey = null)
@@ -19,12 +24,12 @@ public class TranslateService
         var prompt = targetLanguage.ToLowerInvariant() switch
         {
             "en" or "english" => $"Translate the following text to English. Only return the translation, nothing else:\n\n{text}",
-            "zh" or "chinese" or "cn" => $"灏嗕互涓嬫枃鏈炕璇戜负涓枃銆傚彧杩斿洖缈昏瘧缁撴灉锛歕n\n{text}",
-            "ja" or "japanese" or "jp" => $"浠ヤ笅銇儐銈偣銉堛倰鏃ユ湰瑾炪伀缈昏ǔ銇椼仸銇忋仩銇曘亜銆傜炕瑷炽伄銇胯繑銇椼仸銇忋仩銇曘亜锛歕n\n{text}",
-            "ko" or "korean" => $"雼れ潓 韰嶌姢韸鸽ゼ 頃滉淡鞏措 氩堨棴頃挫＜靹胳殧. 氩堨棴毵?氚橅櫂頃橃劯鞖?\n\n{text}",
-            "fr" or "french" => $"Traduisez le texte suivant en fran莽ais. Ne retournez que la traduction :\n\n{text}",
-            "de" or "german" => $"脺bersetzen Sie den folgenden Text ins Deutsche. Geben Sie nur die 脺bersetzung zur眉ck:\n\n{text}",
-            "es" or "spanish" => $"Traduce el siguiente texto al espa帽ol. Devuelve solo la traducci贸n:\n\n{text}",
+            "zh" or "chinese" or "cn" => $"将以下文本翻译为中文。只返回翻译结果：\n\n{text}",
+            "ja" or "japanese" or "jp" => $"以下のテキストを日本語に翻訳してください。翻訳のみ返してください：\n\n{text}",
+            "ko" or "korean" => $"다음 텍스트를 한국어로 번역하세요. 번역 결과만 반환하세요:\n\n{text}",
+            "fr" or "french" => $"Traduisez le texte suivant en français. Ne retournez que la traduction :\n\n{text}",
+            "de" or "german" => $"Übersetzen Sie den folgenden Text ins Deutsche. Geben Sie nur die Übersetzung zurück:\n\n{text}",
+            "es" or "spanish" => $"Traduce el siguiente texto al español. Devuelve solo la traducción:\n\n{text}",
             _ => $"Translate the following text to {targetLanguage}. Only return the translation:\n\n{text}"
         };
 

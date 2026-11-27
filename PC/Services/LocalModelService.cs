@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace MyAiAssistant.Services;
 
 /// <summary>
-/// Local model integration 鈥?llama.cpp / ONNX Runtime with quantization management
+/// Local model integration — llama.cpp / ONNX Runtime with quantization management
 /// and NPU acceleration support.
 /// </summary>
 public class LocalModelService
