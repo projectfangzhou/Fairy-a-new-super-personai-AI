@@ -31,7 +31,8 @@ public sealed class WebDashboardService
         INotificationSettings? notificationSettings = null, NotificationCenter? notificationCenter = null,
         IHomeAssistantControl? homeAssistant = null, SystemNotificationRelay? systemNotifications = null,
         ISummarySyncControl? summarySync = null, IScreenSessionControl? screenSession = null,
-        IMcpStatus? mcp = null, int port = 8080, Dashboard.IAppearanceControl? appearance = null)
+        IMcpStatus? mcp = null, int port = 8080, Dashboard.IAppearanceControl? appearance = null,
+        Dashboard.IWebChatControl? webChat = null)
     {
         ArgumentNullException.ThrowIfNull(center);
         ArgumentNullException.ThrowIfNull(audit);
@@ -39,7 +40,7 @@ public sealed class WebDashboardService
         // Generated per session and never written to disk, so a local process cannot read
         // it to approve an action on the user's behalf.
         ControlToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(16)).ToLowerInvariant();
-        _api = new Dashboard.DashboardApi(center, audit, ControlToken, settings, accounts, accountService, fairyCode, localSend, localSendPeers, pairing, transfer, notificationSettings, notificationCenter, homeAssistant, systemNotifications, summarySync, screenSession, mcp, appearance);
+        _api = new Dashboard.DashboardApi(center, audit, ControlToken, settings, accounts, accountService, fairyCode, localSend, localSendPeers, pairing, transfer, notificationSettings, notificationCenter, homeAssistant, systemNotifications, summarySync, screenSession, mcp, appearance, webChat);
         _port = port;
         _server = new LocalHttpServer(HandleAsync);
     }

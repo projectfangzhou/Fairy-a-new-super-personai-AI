@@ -1,20 +1,23 @@
-using System.Net.Sockets;
-
 namespace MyAiAssistant.Services.Messaging;
 
 /// <summary>
 /// The built-in web chat surface: a loopback WebSocket that this machine hosts itself.
 ///
 /// It is the only platform in the catalogue that needs no external account — no bot token, no
-/// app registration, no network egress. That is exactly why it is worth having first: when
-/// another adapter misbehaves, this one tells you whether the messaging path itself works or
-/// whether the problem is the platform's credentials.
+/// app registration, no network egress. The probe reports readiness only when the server is
+/// actually running and answers a ping round trip; a stopped server is reported as needing to be
+/// started, because a throwaway socket test would say nothing about whether chat works.
 /// </summary>
 public sealed class WebChatAdapter : IMessagingAdapter
 {
+    private readonly WebChatEndpoint? _endpoint;
     private readonly int _port;
 
-    public WebChatAdapter(int? port = null) => _port = port ?? WebChatEndpoint.DefaultPort;
+    public WebChatAdapter(WebChatEndpoint? endpoint = null, int? port = null)
+    {
+        _endpoint = endpoint;
+        _port = port ?? WebChatEndpoint.DefaultPort;
+    }
 
     public MessagingPlatformInfo Info { get; } = new(
         PlatformKind.WebChat,
@@ -25,29 +28,15 @@ public sealed class WebChatAdapter : IMessagingAdapter
 
     public async Task<PlatformProbeResult> ProbeAsync(CancellationToken cancellationToken = default)
     {
-        var endpoint = new WebChatEndpoint();
+        if (_endpoint is null || !_endpoint.IsRunning)
+            return new(PlatformProbeState.NeedsConfiguration,
+                $"WebChat 服务未启动。启动后本机客户端可连接 ws://127.0.0.1:{_port}/ 对话。");
 
-        try
-        {
-            endpoint.Start(_port);
-        }
-        catch (Exception ex) when (ex is SocketException or ArgumentOutOfRangeException)
-        {
-            endpoint.Dispose();
-            return new(PlatformProbeState.Failed,
-                $"无法绑定本机端口 {_port}（{ex.GetType().Name}），端口可能已被其他程序占用。");
-        }
+        var result = await _endpoint.SelfTestAsync(cancellationToken).ConfigureAwait(false);
+        if (!result.Ok) return new(PlatformProbeState.Failed, result.Message);
 
-        try
-        {
-            var result = await endpoint.SelfTestAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
-            return result.Ok
-                ? new(PlatformProbeState.Ready, result.Message)
-                : new(PlatformProbeState.Failed, result.Message);
-        }
-        finally
-        {
-            endpoint.Dispose();
-        }
+        var clients = _endpoint.ClientCount;
+        return new(PlatformProbeState.Ready,
+            clients == 0 ? result.Message : $"{result.Message}当前 {clients} 个连接。");
     }
 }

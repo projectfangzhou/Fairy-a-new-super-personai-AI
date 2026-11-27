@@ -126,13 +126,15 @@ public sealed class MessagingAccountService
     private readonly MessagingAccountStore _store;
     private readonly Func<string, HttpClient>? _httpFactory;
     private readonly QQOfficialClient? _qqOfficialClient;
+    private readonly WebChatEndpoint? _webChatEndpoint;
 
     public MessagingAccountService(MessagingAccountStore? store = null, Func<string, HttpClient>? httpFactory = null,
-        QQOfficialClient? qqOfficialClient = null)
+        QQOfficialClient? qqOfficialClient = null, WebChatEndpoint? webChatEndpoint = null)
     {
         _store = store ?? new MessagingAccountStore();
         _httpFactory = httpFactory;
         _qqOfficialClient = qqOfficialClient;
+        _webChatEndpoint = webChatEndpoint;
     }
 
     public static bool IsImplemented(PlatformKind platform) =>
@@ -182,7 +184,8 @@ public sealed class MessagingAccountService
                     _qqOfficialClient)
                 .ProbeAsync(cancellationToken).ConfigureAwait(false),
 
-            PlatformKind.WebChat => await new WebChatAdapter().ProbeAsync(cancellationToken).ConfigureAwait(false),
+            PlatformKind.WebChat => await new WebChatAdapter(_webChatEndpoint)
+                .ProbeAsync(cancellationToken).ConfigureAwait(false),
 
             _ => new(PlatformProbeState.Unavailable, $"{account.Platform} 尚未实现。")
         };

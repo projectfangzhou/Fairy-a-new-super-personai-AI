@@ -10,6 +10,11 @@
     <Compile Include="../../Services/AgentControl/*.cs" LinkBase="AgentControl" />
     <Compile Include="../../Services/Dashboard/DashboardApi.cs" Link="Dashboard/DashboardApi.cs" />
     <Compile Include="../../Services/Dashboard/IAppearanceControl.cs" Link="Dashboard/IAppearanceControl.cs" />
+    <Compile Include="../../Services/Dashboard/IWebChatControl.cs" Link="Dashboard/IWebChatControl.cs" />
+    <Compile Include="../../Services/Messaging/IChatResponder.cs" Link="Messaging/IChatResponder.cs" />
+    <Compile Include="../../Services/Messaging/WebSocketFraming.cs" Link="Messaging/WebSocketFraming.cs" />
+    <Compile Include="../../Services/Messaging/WebChatProtocol.cs" Link="Messaging/WebChatProtocol.cs" />
+    <Compile Include="../../Models/ChatMessage.cs" Link="ChatMessage.cs" />
     <Compile Include="../../Services/Dashboard/SettingsModels.cs" Link="Dashboard/SettingsModels.cs" />
     <Compile Include="../../Services/Messaging/MessagingAccount.cs" Link="Messaging/MessagingAccount.cs" />
     <Compile Include="../../Services/Messaging/MessagingAccountModels.cs" Link="Messaging/MessagingAccountModels.cs" />

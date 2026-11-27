@@ -118,7 +118,18 @@ public partial class App : Application
             sc.AddSingleton<AgentControlCenter>();
             sc.AddSingleton<ISettingsStore, ConfigSettingsStore>();
             sc.AddSingleton(_ => new MessagingAccountStore());
-            sc.AddSingleton(sp => new MessagingAccountService(sp.GetRequiredService<MessagingAccountStore>()));
+            sc.AddSingleton(sp => new MessagingAccountService(
+                sp.GetRequiredService<MessagingAccountStore>(),
+                webChatEndpoint: sp.GetRequiredService<WebChatEndpoint>()));
+
+            // The built-in web chat server: loopback only, and started only when an enabled WebChat
+            // account exists. It talks to the user's model with the user's key, so it must never be
+            // running just because the app is — a port anyone local can reach is a decision the
+            // user makes by enabling the account, not a default.
+            sc.AddSingleton(sp => new WebChatEndpoint(
+                new LlmChatResponder(sp.GetRequiredService<ILlmService>())));
+            sc.AddSingleton<IWebChatControl>(sp => new WebChatControl(
+                sp.GetRequiredService<WebChatEndpoint>()));
 
             // The approval gate is the single door for high-risk actions. Fairy Code engines
             // reach it through the loopback bridge, so a tool call cannot execute without it.
@@ -252,7 +263,8 @@ public partial class App : Application
                 sp.GetRequiredService<ISummarySyncControl>(),
                 sp.GetRequiredService<IScreenSessionControl>(),
                 sp.GetRequiredService<IMcpStatus>(),
-                appearance: new MyAiAssistant.Services.Appearance.AppearanceControl()));
+                appearance: new MyAiAssistant.Services.Appearance.AppearanceControl(),
+                webChat: sp.GetRequiredService<IWebChatControl>()));
             sc.AddSingleton<ConnectivityManager>();
             sc.AddSingleton<FairyViewModel>();
 
@@ -332,6 +344,12 @@ public partial class App : Application
             // Start Web Dashboard
             _dashboard = _services.GetRequiredService<WebDashboardService>();
             _ = StartDashboardAsync(_dashboard);
+
+            // WebChat is opt-in for the same reason as the LAN receiver: the socket answers chat
+            // turns with the user's key, so it only listens when an enabled WebChat account says
+            // the user wants a local surface. Saved before the dashboard starts so a page refresh
+            // already sees the real state.
+            StartWebChatIfEnabled();
 
             // MCP backend is opt-in. When the user configured and enabled it, start the server once
             // and log the outcome; a failure leaves the rest of the app untouched.
@@ -563,6 +581,28 @@ public partial class App : Application
             _ollamaWindow.Show();
             _ollamaWindow.Activate();
         });
+    }
+
+    private void StartWebChatIfEnabled()
+    {
+        try
+        {
+            var store = _services.GetRequiredService<MessagingAccountStore>();
+            var enabled = store.List().Any(a => a.Platform == PlatformKind.WebChat && a.Enabled);
+            if (!enabled)
+            {
+                Log("WebChat：没有启用的账号，服务未启动");
+                return;
+            }
+
+            var (ok, message) = _services.GetRequiredService<IWebChatControl>().Start();
+            Log(ok ? $"WebChat：{message}" : $"WebChat 启动失败：{message}");
+        }
+        catch (Exception ex)
+        {
+            // A surface that cannot start must not take the app down with it.
+            Log($"WebChat 初始化异常：{ex.GetType().Name}");
+        }
     }
 
     private async Task StartDashboardAsync(WebDashboardService dashboard)
@@ -808,6 +848,7 @@ public partial class App : Application
         _notificationBridge?.Dispose();
         _transferControl?.Dispose();
         _pairingControl?.Dispose();
+        _services?.GetService<WebChatEndpoint>()?.Dispose();
         _vm?.Dispose();
         base.OnExit(e);
     }

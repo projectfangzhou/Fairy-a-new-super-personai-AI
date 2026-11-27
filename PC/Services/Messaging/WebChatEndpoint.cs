@@ -2,8 +2,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography;
 using System.Text;
+using MyAiAssistant.Models;
 
 namespace MyAiAssistant.Services.Messaging;
 
@@ -11,12 +11,13 @@ namespace MyAiAssistant.Services.Messaging;
 public sealed record WebChatSelfTest(bool Ok, string Message, double RoundTripMs);
 
 /// <summary>
-/// Loopback WebSocket endpoint that proves the local messaging path end to end.
+/// The built-in web chat surface: a loopback WebSocket server that answers chat turns with the
+/// assistant, streaming the reply as it arrives.
 ///
-/// It speaks the RFC 6455 handshake and echoes one text frame per connection. It is not a chat
-/// server and does not pretend to be one: what it has to answer is "can this machine host a
-/// socket and can a browser actually talk to it", and a probe that merely opened a port would not
-/// answer the second half.
+/// Shape of a connection: handshake, a welcome frame, then one JSON object per frame in each
+/// direction (see <see cref="WebChatProtocol"/>). Each connection keeps its own short history, so
+/// two clients never see each other's conversation and a client that disconnects simply starts
+/// fresh next time. Turns on one connection are answered in order.
 ///
 /// Raw <see cref="TcpListener"/> rather than <see cref="HttpListener"/>, for the reason documented
 /// on <c>LocalHttpServer</c>: HTTP.sys fails with "invalid handle" in some Windows sessions, and a
@@ -26,16 +27,28 @@ public sealed class WebChatEndpoint : IDisposable
 {
     public const int DefaultPort = 9881;
 
-    private const string WebSocketAcceptGuid = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    private const int MaxHeaderBytes = 8 * 1024;
-    private const int MaxPayloadBytes = 4 * 1024;
+    /// <summary>Messages kept per connection. More than this and the model drowns in context.</summary>
+    public const int DefaultMaxHistoryMessages = 20;
+
+    private readonly IChatResponder _responder;
+    private readonly int _maxHistoryMessages;
 
     private TcpListener? _listener;
     private CancellationTokenSource? _cts;
+    private int _clients;
+
+    public WebChatEndpoint(IChatResponder responder, int maxHistoryMessages = DefaultMaxHistoryMessages)
+    {
+        _responder = responder ?? throw new ArgumentNullException(nameof(responder));
+        _maxHistoryMessages = Math.Max(0, maxHistoryMessages);
+    }
 
     public int Port { get; private set; } = DefaultPort;
 
     public bool IsRunning => _listener is not null;
+
+    /// <summary>How many clients are connected right now.</summary>
+    public int ClientCount => Volatile.Read(ref _clients);
 
     public string Url => $"ws://127.0.0.1:{Port}/";
 
@@ -66,12 +79,11 @@ public sealed class WebChatEndpoint : IDisposable
     public void Dispose() => Stop();
 
     /// <summary>
-    /// Connects to this endpoint as an ordinary WebSocket client and expects its own message
-    /// echoed back, so readiness is reported only after a real handshake and a real frame round
-    /// trip. <paramref name="message"/> must stay under 126 bytes.
+    /// Connects to this endpoint as an ordinary WebSocket client and completes a ping round trip.
+    /// Readiness is only reported after a real handshake and a real framed answer, because a probe
+    /// that merely opened a port would not prove a client can talk to it.
     /// </summary>
-    public async Task<WebChatSelfTest> SelfTestAsync(string message = "ping",
-        CancellationToken cancellationToken = default)
+    public async Task<WebChatSelfTest> SelfTestAsync(CancellationToken cancellationToken = default)
     {
         if (!IsRunning) return new(false, "服务未启动。", 0);
 
@@ -82,16 +94,16 @@ public sealed class WebChatEndpoint : IDisposable
             await client.ConnectAsync(IPAddress.Loopback, Port, cancellationToken).ConfigureAwait(false);
             var stream = client.GetStream();
 
-            var key = Convert.ToBase64String(RandomNumberGenerator.GetBytes(16));
-            var request = "GET / HTTP/1.1\r\n" +
-                          "Host: 127.0.0.1\r\n" +
-                          "Upgrade: websocket\r\n" +
-                          "Connection: Upgrade\r\n" +
-                          $"Sec-WebSocket-Key: {key}\r\n" +
-                          "Sec-WebSocket-Version: 13\r\n\r\n";
-            await WriteTextAsync(stream, request).ConfigureAwait(false);
+            var key = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(16));
+            await WebSocketFraming.WriteTextAsync(stream,
+                "GET / HTTP/1.1\r\n" +
+                "Host: 127.0.0.1\r\n" +
+                "Upgrade: websocket\r\n" +
+                "Connection: Upgrade\r\n" +
+                $"Sec-WebSocket-Key: {key}\r\n" +
+                "Sec-WebSocket-Version: 13\r\n\r\n", cancellationToken).ConfigureAwait(false);
 
-            var header = await ReadHeaderAsync(stream).ConfigureAwait(false);
+            var header = await WebSocketFraming.ReadHeaderAsync(stream, cancellationToken).ConfigureAwait(false);
             if (header is null)
                 return new(false, "握手没有回应。", stopwatch.Elapsed.TotalMilliseconds);
 
@@ -99,18 +111,21 @@ public sealed class WebChatEndpoint : IDisposable
             if (!statusLine.StartsWith("HTTP/1.1 101", StringComparison.Ordinal))
                 return new(false, "握手被拒绝：" + statusLine, stopwatch.Elapsed.TotalMilliseconds);
 
-            var expected = Convert.ToBase64String(
-                SHA1.HashData(Encoding.ASCII.GetBytes(key + WebSocketAcceptGuid)));
-            if (!header.Contains(expected, StringComparison.Ordinal))
+            if (!header.Contains(WebSocketFraming.Accept(key), StringComparison.Ordinal))
                 return new(false, "Sec-WebSocket-Accept 校验失败。", stopwatch.Elapsed.TotalMilliseconds);
 
-            await WriteMaskedFrameAsync(stream, message).ConfigureAwait(false);
-            var echoed = await ReadTextFrameAsync(stream).ConfigureAwait(false);
+            var welcome = await WebSocketFraming.ReadTextFrameAsync(stream, cancellationToken).ConfigureAwait(false);
+            if (welcome is null || !welcome.Contains("\"welcome\"", StringComparison.Ordinal))
+                return new(false, "没有收到 welcome 帧。", stopwatch.Elapsed.TotalMilliseconds);
+
+            await WebSocketFraming.WriteMaskedFrameAsync(stream, Json(type: "ping"), cancellationToken)
+                .ConfigureAwait(false);
+            var answer = await WebSocketFraming.ReadTextFrameAsync(stream, cancellationToken).ConfigureAwait(false);
             stopwatch.Stop();
 
-            return echoed == message
-                ? new(true, $"本机 WebSocket 通路正常（{Url}）。", stopwatch.Elapsed.TotalMilliseconds)
-                : new(false, "回显内容与发送内容不一致。", stopwatch.Elapsed.TotalMilliseconds);
+            return answer is not null && answer.Contains("\"pong\"", StringComparison.Ordinal)
+                ? new(true, $"本机 WebSocket 对话服务正常（{Url}）。", stopwatch.Elapsed.TotalMilliseconds)
+                : new(false, "ping 没有得到 pong。", stopwatch.Elapsed.TotalMilliseconds);
         }
         catch (Exception ex) when (ex is SocketException or IOException or OperationCanceledException)
         {
@@ -119,6 +134,8 @@ public sealed class WebChatEndpoint : IDisposable
                 stopwatch.Elapsed.TotalMilliseconds);
         }
     }
+
+    private static string Json(string type) => $"{{\"type\":\"{type}\"}}";
 
     private async Task AcceptLoopAsync(TcpListener listener, CancellationToken token)
     {
@@ -134,192 +151,124 @@ public sealed class WebChatEndpoint : IDisposable
                 return;
             }
 
-            _ = Task.Run(() => ServeAsync(client), CancellationToken.None);
+            _ = Task.Run(() => ServeAsync(client, token), CancellationToken.None);
         }
     }
 
-    private static async Task ServeAsync(TcpClient client)
+    private async Task ServeAsync(TcpClient client, CancellationToken token)
     {
-        using (client)
+        Interlocked.Increment(ref _clients);
+        try
         {
-            try
+            using (client)
             {
                 var stream = client.GetStream();
 
-                var key = await ReadHandshakeKeyAsync(stream).ConfigureAwait(false);
+                var key = await WebSocketFraming.ReadHandshakeKeyAsync(stream, token).ConfigureAwait(false);
                 if (key is null)
                 {
-                    await WriteTextAsync(stream,
-                        "HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n")
-                        .ConfigureAwait(false);
+                    await WebSocketFraming.WriteBadRequestAsync(stream).ConfigureAwait(false);
                     return;
                 }
 
-                var accept = Convert.ToBase64String(
-                    SHA1.HashData(Encoding.ASCII.GetBytes(key + WebSocketAcceptGuid)));
-                await WriteTextAsync(stream,
-                    "HTTP/1.1 101 Switching Protocols\r\n" +
-                    "Upgrade: websocket\r\n" +
-                    "Connection: Upgrade\r\n" +
-                    $"Sec-WebSocket-Accept: {accept}\r\n\r\n").ConfigureAwait(false);
+                await WebSocketFraming.WriteHandshakeAsync(stream, key, token).ConfigureAwait(false);
+                await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.Welcome(), token)
+                    .ConfigureAwait(false);
 
-                var payload = await ReadTextFrameAsync(stream).ConfigureAwait(false);
-                if (payload is null) return;
+                var history = new List<ChatMessage>();
 
-                await WriteFrameAsync(stream, payload).ConfigureAwait(false);
+                while (!token.IsCancellationRequested)
+                {
+                    var frame = await WebSocketFraming.ReadTextFrameAsync(stream, token).ConfigureAwait(false);
+                    if (frame is null) return;
+
+                    var incoming = WebChatProtocol.Parse(frame);
+                    switch (incoming.Kind)
+                    {
+                        case WebChatMessageKind.Ping:
+                            await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.Pong(), token)
+                                .ConfigureAwait(false);
+                            break;
+
+                        case WebChatMessageKind.Reset:
+                            history.Clear();
+                            await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.ResetAck(), token)
+                                .ConfigureAwait(false);
+                            break;
+
+                        case WebChatMessageKind.Invalid:
+                            await WebSocketFraming.WriteFrameAsync(stream,
+                                WebChatProtocol.Error(incoming.Error ?? "消息无效。"), token).ConfigureAwait(false);
+                            break;
+
+                        case WebChatMessageKind.Unknown:
+                            await WebSocketFraming.WriteFrameAsync(stream,
+                                WebChatProtocol.Error("未知的 type，支持 message / ping / reset。"), token)
+                                .ConfigureAwait(false);
+                            break;
+
+                        case WebChatMessageKind.Message:
+                            await AnswerAsync(stream, history, incoming.Text, token).ConfigureAwait(false);
+                            break;
+                    }
+                }
             }
-            catch (Exception ex) when (ex is IOException or SocketException or OperationCanceledException)
+        }
+        catch (Exception ex) when (ex is IOException or SocketException or OperationCanceledException or ObjectDisposedException)
+        {
+            // A client that walks away mid-answer is normal traffic, not a failure to report.
+        }
+        finally
+        {
+            Interlocked.Decrement(ref _clients);
+        }
+    }
+
+    private async Task AnswerAsync(NetworkStream stream, List<ChatMessage> history, string prompt,
+        CancellationToken token)
+    {
+        var reply = new StringBuilder();
+
+        try
+        {
+            await foreach (var chunk in _responder.RespondAsync(history, prompt, token).ConfigureAwait(false))
             {
+                if (string.IsNullOrEmpty(chunk)) continue;
+                reply.Append(chunk);
+                await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.Delta(chunk), token)
+                    .ConfigureAwait(false);
             }
         }
-    }
-
-    private static async Task<string?> ReadHandshakeKeyAsync(NetworkStream stream)
-    {
-        var buffer = new byte[MaxHeaderBytes];
-        var length = 0;
-
-        while (length < buffer.Length)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            var read = await stream.ReadAsync(buffer.AsMemory(length, buffer.Length - length))
-                .ConfigureAwait(false);
-            if (read == 0) return null;
-            length += read;
-
-            var text = Encoding.ASCII.GetString(buffer, 0, length);
-            if (!text.Contains("\r\n\r\n", StringComparison.Ordinal)) continue;
-
-            foreach (var line in text.Split("\r\n"))
-            {
-                var colon = line.IndexOf(':', StringComparison.Ordinal);
-                if (colon <= 0) continue;
-                if (!line[..colon].Trim().Equals("Sec-WebSocket-Key", StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                var value = line[(colon + 1)..].Trim();
-                return value.Length == 0 ? null : value;
-            }
-
-            return null;
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // The exception type only: provider errors can carry the request URL and the key.
+            await WebSocketFraming.WriteFrameAsync(stream,
+                WebChatProtocol.Error($"生成回复失败（{ex.GetType().Name}）。"), token).ConfigureAwait(false);
+            return;
         }
 
-        return null;
-    }
-
-    private static async Task<string?> ReadHeaderAsync(NetworkStream stream)
-    {
-        var buffer = new byte[MaxHeaderBytes];
-        var length = 0;
-
-        while (length < buffer.Length)
+        if (reply.Length == 0)
         {
-            var read = await stream.ReadAsync(buffer.AsMemory(length, buffer.Length - length))
-                .ConfigureAwait(false);
-            if (read == 0) return null;
-            length += read;
-
-            var text = Encoding.ASCII.GetString(buffer, 0, length);
-            if (text.Contains("\r\n\r\n", StringComparison.Ordinal)) return text;
+            await WebSocketFraming.WriteFrameAsync(stream,
+                WebChatProtocol.Error("模型没有返回内容。"), token).ConfigureAwait(false);
+            return;
         }
 
-        return null;
+        history.Add(new ChatMessage { Role = "user", Content = prompt });
+        history.Add(new ChatMessage { Role = "assistant", Content = reply.ToString() });
+        TrimHistory(history);
+
+        await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.Done(reply.Length), token)
+            .ConfigureAwait(false);
     }
 
-    private static async Task<string?> ReadTextFrameAsync(NetworkStream stream)
+    private void TrimHistory(List<ChatMessage> history)
     {
-        var header = new byte[2];
-        if (!await ReadExactAsync(stream, header).ConfigureAwait(false)) return null;
-
-        var opcode = header[0] & 0x0F;
-        if (opcode == 0x8) return null;
-
-        var masked = (header[1] & 0x80) != 0;
-        long length = header[1] & 0x7F;
-
-        if (length == 126)
-        {
-            var extended = new byte[2];
-            if (!await ReadExactAsync(stream, extended).ConfigureAwait(false)) return null;
-            length = (extended[0] << 8) | extended[1];
-        }
-        else if (length == 127)
-        {
-            return null;
-        }
-
-        if (length > MaxPayloadBytes) return null;
-
-        var mask = new byte[4];
-        if (masked && !await ReadExactAsync(stream, mask).ConfigureAwait(false)) return null;
-
-        var payload = new byte[(int)length];
-        if (length > 0 && !await ReadExactAsync(stream, payload).ConfigureAwait(false)) return null;
-
-        if (masked)
-            for (var i = 0; i < payload.Length; i++) payload[i] ^= mask[i % 4];
-
-        return Encoding.UTF8.GetString(payload);
-    }
-
-    private static async Task<bool> ReadExactAsync(NetworkStream stream, byte[] target)
-    {
-        var offset = 0;
-        while (offset < target.Length)
-        {
-            var read = await stream.ReadAsync(target.AsMemory(offset, target.Length - offset))
-                .ConfigureAwait(false);
-            if (read == 0) return false;
-            offset += read;
-        }
-
-        return true;
-    }
-
-    private static async Task WriteFrameAsync(NetworkStream stream, string payload)
-    {
-        var bytes = Encoding.UTF8.GetBytes(payload);
-        byte[] frame;
-
-        if (bytes.Length <= 125)
-        {
-            frame = new byte[bytes.Length + 2];
-            frame[0] = 0x81;
-            frame[1] = (byte)bytes.Length;
-            bytes.CopyTo(frame, 2);
-        }
-        else
-        {
-            frame = new byte[bytes.Length + 4];
-            frame[0] = 0x81;
-            frame[1] = 126;
-            frame[2] = (byte)(bytes.Length >> 8);
-            frame[3] = (byte)(bytes.Length & 0xFF);
-            bytes.CopyTo(frame, 4);
-        }
-
-        await stream.WriteAsync(frame).ConfigureAwait(false);
-    }
-
-    private static async Task WriteMaskedFrameAsync(NetworkStream stream, string payload)
-    {
-        var bytes = Encoding.UTF8.GetBytes(payload);
-        if (bytes.Length > 125)
-            throw new ArgumentException("自检报文必须短于 126 字节。", nameof(payload));
-
-        var mask = RandomNumberGenerator.GetBytes(4);
-        var frame = new byte[bytes.Length + 6];
-        frame[0] = 0x81;
-        frame[1] = (byte)(0x80 | bytes.Length);
-        mask.CopyTo(frame, 2);
-
-        for (var i = 0; i < bytes.Length; i++) frame[6 + i] = (byte)(bytes[i] ^ mask[i % 4]);
-
-        await stream.WriteAsync(frame).ConfigureAwait(false);
-    }
-
-    private static async Task WriteTextAsync(NetworkStream stream, string text)
-    {
-        var bytes = Encoding.ASCII.GetBytes(text);
-        await stream.WriteAsync(bytes).ConfigureAwait(false);
+        var overflow = history.Count - Math.Max(2, _maxHistoryMessages);
+        if (overflow > 0) history.RemoveRange(0, overflow);
     }
 }

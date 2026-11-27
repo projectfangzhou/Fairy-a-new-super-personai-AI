@@ -772,6 +772,47 @@ try
             Assert(!document.RootElement.GetProperty("connected").GetBoolean(), "and the tools are gone");
     }
 
+    // --- WebChat control surface ------------------------------------------
+    {
+        // Without a control the feature reports itself unavailable instead of pretending.
+        var withoutWebChat = new DashboardApi(center, audit, token, store);
+        Assert(withoutWebChat.Get("/api/webchat", token).StatusCode == 503, "webchat state says unavailable");
+        Assert((await withoutWebChat.PostAsync("/api/webchat/start", token, null)).StatusCode == 503,
+            "webchat start says unavailable");
+
+        var webChat = new DashboardTests.FakeWebChatControl();
+        var webChatApi = new DashboardApi(center, audit, token, store, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null, webChat);
+
+        Assert(webChatApi.Get("/api/webchat", null).StatusCode == 401, "webchat state needs the token");
+        Assert((await webChatApi.PostAsync("/api/webchat/start", null, null)).StatusCode == 401,
+            "webchat start needs the token");
+
+        using (var document = JsonDocument.Parse(webChatApi.Get("/api/webchat", token).Body))
+        {
+            var root = document.RootElement;
+            Assert(!root.GetProperty("running").GetBoolean(), "it starts stopped");
+            Assert(root.GetProperty("port").GetInt32() == 9881, "the default port is reported");
+            Assert(root.GetProperty("url").GetString() == "ws://127.0.0.1:9881/", "the url is reported");
+        }
+
+        var start = await webChatApi.PostAsync("/api/webchat/start", token, null);
+        Assert(start.StatusCode == 200, "starting is accepted");
+        Assert(webChat.StartCalls == 1, "the control really started");
+        using (var document = JsonDocument.Parse(webChatApi.Get("/api/webchat", token).Body))
+            Assert(document.RootElement.GetProperty("running").GetBoolean(), "the state now reports running");
+
+        Assert((await webChatApi.PostAsync("/api/webchat/stop", token, null)).StatusCode == 200, "stopping is accepted");
+        Assert(webChat.StopCalls == 1, "the control really stopped");
+        using (var document = JsonDocument.Parse(webChatApi.Get("/api/webchat", token).Body))
+            Assert(!document.RootElement.GetProperty("running").GetBoolean(), "and reports stopped again");
+
+        // A refusal to start (port taken) must surface as an error, not as success.
+        webChat.RefuseStart = true;
+        Assert((await webChatApi.PostAsync("/api/webchat/start", token, null)).StatusCode == 400,
+            "a refused start is an error");
+    }
+
     Console.WriteLine($"All {checks} dashboard checks passed.");
 }
 finally

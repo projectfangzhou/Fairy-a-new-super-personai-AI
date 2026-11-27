@@ -11,6 +11,9 @@
     <Compile Include="../../Services/Permissions/*.cs" LinkBase="Permissions" />
     <Compile Include="../../Services/Localization/*.cs" LinkBase="Localization" />
     <Compile Include="../../Services/ConfigManager.cs" Link="ConfigManager.cs" />
+    <Compile Include="../../Services/ILlmService.cs" Link="ILlmService.cs" />
+    <Compile Include="../../Models/ChatMessage.cs" Link="ChatMessage.cs" />
+    <Compile Include="../../Services/Dashboard/IWebChatControl.cs" Link="IWebChatControl.cs" />
     <Compile Include="../../Services/CustomPlatformConfig.cs" Link="CustomPlatformConfig.cs" />
     <Compile Include="../../Services/ApiKeyProtector.cs" Link="ApiKeyProtector.cs" />
   </ItemGroup>
