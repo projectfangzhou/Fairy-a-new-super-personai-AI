@@ -56,6 +56,7 @@ public sealed class DashboardApi
     private readonly IMcpStatus? _mcp;
     private readonly byte[] _token;
     private readonly IAppearanceControl? _appearance;
+    private readonly IWebChatControl? _webChat;
 
     public DashboardApi(AgentControlCenter center, OperationAudit audit, string controlToken,
         ISettingsStore? settings = null, MessagingAccountStore? accounts = null,
@@ -65,7 +66,7 @@ public sealed class DashboardApi
         INotificationSettings? notificationSettings = null, NotificationCenter? notificationCenter = null,
         IHomeAssistantControl? homeAssistant = null, SystemNotificationRelay? systemNotifications = null,
         ISummarySyncControl? summarySync = null, IScreenSessionControl? screenSession = null, IMcpStatus? mcp = null,
-        IAppearanceControl? appearance = null)
+        IAppearanceControl? appearance = null, IWebChatControl? webChat = null)
     {
         _center = center ?? throw new ArgumentNullException(nameof(center));
         _audit = audit ?? throw new ArgumentNullException(nameof(audit));
@@ -87,6 +88,7 @@ public sealed class DashboardApi
         _screenSession = screenSession;
         _mcp = mcp;
         _appearance = appearance;
+        _webChat = webChat;
     }
 
     public DashboardResponse Get(string path, string? token)
@@ -108,6 +110,7 @@ public sealed class DashboardApi
             "/api/settings" => ReadSettings(),
             "/api/appearance/theme" => ReadTheme(),
             "/api/platforms" => Platforms(),
+            "/api/webchat" => WebChatState(),
             "/api/accounts" => Accounts(),
             "/api/fairycode" => FairyCodeSessions(),
             "/api/localsend" => LocalSendState(),
@@ -130,6 +133,8 @@ public sealed class DashboardApi
         if (path == "/api/settings") return UpdateSettings(body);
         if (path == "/api/appearance/theme") return ApplyTheme(body);
         if (path == "/api/accounts") return AddAccount(body);
+        if (path == "/api/webchat/start") return ApplyWebChat(start: true);
+        if (path == "/api/webchat/stop") return ApplyWebChat(start: false);
         if (path == "/api/fairycode/start") return await StartFairyCodeAsync(body).ConfigureAwait(false);
         if (path == "/api/fairycode/probe") return await ProbeFairyCodeAsync().ConfigureAwait(false);
         if (path == "/api/localsend") return ApplyLocalSend(body);
@@ -997,6 +1002,32 @@ public sealed class DashboardApi
         return DashboardResponse.Json(
             JsonSerializer.Serialize(new { ok = result.Ok, message = result.Message, taskId = result.TaskId }, JsonOptions),
             result.Ok ? 200 : 409);
+    }
+
+    private DashboardResponse WebChatState()
+    {
+        if (_webChat is null) return Unavailable("WebChat 服务不可用");
+        var status = _webChat.Status();
+        return DashboardResponse.Json(JsonSerializer.Serialize(new
+        {
+            running = status.Running,
+            port = status.Port,
+            url = status.Url,
+            clients = status.Clients
+        }, JsonOptions));
+    }
+
+    private DashboardResponse ApplyWebChat(bool start)
+    {
+        if (_webChat is null) return Unavailable("WebChat 服务不可用");
+        var (ok, message) = start ? _webChat.Start() : _webChat.Stop();
+        if (!ok) return DashboardResponse.Json(JsonSerializer.Serialize(new { ok, message }, JsonOptions), 400);
+        return DashboardResponse.Json(JsonSerializer.Serialize(new
+        {
+            ok,
+            message,
+            running = _webChat.Status().Running
+        }, JsonOptions));
     }
 
     private DashboardResponse LocalSendState()
