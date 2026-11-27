@@ -798,7 +798,8 @@ public sealed class DashboardApi
         {
             new TelegramAdapter(null),
             new QQAdapter(),
-            new QQOfficialAdapter(() => null, () => null)
+            new QQOfficialAdapter(() => null, () => null),
+            new WebChatAdapter()
         });
         var platforms = registry.Platforms.Select(p => new
         {

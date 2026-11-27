@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
+using MyAiAssistant.Services;
 using MyAiAssistant.Services.Bots;
 using MyAiAssistant.Services.Localization;
 using MyAiAssistant.Services.Messaging;
@@ -17,14 +19,16 @@ void Assert(bool condition, string name)
     {
         new TelegramAdapter(null),
         new QQAdapter(new QQBotIntegration(new FakeCli(), new[] { MissingPath() })),
-        new QQOfficialAdapter(() => null, () => null)
+        new QQOfficialAdapter(() => null, () => null),
+        new WebChatAdapter()
     });
 
     Assert(registry.Platforms.Count == 17, "seven platforms listed");
     var implemented = registry.Platforms.Where(p => p.State == ImplementationState.Implemented)
         .Select(p => p.Kind).OrderBy(k => k).ToArray();
-    Assert(implemented.SequenceEqual(new[] { PlatformKind.Telegram, PlatformKind.QQ, PlatformKind.QQOfficial }),
-        "three platforms are implemented");
+    Assert(implemented.SequenceEqual(new[]
+            { PlatformKind.Telegram, PlatformKind.QQ, PlatformKind.QQOfficial, PlatformKind.WebChat }),
+        "four platforms are implemented");
 
     foreach (var planned in registry.Platforms.Where(p => p.State == ImplementationState.Planned))
     {
@@ -77,6 +81,49 @@ void Assert(bool condition, string name)
     Assert(ready.Message.Contains("群聊", StringComparison.Ordinal), "QQ readiness explains group chat");
 }
 
+// --- 4. WebChat adapter (loopback websocket) ----------------------------
+{
+    Assert(MessagingAccountService.RequiredFields(PlatformKind.WebChat).Count == 0,
+        "web chat needs no credentials");
+    Assert(MessagingAccountService.IsImplemented(PlatformKind.WebChat), "web chat is addable");
+    Assert(!new WebChatAdapter().Info.Capabilities.GroupChat, "web chat declares no group chat");
+
+    // Probe twice on the same port: the second run only succeeds if the first released its listener.
+    var freePort = FreePort();
+    var probe = await new WebChatAdapter(freePort).ProbeAsync();
+    Assert(probe.State == PlatformProbeState.Ready, "probe completes a real websocket round trip");
+    Assert(probe.Message.Contains("ws://127.0.0.1:", StringComparison.Ordinal), "readiness names the local url");
+
+    var again = await new WebChatAdapter(freePort).ProbeAsync();
+    Assert(again.State == PlatformProbeState.Ready, "probe releases its port");
+
+    // A taken port must fail: reporting ready there is exactly the lie this catalogue avoids.
+    var squatter = new WebChatEndpoint();
+    squatter.Start(0);
+    try
+    {
+        var blocked = await new WebChatAdapter(squatter.Port).ProbeAsync();
+        Assert(blocked.State == PlatformProbeState.Failed, "occupied port fails");
+        Assert(!blocked.IsReady, "occupied port never reports ready");
+        Assert(!blocked.Message.Contains("ws://", StringComparison.Ordinal), "failure names no url");
+    }
+    finally
+    {
+        squatter.Dispose();
+    }
+
+    // The account path is what the UI actually calls, so prove it end to end rather than
+    // only the adapter in isolation.
+    var config = new AppConfig();
+    var store = new MessagingAccountStore(() => config, saved => config = saved);
+    var added = store.Add(PlatformKind.WebChat, "本机网页", null);
+    Assert(added.Ok, "web chat account adds with no credentials at all");
+    Assert(added.Id is not null, "added account comes back with an id");
+
+    var viaService = await new MessagingAccountService(store).ProbeAsync(added.Id!);
+    Assert(viaService.State == PlatformProbeState.Ready, "account probe path reports ready");
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
@@ -94,6 +141,15 @@ void Assert(bool condition, string name)
 }
 
 Console.WriteLine($"All {checks} messaging checks passed.");
+
+static int FreePort()
+{
+    var probe = new TcpListener(IPAddress.Loopback, 0);
+    probe.Start();
+    var port = ((IPEndPoint)probe.LocalEndpoint).Port;
+    probe.Stop();
+    return port;
+}
 
 static string MissingPath() => Path.Combine(Path.GetTempPath(), "definitely-missing-" + Guid.NewGuid().ToString("N") + ".cmd");
 

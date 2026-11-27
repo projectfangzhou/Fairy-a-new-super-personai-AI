@@ -136,7 +136,7 @@ public sealed class MessagingAccountService
     }
 
     public static bool IsImplemented(PlatformKind platform) =>
-        platform is PlatformKind.Telegram or PlatformKind.QQ or PlatformKind.QQOfficial;
+        platform is PlatformKind.Telegram or PlatformKind.QQ or PlatformKind.QQOfficial or PlatformKind.WebChat;
 
     /// <summary>
     /// Credentials each platform needs. QQ through the OpenClaw plugin authenticates in its own
@@ -153,6 +153,7 @@ public sealed class MessagingAccountService
         PlatformKind.DingTalk => [new("clientId", "ClientId", false), new("clientSecret", "ClientSecret", true)],
         PlatformKind.Slack => [new("botToken", "Bot Token (xoxb)", true)],
         PlatformKind.WeCom => [new("corpId", "CorpID", false), new("corpSecret", "CorpSecret", true)],
+        PlatformKind.WebChat => [],
         _ => []
     };
 
@@ -180,6 +181,8 @@ public sealed class MessagingAccountService
                     () => CredentialValues.Get(credentials, "appSecret"),
                     _qqOfficialClient)
                 .ProbeAsync(cancellationToken).ConfigureAwait(false),
+
+            PlatformKind.WebChat => await new WebChatAdapter().ProbeAsync(cancellationToken).ConfigureAwait(false),
 
             _ => new(PlatformProbeState.Unavailable, $"{account.Platform} 尚未实现。")
         };

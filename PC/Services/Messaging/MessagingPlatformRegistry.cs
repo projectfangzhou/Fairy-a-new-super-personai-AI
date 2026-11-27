@@ -79,10 +79,7 @@ public sealed class MessagingPlatformRegistry
             new(true, true, true), "实例上创建 Bot 账号，Access Token + 流式 API"),
 
         new(PlatformKind.Satori, "Satori", ImplementationState.Planned,
-            new(true, true, true), "Satori 协议服务端（可一次接入多平台），需自建或已有网关"),
-
-        new(PlatformKind.WebChat, "网页内嵌对话", ImplementationState.Planned,
-            new(true, false, true), "本机 WebSocket 服务，无需外部账号；适合先做通路验证")
+            new(true, true, true), "Satori 协议服务端（可一次接入多平台），需自建或已有网关")
     ];
 
     private readonly Dictionary<PlatformKind, IMessagingAdapter> _adapters;

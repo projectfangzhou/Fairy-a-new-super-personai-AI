@@ -17,6 +17,8 @@
     <Compile Include="../../Services/Messaging/MessagingPlatformRegistry.cs" Link="Messaging/MessagingPlatformRegistry.cs" />
     <Compile Include="../../Services/Messaging/TelegramAdapter.cs" Link="Messaging/TelegramAdapter.cs" />
     <Compile Include="../../Services/Messaging/QQOfficialClient.cs" Link="Messaging/QQOfficialClient.cs" />
+    <Compile Include="../../Services/Messaging/WebChatAdapter.cs" Link="Messaging/WebChatAdapter.cs" />
+    <Compile Include="../../Services/Messaging/WebChatEndpoint.cs" Link="Messaging/WebChatEndpoint.cs" />
     <Compile Include="../../Services/Bots/CliRunner.cs" Link="Bots/CliRunner.cs" />
     <Compile Include="../../Services/Bots/QQBotIntegration.cs" Link="Bots/QQBotIntegration.cs" />
     <Compile Include="../../Services/Bots/BotSetupResult.cs" Link="Bots/BotSetupResult.cs" />

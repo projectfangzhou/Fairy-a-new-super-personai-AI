@@ -42,7 +42,8 @@ internal static class Program
             {
                 new TelegramAdapter(null),
                 new QQAdapter(),
-                new QQOfficialAdapter(() => null, () => null)
+                new QQOfficialAdapter(() => null, () => null),
+                new WebChatAdapter()
             });
             Assert(registry.Platforms.Count == 17, "seven platforms declared");
             Assert(registry.Platforms.All(p => !string.IsNullOrWhiteSpace(p.Requirement)), "every platform names its requirement");
@@ -77,7 +78,7 @@ internal static class Program
                     var platforms = doc.RootElement.GetProperty("platforms");
                     Assert(platforms.GetArrayLength() == 17, "platform catalogue exposed for the dropdown");
                     var implemented = platforms.EnumerateArray().Count(p => p.GetProperty("implemented").GetBoolean());
-                    Assert(implemented == 3, "only two platforms are selectable");
+                    Assert(implemented == 4, "only the four built platforms are selectable");
                 }
 
                 Assert(api.Get("/api/accounts", token).StatusCode == 200, "accounts listed");
