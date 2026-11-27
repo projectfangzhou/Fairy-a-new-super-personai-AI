@@ -7,45 +7,6 @@
         Background="{DynamicResource BgBrush}">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis" />
-
-        <!--
-          Controls.xaml carries no ScrollBar style, so the default WPF chrome would paint a bright
-          white rail over the dark glass. Scoped here for now instead of app-wide: only this window
-          has been checked against it.
-        -->
-        <Style TargetType="ScrollBar">
-            <Setter Property="Width" Value="8" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ScrollBar">
-                        <Grid Background="Transparent">
-                            <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="True">
-                                <Track.Thumb>
-                                    <Thumb MinHeight="28">
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Border Margin="1,0"
-                                                        Background="{DynamicResource BorderStrongBrush}"
-                                                        CornerRadius="3" />
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.PageDownCommand"
-                                                  Focusable="False" Opacity="0" />
-                                </Track.IncreaseRepeatButton>
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.PageUpCommand"
-                                                  Focusable="False" Opacity="0" />
-                                </Track.DecreaseRepeatButton>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
 
     <Grid Margin="20">
