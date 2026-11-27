@@ -73,6 +73,7 @@ public static class ModelLibraryCatalog
     public const string LocalFileReason = "本机模型文件，尚未接入对话管线";
     public const string OllamaStoppedReason = "Ollama 服务未运行";
     public const string OllamaEmptyReason = "尚未拉取任何模型，先用 ollama pull 下载一个";
+    public const string OllamaMissingReason = "已配置但未拉取，请重新 pull 或改选下面的模型";
     public const string CloudReason = "云端厂商各自需要 API Key，请到设置里切换";
     public const string CustomProviderDetail = "自定义地址，需在设置里填写";
 
@@ -125,6 +126,21 @@ public static class ModelLibraryCatalog
                 false,
                 ModelActivation.None,
                 OllamaEmptyReason));
+        }
+        else if (IsOllama(provider) && model.Length > 0 &&
+                 inputs.OllamaModels.All(m => !string.Equals(m?.Trim(), model, StringComparison.OrdinalIgnoreCase)))
+        {
+            // The config still points at a model that is no longer pulled. No row may claim the
+            // active marker for it, but silence would leave the user wondering why nothing is
+            // marked — so name the mismatch on its own row.
+            entries.Add(new ModelLibraryEntry(
+                "ollama:missing",
+                model,
+                ModelSource.Ollama,
+                "这是当前对话的配置，但 Ollama 里已经没有这个模型",
+                false,
+                ModelActivation.None,
+                OllamaMissingReason));
         }
 
         foreach (var file in inputs.LocalFiles)

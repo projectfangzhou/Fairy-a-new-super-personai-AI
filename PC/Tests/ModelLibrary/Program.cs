@@ -123,6 +123,21 @@ internal static class Program
         Assert(fresh.Summary.Contains("Ollama 0 个", StringComparison.Ordinal),
             "no models counted in a fresh install");
 
+        // --- config points at a model that is no longer pulled ---
+        var stale = ModelLibraryCatalog.Build(new ModelLibraryInputs(
+            [], ["llama3", "qwen2.5"], true, providers, info, "Ollama", "all-minilm:latest"));
+
+        var missing = stale.Entries.Single(e => e.Id == "ollama:missing");
+        Assert(missing.Name == "all-minilm:latest", "the stale row names the configured model");
+        Assert(missing.BlockedReason == ModelLibraryCatalog.OllamaMissingReason,
+            "the stale row says what is wrong");
+        Assert(!missing.CanActivate, "the stale row offers no switch");
+        Assert(stale.Entries.Count(e => e.IsActive) == 0, "no row claims the active marker for a missing model");
+        Assert(stale.Entries.Count(e => e.Source == ModelSource.Ollama) == 3,
+            "pulled models stay listed alongside the stale row");
+        Assert(stale.ActiveLabel == "Ollama / all-minilm:latest",
+            "the active label still tells the truth about what is configured");
+
         // --- formatting ---
         Assert(ModelLibraryCatalog.FormatSize(0) == "0 B", "zero size");
         Assert(ModelLibraryCatalog.FormatSize(512) == "512 B", "bytes");
