@@ -392,6 +392,55 @@ void Assert(bool condition, string name)
     server.Stop();
 }
 
+// --- 4g. 历史裁剪（每连接，默认 20 条）--------------------------------
+{
+    var responder = new FakeResponder();
+    var port = FreePort();
+    using var server = new WebChatEndpoint(responder);
+    server.Start(port);
+
+    using var client = await ChatClient.ConnectAsync(port);
+    await client.ReceiveAsync();                        // welcome
+
+    for (var turn = 1; turn <= 12; turn++)
+    {
+        await client.SendAsync($"{{\"type\":\"message\",\"text\":\"第{turn}轮\"}}");
+        await client.DrainUntilDoneAsync();
+    }
+
+    Assert(responder.Histories.Count == 12, "every turn reached the model");
+    Assert(responder.Histories[0].Count == 0, "the first turn has no history");
+    Assert(responder.Histories[9].Count == 18, "history grows by two per turn");
+    Assert(responder.Histories.Max(h => h.Count) == 20, "history is capped at the documented 20 messages");
+    Assert(responder.Histories[11].Count == 20, "the cap holds instead of growing without bound");
+
+    // The cap must drop the oldest exchange, not the newest: the model has to see what was just said.
+    var last = responder.Histories[11];
+    Assert(last[^2] == "user:第11轮", "the newest user message is kept");
+    Assert(last[^1].StartsWith("assistant:", StringComparison.Ordinal), "the newest reply is kept");
+    Assert(last[0] != "user:第1轮", "the oldest exchange is the one dropped");
+
+    // The limit is a parameter, and it is honoured rather than ignored.
+    var tight = new FakeResponder();
+    var tightPort = FreePort();
+    using var tightServer = new WebChatEndpoint(tight, maxHistoryMessages: 4);
+    tightServer.Start(tightPort);
+    using var tightClient = await ChatClient.ConnectAsync(tightPort);
+    await tightClient.ReceiveAsync();
+    for (var turn = 1; turn <= 5; turn++)
+    {
+        await tightClient.SendAsync($"{{\"type\":\"message\",\"text\":\"t{turn}\"}}");
+        await tightClient.DrainUntilDoneAsync();
+    }
+
+    Assert(tight.Histories.Max(h => h.Count) == 4, "a smaller configured limit is honoured");
+
+    client.Dispose();
+    tightClient.Dispose();
+    server.Stop();
+    tightServer.Stop();
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
@@ -473,12 +522,16 @@ sealed class FakeResponder : IChatResponder
 {
     public List<(int HistoryCount, string Prompt)> Calls { get; } = [];
 
+    /// <summary>Role-tagged snapshot of each turn's history, so trimming can be checked.</summary>
+    public List<List<string>> Histories { get; } = [];
+
     public async IAsyncEnumerable<string> RespondAsync(
         IReadOnlyList<ChatMessage> history,
         string prompt,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         Calls.Add((history.Count, prompt));
+        Histories.Add(history.Select(message => $"{message.Role}:{message.Content}").ToList());
 
         if (prompt == "boom") throw new InvalidOperationException("model exploded");
 
