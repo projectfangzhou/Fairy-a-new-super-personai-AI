@@ -109,6 +109,51 @@ internal static class Program
 
         reminders.Stop();
         if (File.Exists(store)) File.Delete(store);
+
+        await PersistenceChecks(store);
+    }
+
+    /// <summary>
+    /// Reminders are the one thing in this app that must survive a restart: a reminder that quietly
+    /// disappears is worse than one that never existed. The store is a JSON file next to the exe.
+    /// </summary>
+    private static Task PersistenceChecks(string store)
+    {
+        foreach (var stale in Directory.GetFiles(Path.GetDirectoryName(store)!, "reminders.json.bad-*"))
+            File.Delete(stale);
+        if (File.Exists(store)) File.Delete(store);
+
+        var first = new ReminderService();
+        var added = first.AddReminder("喝水", "每小时一次", DateTime.Now.AddHours(2));
+        first.AddReminder("开会", "", DateTime.Now.AddHours(3));
+
+        var reloaded = new ReminderService();
+        Assert(reloaded.GetPendingReminders().Count == 2, "reminders survive a restart");
+        Assert(reloaded.GetPendingReminders().Any(r => r.Id == added.Id && r.Title == "喝水"),
+            "the reloaded reminder keeps its id and title");
+
+        reloaded.CancelReminder(added.Id);
+        var third = new ReminderService();
+        Assert(third.GetPendingReminders().Count == 1, "a cancelled reminder stays cancelled after a restart");
+        Assert(third.GetPendingReminders().All(r => r.Title == "开会"), "the right one was cancelled");
+
+        // A damaged file must not silently erase everything: the service keeps working, and the
+        // unreadable file is preserved so it can be inspected instead of being overwritten.
+        File.WriteAllText(store, "{ this is not json");
+        var afterCorruption = new ReminderService();
+        Assert(afterCorruption.GetPendingReminders().Count == 0, "a corrupt file does not crash the service");
+
+        var quarantine = Directory.GetFiles(Path.GetDirectoryName(store)!, "reminders.json.bad-*");
+        Assert(quarantine.Length == 1, "the unreadable file is moved aside for inspection");
+
+        afterCorruption.AddReminder("恢复后", "", DateTime.Now.AddHours(1));
+        var recovered = new ReminderService();
+        Assert(recovered.GetPendingReminders().Count == 1, "the service saves normally after recovering");
+
+        foreach (var file in Directory.GetFiles(Path.GetDirectoryName(store)!, "reminders.json*"))
+            File.Delete(file);
+
+        return Task.CompletedTask;
     }
 
     private static bool HasMojibakeMarkers(string text)

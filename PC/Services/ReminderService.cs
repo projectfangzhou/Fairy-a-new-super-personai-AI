@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
@@ -94,7 +94,22 @@ public class ReminderService
                 if (saved != null) _reminders.AddRange(saved);
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            // Do not let a damaged file take the reminders with it: keep the unreadable file so it
+            // can be inspected or repaired, and say so. Silently starting empty would look exactly
+            // like "the user never set any reminders", and the next Save would overwrite the file.
+            try
+            {
+                var quarantine = _filePath + ".bad-" + DateTime.Now.ToString("yyyyMMddHHmmss");
+                File.Move(_filePath, quarantine);
+                Log($"读取失败，已另存为 {Path.GetFileName(quarantine)}：{ex.GetType().Name}");
+            }
+            catch (Exception moveError)
+            {
+                Log($"读取失败且无法另存：{ex.GetType().Name} / {moveError.GetType().Name}");
+            }
+        }
     }
 
     private void Save()
