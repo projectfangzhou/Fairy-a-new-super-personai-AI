@@ -812,6 +812,30 @@ try
         webChat.RefuseStart = true;
         Assert((await webChatApi.PostAsync("/api/webchat/start", token, null)).StatusCode == 400,
             "a refused start is an error");
+
+        // Port selection: the only way out of "the default port is taken".
+        webChat.RefuseStart = false;
+        var withPort = await webChatApi.PostAsync("/api/webchat/start", token, "{\"port\":9955}");
+        Assert(withPort.StatusCode == 200 && webChat.LastRequestedPort == 9955,
+            "an explicit port reaches the control");
+        using (var document = JsonDocument.Parse(webChatApi.Get("/api/webchat", token).Body))
+        {
+            var root = document.RootElement;
+            Assert(root.GetProperty("port").GetInt32() == 9955, "the state reports the chosen port");
+            Assert(root.GetProperty("url").GetString() == "ws://127.0.0.1:9955/", "the url follows the port");
+        }
+
+        Assert((await webChatApi.PostAsync("/api/webchat/start", token, "{\"port\":0}")).StatusCode == 400,
+            "port 0 is refused rather than treated as auto-assign");
+        Assert((await webChatApi.PostAsync("/api/webchat/start", token, "{\"port\":70000}")).StatusCode == 400,
+            "an out-of-range port is a client error");
+        Assert((await webChatApi.PostAsync("/api/webchat/start", token, "{\"port\":\"x\"}")).StatusCode == 400,
+            "a non-numeric port is a client error");
+        Assert((await webChatApi.PostAsync("/api/webchat/start", token, "not json")).StatusCode == 400,
+            "a malformed body is a client error");
+
+        await webChatApi.PostAsync("/api/webchat/stop", token, null);
+        Assert(webChat.LastRequestedPort == 9955, "stopping does not forget the chosen port");
     }
 
     // --- 控制中心页面与它的脚本必须对得上 ----------------------------------

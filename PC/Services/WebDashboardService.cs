@@ -441,6 +441,8 @@ label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:9px
     <p class="sub">本机回环 WebSocket 服务，默认关闭。它用的是你自己的模型和密钥，开到 9881 端口就意味着本机任何程序都能连上来对话，所以只在你主动开启时监听。启动后同机客户端连 ws://127.0.0.1:9881/ 即可，协议见仓库 docs/webchat-protocol.md。</p>
     <div class="row">
       <span id="wcState" class="mono">状态未知</span>
+      <label class="mono" for="wcPort">端口</label>
+      <input id="wcPort" type="number" min="1" max="65535" style="max-width:110px">
       <button id="wcStartBtn" class="primary">启动</button>
       <button id="wcStopBtn">停止</button>
     </div>
@@ -1144,6 +1146,7 @@ async function loadWebChat(){
   }
   state.textContent = (body.running ? '运行中' : '未运行') +
     (body.running ? ` · ${body.clients} 个连接` : ` · 端口 ${body.port}`);
+  $('wcPort').value = body.port;
   $('wcHint').textContent = body.running
     ? `客户端连 ${body.url}，协议：message / ping / reset`
     : '启动后本机客户端才能连上；关闭状态下不占端口。';
@@ -1153,7 +1156,8 @@ async function controlWebChat(action){
   const el = $('wcStatus');
   el.className = '';
   el.textContent = '处理中…';
-  const { status, body } = await post(`/api/webchat/${action}`, {});
+  const payload = action === 'start' ? { port: Number($('wcPort').value) || undefined } : {};
+  const { status, body } = await post(`/api/webchat/${action}`, payload);
   el.className = status === 200 ? '' : 'err';
   el.textContent = body.message || (status === 200 ? '已完成' : '操作失败');
   loadWebChat();

@@ -14,8 +14,12 @@ public interface IWebChatControl
 {
     WebChatStatus Status();
 
-    /// <summary>Starts the server (already running is not an error). Returns the message to show.</summary>
-    (bool Ok, string Message) Start();
+    /// <summary>
+    /// Starts the server. <paramref name="port"/> lets the caller pick one, which is the only way
+    /// out of "the default port is taken" — the alternative was a message telling the user the port
+    /// was busy with no way to act on it. Null reuses the port the server last listened on.
+    /// </summary>
+    (bool Ok, string Message) Start(int? port = null);
 
     (bool Ok, string Message) Stop();
 }

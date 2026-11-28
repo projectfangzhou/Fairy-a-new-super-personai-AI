@@ -125,7 +125,22 @@ void Assert(bool condition, string name)
     squatter.Start(otherPort);
     var blocked = new WebChatControl(new WebChatEndpoint(new FakeResponder()), otherPort).Start();
     Assert(!blocked.Ok, "occupied port fails to start");
-    Assert(blocked.Message.Contains("占用", StringComparison.Ordinal), "the failure names the cause");
+    Assert(blocked.Message.Contains("无法绑定端口", StringComparison.Ordinal), "the failure names what went wrong");
+
+    // The way out of a taken default port: start on a port the caller picks.
+    var pickable = FreePort();
+    using var movable = new WebChatEndpoint(new FakeResponder());
+    var movableControl = new WebChatControl(movable);
+    var moved = movableControl.Start(pickable);
+    Assert(moved.Ok, "the server can start on a caller-chosen port");
+    Assert(movable.Port == pickable, "it really bound the chosen port");
+    Assert(movableControl.Status().Url == $"ws://127.0.0.1:{pickable}/", "the reported url follows the port");
+    movableControl.Stop();
+
+    var refusedPort = movableControl.Start(0);
+    Assert(!refusedPort.Ok && refusedPort.Message.Contains("1-65535", StringComparison.Ordinal),
+        "an out-of-range port is refused with the valid range");
+    Assert(!movable.IsRunning, "a refused port leaves the server stopped");
 
     // The account path is what the UI actually calls, so prove it end to end rather than
     // only the adapter in isolation.
@@ -189,7 +204,7 @@ void Assert(bool condition, string name)
     store.SetEnabled(account.Id!, false);
     store.SetEnabled(account.Id!, true);
     var refused = WebChatLaunch.StartIfEnabled(store, control);
-    Assert(!refused.Started && refused.Message.Contains("占用", StringComparison.Ordinal),
+    Assert(!refused.Started && refused.Message.Contains("换一个端口", StringComparison.Ordinal),
         "a refused start is reported as not started");
 }
 
@@ -701,15 +716,17 @@ sealed class RecordingWebChatControl : MyAiAssistant.Services.Dashboard.IWebChat
     public int StartCalls { get; private set; }
     public int StopCalls { get; private set; }
     public bool RefuseStart { get; set; }
+    public int? LastRequestedPort { get; private set; }
 
     public MyAiAssistant.Services.Dashboard.WebChatStatus Status() =>
         new(false, 9881, "ws://127.0.0.1:9881/", 0);
 
-    public (bool Ok, string Message) Start()
+    public (bool Ok, string Message) Start(int? port = null)
     {
         StartCalls++;
+        LastRequestedPort = port;
         return RefuseStart
-            ? (false, "无法绑定端口 9881（AddressAlreadyInUse），端口可能已被占用。")
+            ? (false, "无法绑定端口 9881（AddressAlreadyInUse），换一个端口再试。")
             : (true, "WebChat 服务已启动：ws://127.0.0.1:9881/");
     }
 

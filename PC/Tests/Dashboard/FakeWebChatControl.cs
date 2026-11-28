@@ -6,23 +6,29 @@ namespace DashboardTests;
 internal sealed class FakeWebChatControl : IWebChatControl
 {
     private bool _running;
+    private int _port = 9881;
 
     public int StartCalls { get; private set; }
 
     public int StopCalls { get; private set; }
 
+    /// <summary>The port the last start asked for; null means "whatever it was".</summary>
+    public int? LastRequestedPort { get; private set; }
+
     /// <summary>Simulates a port that is already taken.</summary>
     public bool RefuseStart { get; set; }
 
-    public WebChatStatus Status() => new(_running, 9881, "ws://127.0.0.1:9881/", Clients: 0);
+    public WebChatStatus Status() => new(_running, _port, $"ws://127.0.0.1:{_port}/", Clients: 0);
 
-    public (bool Ok, string Message) Start()
+    public (bool Ok, string Message) Start(int? port = null)
     {
         StartCalls++;
-        if (RefuseStart) return (false, "无法绑定端口 9881（AddressAlreadyInUse），端口可能已被占用。");
+        LastRequestedPort = port;
+        if (RefuseStart) return (false, $"无法绑定端口 {port ?? _port}（AddressAlreadyInUse），换一个端口再试。");
 
+        if (port is > 0 and <= 65535) _port = port.Value;
         _running = true;
-        return (true, "WebChat 服务已启动：ws://127.0.0.1:9881/");
+        return (true, $"WebChat 服务已启动：ws://127.0.0.1:{_port}/");
     }
 
     public (bool Ok, string Message) Stop()

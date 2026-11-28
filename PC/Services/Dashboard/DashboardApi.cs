@@ -133,8 +133,8 @@ public sealed class DashboardApi
         if (path == "/api/settings") return UpdateSettings(body);
         if (path == "/api/appearance/theme") return ApplyTheme(body);
         if (path == "/api/accounts") return AddAccount(body);
-        if (path == "/api/webchat/start") return ApplyWebChat(start: true);
-        if (path == "/api/webchat/stop") return ApplyWebChat(start: false);
+        if (path == "/api/webchat/start") return ApplyWebChat(start: true, body);
+        if (path == "/api/webchat/stop") return ApplyWebChat(start: false, body);
         if (path == "/api/fairycode/start") return await StartFairyCodeAsync(body).ConfigureAwait(false);
         if (path == "/api/fairycode/probe") return await ProbeFairyCodeAsync().ConfigureAwait(false);
         if (path == "/api/localsend") return ApplyLocalSend(body);
@@ -1040,17 +1040,72 @@ public sealed class DashboardApi
         }, JsonOptions));
     }
 
-    private DashboardResponse ApplyWebChat(bool start)
+    private DashboardResponse ApplyWebChat(bool start, string? body)
     {
         if (_webChat is null) return Unavailable("WebChat 服务不可用");
-        var (ok, message) = start ? _webChat.Start() : _webChat.Stop();
+
+        int? port = null;
+        if (start && !string.IsNullOrWhiteSpace(body))
+        {
+            if (!TryReadPort(body, out port, out var portError)) return BadRequest(portError!);
+        }
+
+        var (ok, message) = start ? _webChat.Start(port) : _webChat.Stop();
         if (!ok) return DashboardResponse.Json(JsonSerializer.Serialize(new { ok, message }, JsonOptions), 400);
+
+        var status = _webChat.Status();
         return DashboardResponse.Json(JsonSerializer.Serialize(new
         {
             ok,
             message,
-            running = _webChat.Status().Running
+            running = status.Running,
+            port = status.Port
         }, JsonOptions));
+    }
+
+    /// <summary>
+    /// Reads the optional <c>port</c> from a start request. Absent means "use the current port";
+    /// a present but unusable value is a client error rather than a silent fallback, because the
+    /// whole point of letting the caller choose is to escape a busy default port.
+    /// </summary>
+    private static bool TryReadPort(string body, out int? port, out string? error)
+    {
+        port = null;
+        error = null;
+
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(body);
+        }
+        catch (JsonException)
+        {
+            error = "请求体不是合法 JSON。";
+            return false;
+        }
+
+        using (document)
+        {
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return true;
+            if (!root.TryGetProperty("port", out var element)) return true;
+            if (element.ValueKind == JsonValueKind.Null) return true;
+
+            if (element.ValueKind != JsonValueKind.Number || !element.TryGetInt32(out var value))
+            {
+                error = "port 必须是数字。";
+                return false;
+            }
+
+            if (value is < 1 or > 65535)
+            {
+                error = $"端口 {value} 不在 1-65535 范围内。";
+                return false;
+            }
+
+            port = value;
+            return true;
+        }
     }
 
     private DashboardResponse LocalSendState()

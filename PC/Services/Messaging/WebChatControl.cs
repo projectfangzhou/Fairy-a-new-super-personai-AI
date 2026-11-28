@@ -27,19 +27,22 @@ public sealed class WebChatControl : IWebChatControl, IDisposable
     public WebChatStatus Status() =>
         new(_endpoint.IsRunning, _endpoint.Port, _endpoint.Url, _endpoint.ClientCount);
 
-    public (bool Ok, string Message) Start()
+    public (bool Ok, string Message) Start(int? port = null)
     {
         if (_endpoint.IsRunning) return (true, $"WebChat 服务已在运行：{_endpoint.Url}");
 
-        var port = _port ?? _endpoint.Port;
+        var chosen = port ?? _port ?? _endpoint.Port;
+        if (chosen is < 1 or > 65535)
+            return (false, $"端口 {chosen} 不在 1-65535 范围内。");
+
         try
         {
-            _endpoint.Start(port);
+            _endpoint.Start(chosen);
             return (true, $"WebChat 服务已启动：{_endpoint.Url}");
         }
         catch (SocketException ex)
         {
-            return (false, $"无法绑定端口 {port}（{ex.SocketErrorCode}），端口可能已被占用。");
+            return (false, $"无法绑定端口 {chosen}（{ex.SocketErrorCode}），换一个端口再试。");
         }
     }
 
