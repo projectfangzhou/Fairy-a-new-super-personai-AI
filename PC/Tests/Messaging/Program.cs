@@ -448,6 +448,51 @@ void Assert(bool condition, string name)
     tightServer.Stop();
 }
 
+// --- 4h. 服务停止时已连接的客户端 --------------------------------------
+{
+    var responder = new FakeResponder();
+    var port = FreePort();
+    var server = new WebChatEndpoint(responder);
+    server.Start(port);
+
+    var client = await ChatClient.ConnectAsync(port);
+    await client.ReceiveAsync();                        // welcome
+    await client.SendAsync("{\"type\":\"ping\"}");
+    Assert((await client.ReceiveAsync()).Contains("\"pong\"", StringComparison.Ordinal),
+        "the client is talking before the stop");
+
+    server.Stop();
+    await WaitAsync(() => server.ClientCount == 0, 3000);
+    Assert(server.ClientCount == 0, "stopping the server ends its sessions and uncounts them");
+
+    var closed = false;
+    try
+    {
+        await client.SendAsync("{\"type\":\"ping\"}");
+        await client.ReceiveAsync();
+    }
+    catch (Exception ex) when (ex is IOException or SocketException or InvalidOperationException)
+    {
+        closed = true;
+    }
+
+    Assert(closed, "the connected client is told the connection is gone instead of hanging");
+
+    var refused = false;
+    try
+    {
+        using var again = await ChatClient.ConnectAsync(port);
+    }
+    catch (Exception ex) when (ex is SocketException or IOException or InvalidOperationException)
+    {
+        refused = true;
+    }
+
+    Assert(refused, "a stopped server refuses new connections instead of accepting into the void");
+
+    client.Dispose();
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
