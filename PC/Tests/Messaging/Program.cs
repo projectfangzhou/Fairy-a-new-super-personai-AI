@@ -300,6 +300,48 @@ void Assert(bool condition, string name)
     rebound.Dispose();
 }
 
+// --- 4e. 客户端在流式回复中途断开 -------------------------------------
+{
+    var slow = new SlowResponder();
+    var port = FreePort();
+    using var server = new WebChatEndpoint(slow);
+    server.Start(port);
+
+    var alice = await ChatClient.ConnectAsync(port);
+    await alice.ReceiveAsync();                       // welcome
+    await alice.SendAsync("{\"type\":\"message\",\"text\":\"慢慢说\"}");
+    await alice.ReceiveAsync();                       // first delta
+    await alice.ReceiveAsync();                       // second delta
+    alice.Dispose();                                  // walk away mid-answer
+
+    await WaitAsync(() => server.ClientCount == 0, 3000);
+    Assert(server.ClientCount == 0, "a client that leaves mid-answer is uncounted");
+
+    var producedAtAbort = slow.Produced;
+
+    // Wait longer than the whole generation would take (400 chunks x 10 ms = 4 s). If the aborted
+    // turn kept running, Produced would reach Total; the point of the test is that it does not.
+    await Task.Delay(5000);
+    var producedLater = slow.Produced;
+    Assert(producedLater < slow.Total,
+        $"generation does not run to completion after the client left (produced {producedLater} of {slow.Total})");
+    Assert(producedLater - producedAtAbort < 60,
+        $"it stops soon after the abort (produced {producedAtAbort} before, {producedLater} after)");
+    Console.WriteLine($"   abort test: {producedAtAbort} chunks before the abort, {producedLater} after 5s of {slow.Total}");
+
+    // The server must still work for everyone else.
+    using var bob = await ChatClient.ConnectAsync(port);
+    await bob.ReceiveAsync();
+    await bob.SendAsync("{\"type\":\"ping\"}");
+    Assert((await bob.ReceiveAsync()).Contains("\"pong\"", StringComparison.Ordinal),
+        "the server still answers after an aborted turn");
+
+    bob.Dispose();
+    server.Stop();
+    await WaitAsync(() => server.ClientCount == 0, 2000);
+    Assert(slow.Produced < slow.Total, $"generation stopped early (produced {slow.Produced} of {slow.Total})");
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
@@ -485,5 +527,25 @@ sealed class RecordingWebChatControl : MyAiAssistant.Services.Dashboard.IWebChat
     {
         StopCalls++;
         return (true, "WebChat 服务已停止。");
+    }
+}
+
+/// <summary>Answers in many small chunks, slowly, and records how far it got.</summary>
+sealed class SlowResponder : IChatResponder
+{
+    public int Total { get; init; } = 400;
+    public int Produced;
+
+    public async IAsyncEnumerable<string> RespondAsync(
+        IReadOnlyList<ChatMessage> history,
+        string prompt,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        for (var i = 0; i < Total; i++)
+        {
+            await Task.Delay(10, cancellationToken);
+            Produced++;
+            yield return "片";
+        }
     }
 }
