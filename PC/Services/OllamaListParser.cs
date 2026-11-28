@@ -46,6 +46,36 @@ public static partial class OllamaListParser
     }
 
     /// <summary>
+    /// Turns a finished <c>ollama list</c> process into models plus an optional error.
+    ///
+    /// The distinction matters: an empty list and a failed command both yield zero models, but one
+    /// means "nothing pulled yet" and the other means "we could not ask". Reporting them the same
+    /// way is how a library ends up telling the user their models are gone.
+    /// </summary>
+    public static (IReadOnlyList<string> Models, string? Error) Interpret(int exitCode, string? stdout, string? stderr)
+    {
+        var models = Parse(stdout);
+        if (exitCode == 0) return (models, null);
+
+        var detail = FirstLine(stderr) ?? FirstLine(stdout);
+        return (models, detail is null
+            ? $"ollama list 退出码 {exitCode}。"
+            : $"ollama list 失败（退出码 {exitCode}）：{detail}");
+    }
+
+    private static string? FirstLine(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        foreach (var raw in text.Split('\n'))
+        {
+            var line = Ansi().Replace(raw, "").Trim();
+            if (line.Length > 0) return line.Length > 120 ? line[..120] : line;
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// <c>name</c> or <c>name:tag</c>, as Ollama accepts them. Anything with punctuation that a
     /// model reference cannot contain (colons in the middle, quotes, parentheses) is prose.
     /// </summary>

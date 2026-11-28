@@ -26,6 +26,7 @@ internal static class Program
         {
             CatalogueChecks();
             OllamaListChecks();
+            OllamaFailureChecks();
             WindowChecks(args.Length > 0 ? args[0] : null);
             Console.WriteLine($"All {_checks} model library checks passed.");
             return 0;
@@ -193,6 +194,44 @@ internal static class Program
         // 8. Duplicates collapse instead of listing the same model twice.
         var dupes = OllamaListParser.Parse("NAME  ID  SIZE  M\na:1  x  1 MB  now\na:1  x  1 MB  now\n");
         Assert(dupes.Count == 1, "a repeated row is listed once");
+    }
+
+    private static void OllamaFailureChecks()
+    {
+        // An empty list and a broken command both produce zero models. They must not be reported
+        // the same way, or the model library tells the user their models are gone.
+        var ok = OllamaListParser.Interpret(0, "qwen2.5:3b  abc  1 MB  now\n", "");
+        Assert(ok.Error is null && ok.Models.Count == 1, "success carries the models and no error");
+
+        var emptyButFine = OllamaListParser.Interpret(0, "", "");
+        Assert(emptyButFine.Error is null && emptyButFine.Models.Count == 0,
+            "an empty list with a clean exit is not an error");
+
+        var failed = OllamaListParser.Interpret(1, "", "Error: could not connect to ollama server\n");
+        Assert(failed.Error is not null, "a failed command carries an error");
+        Assert(failed.Error!.Contains("ollama server", StringComparison.Ordinal),
+            "the error carries the CLI's own words: " + failed.Error);
+
+        var silentFailure = OllamaListParser.Interpret(2, "", "");
+        Assert(silentFailure.Error is not null && silentFailure.Error!.Contains("2", StringComparison.Ordinal),
+            "an unexplained failure still names the exit code");
+
+        // The catalogue must turn that error into a row, not into "you have no models".
+        var providers = new List<string> { "Kimi", "Ollama" };
+        Func<string, (string BaseUrl, string Model)?> info = name =>
+            name == "Ollama" ? ("http://localhost:11434/v1/chat/completions", "gemma2:2b") : ("", "");
+
+        var unreadable = ModelLibraryCatalog.Build(new ModelLibraryInputs(
+            [], [], true, providers, info, "Kimi", "kimi", "ollama list 失败（退出码 1）：Error: could not connect"));
+
+        var row = unreadable.Entries.Single(e => e.Id == "ollama:unreadable");
+        Assert(row.BlockedReason == ModelLibraryCatalog.OllamaListErrorReason, "the row says reading failed");
+        Assert(row.Detail.Contains("退出码 1", StringComparison.Ordinal), "the row carries the command's own reason");
+        Assert(!row.CanActivate, "an unreadable group offers nothing to switch to");
+        Assert(!unreadable.Entries.Any(e => e.Id == "ollama:empty"),
+            "a read failure is not reported as an empty library");
+        Assert(unreadable.Summary.Contains("Ollama 0 个", StringComparison.Ordinal),
+            "the summary still counts zero, because zero is what we know");
     }
 
     private static void WindowChecks(string? shotPath)

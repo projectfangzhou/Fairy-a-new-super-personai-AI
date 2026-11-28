@@ -57,7 +57,8 @@ public sealed record ModelLibraryInputs(
     IReadOnlyList<string> ProviderNames,
     Func<string, (string BaseUrl, string Model)?> ProviderInfo,
     string ActiveProvider,
-    string ActiveModel);
+    string ActiveModel,
+    string? OllamaListError = null);
 
 /// <summary>
 /// Turns the three places a model can live — files on disk, an Ollama daemon, and cloud presets —
@@ -74,6 +75,7 @@ public static class ModelLibraryCatalog
     public const string OllamaStoppedReason = "Ollama 服务未运行";
     public const string OllamaEmptyReason = "尚未拉取任何模型，先用 ollama pull 下载一个";
     public const string OllamaMissingReason = "已配置但未拉取，请重新 pull 或改选下面的模型";
+    public const string OllamaListErrorReason = "读取失败，不是没有模型";
     public const string CloudReason = "云端厂商各自需要 API Key，请到设置里切换";
     public const string CustomProviderDetail = "自定义地址，需在设置里填写";
 
@@ -113,6 +115,20 @@ public static class ModelLibraryCatalog
                 false,
                 ModelActivation.None,
                 OllamaStoppedReason));
+        }
+        else if (inputs.OllamaListError is { Length: > 0 } listError)
+        {
+            // The daemon answered but the command that lists its models failed. Without this row an
+            // empty group would read as "you have no models", which is a different — and wrong —
+            // statement.
+            entries.Add(new ModelLibraryEntry(
+                "ollama:unreadable",
+                "无法读取模型列表",
+                ModelSource.Ollama,
+                listError,
+                false,
+                ModelActivation.None,
+                OllamaListErrorReason));
         }
         else if (ollamaCount == 0)
         {

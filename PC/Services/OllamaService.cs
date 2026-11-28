@@ -57,15 +57,26 @@ public class OllamaService
     }
 
     /// <summary>List models already pulled locally.</summary>
-    public static async Task<List<string>> ListLocalModelsAsync()
+    public static async Task<List<string>> ListLocalModelsAsync() =>
+        [.. (await TryListLocalModelsAsync()).Models];
+
+    /// <summary>
+    /// List models together with the reason if asking failed. An empty list on its own cannot say
+    /// whether nothing is pulled or the command broke, and the model library needs to tell those
+    /// apart instead of claiming the models are gone.
+    /// </summary>
+    public static async Task<(IReadOnlyList<string> Models, string? Error)> TryListLocalModelsAsync()
     {
         try
         {
-            var output = await RunOllamaAsync("list");
-            return [.. OllamaListParser.Parse(output)];
+            var (exitCode, stdout, stderr) = await RunOllamaAsync("list");
+            return OllamaListParser.Interpret(exitCode, stdout, stderr);
         }
-        catch (Exception ex) { Log($"list error: {ex.Message}"); }
-        return [];
+        catch (Exception ex)
+        {
+            Log($"list error: {ex.Message}");
+            return ([], $"无法调用 ollama（{ex.GetType().Name}）。");
+        }
     }
 
     /// <summary>Pull a model. Progress is reported as lines of ollama output.</summary>
@@ -120,7 +131,7 @@ public class OllamaService
         Log($"Configured local model: {modelName}");
     }
 
-    private static async Task<string> RunOllamaAsync(string args)
+    private static async Task<(int ExitCode, string Stdout, string Stderr)> RunOllamaAsync(string args)
     {
         var psi = new ProcessStartInfo("ollama", args)
         {
@@ -130,10 +141,15 @@ public class OllamaService
             CreateNoWindow = true
         };
         using var proc = Process.Start(psi);
-        if (proc == null) return "";
-        var stdout = await proc.StandardOutput.ReadToEndAsync();
+        if (proc == null) return (-1, "", "无法启动 ollama 进程。");
+
+        // Read both streams concurrently: a full stderr pipe blocks the child, and the exit code
+        // would then never arrive.
+        var stdout = proc.StandardOutput.ReadToEndAsync();
+        var stderr = proc.StandardError.ReadToEndAsync();
         await proc.WaitForExitAsync();
-        return stdout;
+
+        return (proc.ExitCode, await stdout, await stderr);
     }
 
     private static void Log(string msg)

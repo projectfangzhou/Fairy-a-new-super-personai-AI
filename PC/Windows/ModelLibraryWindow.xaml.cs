@@ -75,8 +75,13 @@ public partial class ModelLibraryWindow : Window
 
         var ollamaRunning = await OllamaService.IsOllamaRunningAsync();
         IReadOnlyList<string> ollamaModels = [];
+        string? ollamaListError = null;
         if (ollamaRunning)
-            ollamaModels = await OllamaService.ListLocalModelsAsync();
+        {
+            var (models, error) = await OllamaService.TryListLocalModelsAsync();
+            ollamaModels = models;
+            ollamaListError = error;
+        }
 
         return new ModelLibraryInputs(
             ReadLocalFiles(),
@@ -85,7 +90,8 @@ public partial class ModelLibraryWindow : Window
             ConfigManager.GetProviderNames(),
             ConfigManager.GetProviderInfo,
             config.LLM.Provider,
-            config.LLM.Model);
+            config.LLM.Model,
+            ollamaListError);
     }
 
     private static IReadOnlyList<LocalModel> ReadLocalFiles()
