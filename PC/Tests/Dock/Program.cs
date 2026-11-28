@@ -130,9 +130,16 @@ internal static class Program
             Assert(buttons.Count(b => !b.IsEnabled) == 2, "two buttons are disabled");
 
             var disabledWithTooltip = buttons.Where(b => !b.IsEnabled)
-                .All(b => b.ToolTip is string tip && tip.Contains("计划中", StringComparison.Ordinal) ||
+                .All(b => b.ToolTip is string tip && tip.Contains("暂不提供", StringComparison.Ordinal) ||
                           b.ToolTip is string other && other.Contains("控制中心", StringComparison.Ordinal));
             Assert(disabledWithTooltip, "disabled buttons explain themselves in a tooltip");
+
+            // The reason must be the real one. "Plan in progress" would promise a terminal this
+            // build deliberately does not offer: Fairy Code already is one, and a second one would
+            // mean arbitrary shell execution outside the approval gate.
+            var terminalReason = entries.Single(e => e.Action == DockAction.Terminal).UnavailableReason;
+            Assert(terminalReason is not null && terminalReason.Contains("Fairy Code", StringComparison.Ordinal),
+                "the terminal entry names the real reason instead of promising a plan");
 
             var controlCenterButton = buttons[0];
             var chatButton = buttons[1];
