@@ -70,18 +70,22 @@ public static class WebChatProtocol
                     return new(WebChatMessageKind.Reset);
 
                 case "message":
-                    var text = root.TryGetProperty("text", out var textElement) &&
-                               textElement.ValueKind == JsonValueKind.String
+                    var raw = root.TryGetProperty("text", out var textElement) &&
+                              textElement.ValueKind == JsonValueKind.String
                         ? textElement.GetString() ?? ""
                         : "";
 
-                    if (string.IsNullOrWhiteSpace(text))
+                    // Length is measured on the text that would actually be sent: pasting content
+                    // with blank lines around it must not be refused for padding.
+                    var text = raw.Trim();
+
+                    if (text.Length == 0)
                         return new(WebChatMessageKind.Invalid, Error: "text 不能为空。");
 
                     if (text.Length > MaxPromptChars)
                         return new(WebChatMessageKind.Invalid, Error: $"text 超过 {MaxPromptChars} 字符上限。");
 
-                    return new(WebChatMessageKind.Message, text.Trim());
+                    return new(WebChatMessageKind.Message, text);
 
                 default:
                     return new(WebChatMessageKind.Unknown);

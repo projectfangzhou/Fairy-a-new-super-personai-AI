@@ -229,6 +229,19 @@ void Assert(bool condition, string name)
                                  new string('x', WebChatProtocol.MaxPromptChars + 1) + "\"}").Kind
            == WebChatMessageKind.Invalid, "over-long prompt is refused");
 
+    // The limit applies to the message that would be sent, not to the padding around it: a paste
+    // with trailing blank lines must not be rejected for length.
+    var paddedSpaces = "   " + new string('x', WebChatProtocol.MaxPromptChars) + "   ";
+    var paddedResult = WebChatProtocol.Parse("{\"type\":\"message\",\"text\":\"" + paddedSpaces + "\"}");
+    Assert(paddedResult.Kind == WebChatMessageKind.Message, "spaces around the text do not count against the limit");
+    Assert(paddedResult.Text.Length == WebChatProtocol.MaxPromptChars, "the padding is trimmed away");
+
+    // Newlines have to be escaped inside JSON; this is the shape a pasted block arrives in.
+    var pasted = "\\n\\n" + new string('y', WebChatProtocol.MaxPromptChars) + "\\n\\n";
+    var pastedResult = WebChatProtocol.Parse("{\"type\":\"message\",\"text\":\"" + pasted + "\"}");
+    Assert(pastedResult.Kind == WebChatMessageKind.Message, "a pasted block with blank lines is accepted");
+    Assert(pastedResult.Text.Length == WebChatProtocol.MaxPromptChars, "the blank lines are trimmed away");
+
     Assert(WebChatProtocol.Pong().Contains("\"pong\"", StringComparison.Ordinal), "pong encodes");
     Assert(WebChatProtocol.ResetAck().Contains("\"reset\"", StringComparison.Ordinal), "reset ack encodes");
     Assert(WebChatProtocol.Delta("你").Contains("\"delta\"", StringComparison.Ordinal), "delta encodes");
