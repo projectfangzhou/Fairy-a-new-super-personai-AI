@@ -1760,7 +1760,10 @@ $('lsSaveBtn').addEventListener('click', saveLocalSend);
 $('lsSendBtn').addEventListener('click', sendLocalSend);
 $('wcStartBtn').addEventListener('click', () => controlWebChat('start'));
 $('wcStopBtn').addEventListener('click', () => controlWebChat('stop'));
-$('wcOpenBtn').addEventListener('click', () => window.open('/chat', '_blank'));
+$('wcOpenBtn').addEventListener('click', () => {
+  const port = Number($('wcPort').value);
+  window.open(port > 0 ? `/chat?port=${port}` : '/chat', '_blank');
+});
 $('prToggleBtn').addEventListener('click', togglePairing);
 $('prSaveBtn').addEventListener('click', savePairing);
 $('prCreateGroupBtn').addEventListener('click', createPairingGroup);

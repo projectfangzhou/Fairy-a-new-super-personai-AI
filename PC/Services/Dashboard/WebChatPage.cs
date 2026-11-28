@@ -98,8 +98,7 @@ function addSystem(text, bad){
 }
 
 function connect(){
-  const port = Number($('port').value) || 9881;
-  const url = `ws://127.0.0.1:${port}/`;
+  const url = `ws://127.0.0.1:${Number($('port').value) || 9881}/`;
   setState('连接中…');
   socket = new WebSocket(url);
 
@@ -172,6 +171,11 @@ $('resetBtn').addEventListener('click', () => {
 $('input').addEventListener('keydown', event => {
   if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }
 });
+
+// Follow the port the control centre actually started on, when it hands one over. Without this the
+// page would keep dialling the default while the server listened somewhere else.
+const requested = new URLSearchParams(location.search).get('port');
+if (requested && Number(requested) > 0) $('port').value = Number(requested);
 
 // If the server is already up, connect without making the user click: a page whose only job is
 // chat should be ready to type in.

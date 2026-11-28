@@ -181,9 +181,16 @@ public sealed class LocalHttpServer
             bodyBytes.AddRange(chunk.Take(read));
         }
 
+        // Route on the path alone: a browser that opens "/chat?port=9881" must reach the /chat
+        // handler. The query is not part of routing and nothing on this server reads it, so it is
+        // dropped here rather than making every route strip it.
+        var target = parts[1];
+        var queryIndex = target.IndexOf('?', StringComparison.Ordinal);
+        if (queryIndex >= 0) target = target[..queryIndex];
+
         return new HttpRequestData(
             parts[0].ToUpperInvariant(),
-            parts[1],
+            target,
             headers,
             Encoding.UTF8.GetString(bodyBytes.ToArray()),
             headers.TryGetValue("Transfer-Encoding", out var encoding) &&

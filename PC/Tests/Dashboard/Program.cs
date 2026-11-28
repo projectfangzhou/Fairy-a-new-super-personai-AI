@@ -869,6 +869,8 @@ try
         Assert(chat.Contains("frame.type === 'delta'", StringComparison.Ordinal), "it renders streamed deltas");
         Assert(chat.Contains("frame.type === 'done'", StringComparison.Ordinal), "it finishes a turn on done");
         Assert(chat.Contains("frame.type === 'error'", StringComparison.Ordinal), "it reports errors, not silence");
+        Assert(chat.Contains("URLSearchParams(location.search).get('port')", StringComparison.Ordinal),
+            "the page follows the port it was opened with");
 
         var referenced = System.Text.RegularExpressions.Regex
             .Matches(chat, @"\$\('([A-Za-z0-9_]+)'\)")
@@ -891,10 +893,20 @@ try
             Assert(body.Contains("仙灵 · 本机对话", StringComparison.Ordinal), "the chat page is what comes back");
             Assert(response.Content.Headers.ContentType?.MediaType == "text/html", "it is served as html");
 
+            // The control centre opens /chat?port=<the port it started on>. A query string must not
+            // stop the page from being served — the transport routes on the path only.
+            var withQuery = await http.GetAsync(dashboard.Url + "chat?port=9877");
+            Assert(withQuery.StatusCode == System.Net.HttpStatusCode.OK,
+                "a query string does not break routing");
+            Assert((await withQuery.Content.ReadAsStringAsync()).Contains("仙灵 · 本机对话", StringComparison.Ordinal),
+                "the same page comes back with a query string attached");
+
             // The control centre page must offer a way in.
             var index = await http.GetAsync(dashboard.Url.TrimEnd('/'));
             var indexBody = await index.Content.ReadAsStringAsync();
             Assert(indexBody.Contains("wcOpenBtn", StringComparison.Ordinal), "the control centre links to the chat page");
+            Assert(indexBody.Contains("/chat?port=", StringComparison.Ordinal),
+                "the link carries the port the server was started on");
         }
         finally
         {
