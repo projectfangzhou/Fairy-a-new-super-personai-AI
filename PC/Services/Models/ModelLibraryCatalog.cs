@@ -159,10 +159,12 @@ public static class ModelLibraryCatalog
                 OllamaMissingReason));
         }
 
+        var localCount = 0;
         foreach (var file in inputs.LocalFiles)
         {
             if (file is null || string.IsNullOrWhiteSpace(file.Name)) continue;
 
+            localCount++;
             entries.Add(new ModelLibraryEntry(
                 "local:" + file.Name,
                 file.Name,
@@ -208,7 +210,7 @@ public static class ModelLibraryCatalog
             ? "未配置"
             : $"{provider} / {model}";
 
-        var summary = $"本机文件 {inputs.LocalFiles.Count} 个 · " +
+        var summary = $"本机文件 {localCount} 个 · " +
                       $"Ollama {ollamaCount} 个 · " +
                       $"云端 {cloudCount} 个";
 

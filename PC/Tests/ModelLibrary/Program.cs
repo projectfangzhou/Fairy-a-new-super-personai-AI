@@ -140,6 +140,19 @@ internal static class Program
         Assert(stale.ActiveLabel == "Ollama / all-minilm:latest",
             "the active label still tells the truth about what is configured");
 
+        // --- the summary must count what is actually listed ---
+        var withBlank = ModelLibraryCatalog.Build(new ModelLibraryInputs(
+            [
+                new LocalModel { Name = "real", Format = "gguf", Quantization = "Q4", SizeBytes = 1024 },
+                new LocalModel { Name = "   ", Format = "gguf" }
+            ],
+            ["llama3"], true, providers, info, "Ollama", "llama3"));
+
+        var listedFiles = withBlank.Entries.Count(e => e.Source == ModelSource.LocalFile);
+        Assert(listedFiles == 1, "a nameless file is not listed");
+        Assert(withBlank.Summary.Contains($"本机文件 {listedFiles} 个", StringComparison.Ordinal),
+            "the summary counts the rows it actually shows: " + withBlank.Summary);
+
         // --- formatting ---
         Assert(ModelLibraryCatalog.FormatSize(0) == "0 B", "zero size");
         Assert(ModelLibraryCatalog.FormatSize(512) == "512 B", "bytes");
