@@ -11,6 +11,7 @@
     <Compile Include="../../Services/Dashboard/DashboardApi.cs" Link="Dashboard/DashboardApi.cs" />
     <Compile Include="../../Services/Dashboard/IAppearanceControl.cs" Link="Dashboard/IAppearanceControl.cs" />
     <Compile Include="../../Services/Dashboard/IWebChatControl.cs" Link="Dashboard/IWebChatControl.cs" />
+    <Compile Include="../../Services/Dashboard/WebChatPage.cs" Link="Dashboard/WebChatPage.cs" />
     <Compile Include="../../Services/Messaging/IChatResponder.cs" Link="Messaging/IChatResponder.cs" />
     <Compile Include="../../Services/Messaging/WebSocketFraming.cs" Link="Messaging/WebSocketFraming.cs" />
     <Compile Include="../../Services/Messaging/WebChatProtocol.cs" Link="Messaging/WebChatProtocol.cs" />

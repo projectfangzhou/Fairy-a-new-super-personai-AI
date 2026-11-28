@@ -813,6 +813,70 @@ try
             "a refused start is an error");
     }
 
+    // --- 控制中心页面与它的脚本必须对得上 ----------------------------------
+    {
+        var page = WebDashboardService.Page;
+
+        Assert(page.Contains("id=\"wcStartBtn\"", StringComparison.Ordinal), "the chat card ships a start button");
+        Assert(page.Contains("id=\"wcStopBtn\"", StringComparison.Ordinal), "the chat card ships a stop button");
+        Assert(page.Contains("controlWebChat('start')", StringComparison.Ordinal), "the start button calls start");
+        Assert(page.Contains("controlWebChat('stop')", StringComparison.Ordinal), "the stop button calls stop");
+        Assert(page.Contains("/api/webchat/", StringComparison.Ordinal), "the card talks to the webchat endpoint");
+        Assert(page.Contains("loadWebChat();", StringComparison.Ordinal), "the card refreshes with the rest of the page");
+
+        // Every element the script reaches for must exist in the markup: a handler bound to a
+        // missing id throws at load and the page quietly stops working past that point.
+        var referenced = System.Text.RegularExpressions.Regex
+            .Matches(page, @"\$\('([A-Za-z0-9_]+)'\)")
+            .Select(match => match.Groups[1].Value)
+            .Distinct()
+            .ToArray();
+        var missing = referenced.Where(id => !page.Contains($"id=\"{id}\"", StringComparison.Ordinal)).ToArray();
+        Assert(missing.Length == 0, "every element the script touches exists: " + string.Join(",", missing));
+    }
+
+    // --- 对话页：结构与真实服务 ------------------------------------------
+    {
+        var chat = MyAiAssistant.Services.Dashboard.WebChatPage.Html;
+
+        Assert(chat.Contains("ws://127.0.0.1:", StringComparison.Ordinal), "the page connects to the local socket");
+        Assert(chat.Contains("type:'message'", StringComparison.Ordinal), "it speaks the message frame");
+        Assert(chat.Contains("frame.type === 'delta'", StringComparison.Ordinal), "it renders streamed deltas");
+        Assert(chat.Contains("frame.type === 'done'", StringComparison.Ordinal), "it finishes a turn on done");
+        Assert(chat.Contains("frame.type === 'error'", StringComparison.Ordinal), "it reports errors, not silence");
+
+        var referenced = System.Text.RegularExpressions.Regex
+            .Matches(chat, @"\$\('([A-Za-z0-9_]+)'\)")
+            .Select(match => match.Groups[1].Value)
+            .Distinct()
+            .ToArray();
+        var missing = referenced.Where(id => !chat.Contains($"id=\"{id}\"", StringComparison.Ordinal)).ToArray();
+        Assert(missing.Length == 0, "every element the chat script touches exists: " + string.Join(",", missing));
+
+        // Serve it for real: a page that is only a constant string is not a page until it is served.
+        var port = 18000 + Random.Shared.Next(0, 2000);
+        var dashboard = new WebDashboardService(center, audit, store, port: port);
+        Assert(await dashboard.StartAsync(), "the dashboard binds a free port");
+        try
+        {
+            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            var response = await http.GetAsync(dashboard.Url + "chat");
+            var body = await response.Content.ReadAsStringAsync();
+            Assert(response.StatusCode == System.Net.HttpStatusCode.OK, "GET /chat returns 200");
+            Assert(body.Contains("仙灵 · 本机对话", StringComparison.Ordinal), "the chat page is what comes back");
+            Assert(response.Content.Headers.ContentType?.MediaType == "text/html", "it is served as html");
+
+            // The control centre page must offer a way in.
+            var index = await http.GetAsync(dashboard.Url.TrimEnd('/'));
+            var indexBody = await index.Content.ReadAsStringAsync();
+            Assert(indexBody.Contains("wcOpenBtn", StringComparison.Ordinal), "the control centre links to the chat page");
+        }
+        finally
+        {
+            dashboard.Stop();
+        }
+    }
+
     Console.WriteLine($"All {checks} dashboard checks passed.");
 }
 finally

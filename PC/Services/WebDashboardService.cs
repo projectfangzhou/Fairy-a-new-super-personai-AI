@@ -76,6 +76,13 @@ public sealed class WebDashboardService
             {
                 response = new(200, "text/html; charset=utf-8", Page);
             }
+            else if (path is "/chat" or "/chat/" or "/chat.html")
+            {
+                // Standalone chat client. It needs no token because it carries no data of its own:
+                // it opens a socket to the WebChat server, and that server only listens when the
+                // user started it.
+                response = new(200, "text/html; charset=utf-8", Dashboard.WebChatPage.Html);
+            }
             else if (string.Equals(request.Method, "POST", StringComparison.Ordinal))
             {
                 response = await _api.PostAsync(path, token, request.Body);
@@ -106,7 +113,12 @@ public sealed class WebDashboardService
         _server.Stop();
     }
 
-    private const string Page = """
+    /// <summary>
+    /// The control centre page. Internal rather than private so the tests can check that every id
+    /// its script reaches for actually exists — a button wired to a missing element fails silently
+    /// in a browser and no API test would ever notice.
+    /// </summary>
+    internal const string Page = """
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="utf-8"><title>仙灵 · Agent 控制中心</title>
 <style>
@@ -422,6 +434,21 @@ label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:9px
       <button id="lsSendBtn" class="primary">发送给选中设备</button>
       <span id="lsSendStatus"></span>
     </div>
+  </section>
+
+  <section class="glass">
+    <h2>网页对话（WebChat）</h2>
+    <p class="sub">本机回环 WebSocket 服务，默认关闭。它用的是你自己的模型和密钥，开到 9881 端口就意味着本机任何程序都能连上来对话，所以只在你主动开启时监听。启动后同机客户端连 ws://127.0.0.1:9881/ 即可，协议见仓库 docs/webchat-protocol.md。</p>
+    <div class="row">
+      <span id="wcState" class="mono">状态未知</span>
+      <button id="wcStartBtn" class="primary">启动</button>
+      <button id="wcStopBtn">停止</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="wcOpenBtn">打开对话页</button>
+      <span id="wcStatus"></span>
+    </div>
+    <p class="sub mono" id="wcHint"></p>
   </section>
 
   <section class="glass">
@@ -1107,6 +1134,31 @@ async function stopFairyCode(id){
   loadFairyCode(); refresh();
 }
 
+async function loadWebChat(){
+  const { status, body } = await api('/api/webchat');
+  const state = $('wcState');
+  if (status !== 200) {
+    state.textContent = body.message || 'WebChat 不可用';
+    $('wcHint').textContent = '';
+    return;
+  }
+  state.textContent = (body.running ? '运行中' : '未运行') +
+    (body.running ? ` · ${body.clients} 个连接` : ` · 端口 ${body.port}`);
+  $('wcHint').textContent = body.running
+    ? `客户端连 ${body.url}，协议：message / ping / reset`
+    : '启动后本机客户端才能连上；关闭状态下不占端口。';
+}
+
+async function controlWebChat(action){
+  const el = $('wcStatus');
+  el.className = '';
+  el.textContent = '处理中…';
+  const { status, body } = await post(`/api/webchat/${action}`, {});
+  el.className = status === 200 ? '' : 'err';
+  el.textContent = body.message || (status === 200 ? '已完成' : '操作失败');
+  loadWebChat();
+}
+
 async function loadLocalSend(){
   const { status, body } = await api('/api/localsend');
   const state = $('lsState');
@@ -1675,7 +1727,7 @@ async function mcpAction(path){
 }
 
 function refresh(){
-  loadTasks(); loadPending(); loadResources(); loadEvents(); loadAudit(); loadAccounts(); loadFairyCode(); loadLocalSend(); loadPairing(); loadTransfer(); loadNotifications(); loadHomeAssistant(); loadSummarySync(); loadScreenSession(); loadMcp();
+  loadTasks(); loadPending(); loadResources(); loadEvents(); loadAudit(); loadAccounts(); loadFairyCode(); loadWebChat(); loadLocalSend(); loadPairing(); loadTransfer(); loadNotifications(); loadHomeAssistant(); loadSummarySync(); loadScreenSession(); loadMcp();
 }
 
 $('loginBtn').addEventListener('click', login);
@@ -1689,6 +1741,9 @@ $('fcStartBtn').addEventListener('click', startFairyCode);
 $('lsToggleBtn').addEventListener('click', toggleLocalSend);
 $('lsSaveBtn').addEventListener('click', saveLocalSend);
 $('lsSendBtn').addEventListener('click', sendLocalSend);
+$('wcStartBtn').addEventListener('click', () => controlWebChat('start'));
+$('wcStopBtn').addEventListener('click', () => controlWebChat('stop'));
+$('wcOpenBtn').addEventListener('click', () => window.open('/chat', '_blank'));
 $('prToggleBtn').addEventListener('click', togglePairing);
 $('prSaveBtn').addEventListener('click', savePairing);
 $('prCreateGroupBtn').addEventListener('click', createPairingGroup);
