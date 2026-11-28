@@ -172,21 +172,39 @@ public static class WebSocketFraming
         await stream.WriteAsync(frame, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>Client-side masked frame, used by the self-test and by tests.</summary>
+    /// <summary>
+    /// Client-side masked frame, used by the self-test and by tests. Supports the 16-bit extended
+    /// length so a client can actually send more than 125 bytes — without it the server's extended
+    /// length path would never be exercised by anything in this project.
+    /// </summary>
     public static async Task WriteMaskedFrameAsync(NetworkStream stream, string payload,
         CancellationToken cancellationToken = default)
     {
         var bytes = Encoding.UTF8.GetBytes(payload);
-        if (bytes.Length > 125)
-            throw new ArgumentException("客户端测试报文必须短于 126 字节。", nameof(payload));
+        if (bytes.Length > MaxPayloadBytes)
+            throw new ArgumentException($"客户端报文必须短于 {MaxPayloadBytes} 字节。", nameof(payload));
 
         var mask = RandomNumberGenerator.GetBytes(4);
-        var frame = new byte[bytes.Length + 6];
-        frame[0] = 0x81;
-        frame[1] = (byte)(0x80 | bytes.Length);
-        mask.CopyTo(frame, 2);
+        var extended = bytes.Length > 125;
+        var headerLength = extended ? 8 : 6;
 
-        for (var i = 0; i < bytes.Length; i++) frame[6 + i] = (byte)(bytes[i] ^ mask[i % 4]);
+        var frame = new byte[bytes.Length + headerLength];
+        frame[0] = 0x81;
+
+        if (extended)
+        {
+            frame[1] = 0x80 | 126;
+            frame[2] = (byte)(bytes.Length >> 8);
+            frame[3] = (byte)(bytes.Length & 0xFF);
+        }
+        else
+        {
+            frame[1] = (byte)(0x80 | bytes.Length);
+        }
+
+        mask.CopyTo(frame, extended ? 4 : 2);
+
+        for (var i = 0; i < bytes.Length; i++) frame[headerLength + i] = (byte)(bytes[i] ^ mask[i % 4]);
 
         await stream.WriteAsync(frame, cancellationToken).ConfigureAwait(false);
     }

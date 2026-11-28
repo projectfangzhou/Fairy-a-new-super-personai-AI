@@ -342,6 +342,56 @@ void Assert(bool condition, string name)
     Assert(slow.Produced < slow.Total, $"generation stopped early (produced {slow.Produced} of {slow.Total})");
 }
 
+// --- 4f. 长帧与超长文本 ------------------------------------------------
+{
+    var responder = new FakeResponder();
+    var port = FreePort();
+    using var server = new WebChatEndpoint(responder);
+    server.Start(port);
+
+    using var client = await ChatClient.ConnectAsync(port);
+    await client.ReceiveAsync();                       // welcome
+
+    // Longer than 125 bytes, so the frame uses the 16-bit extended length. Chinese is 3 bytes per
+    // character, which makes it easy to cross the boundary: 60 characters is 180 bytes.
+    var longPrompt = new string('长', 60);
+    Assert(Encoding.UTF8.GetByteCount(longPrompt) > 125, "the probe prompt really needs an extended frame");
+    await client.SendAsync($"{{\"type\":\"message\",\"text\":\"{longPrompt}\"}}");
+    var reply = await client.DrainUntilDoneAsync();
+    Assert(reply.Contains("\"type\":\"done\"", StringComparison.Ordinal), "an extended-length frame is read");
+    Assert(responder.Calls[^1].Prompt == longPrompt, "the whole prompt arrived intact, not truncated");
+
+    // Over the documented per-message limit: refused with a readable reason, connection stays open.
+    var tooLong = new string('x', WebChatProtocol.MaxPromptChars + 1);
+    await client.SendAsync($"{{\"type\":\"message\",\"text\":\"{tooLong}\"}}");
+    var refusal = await client.ReceiveAsync();
+    Assert(refusal.Contains("\"type\":\"error\"", StringComparison.Ordinal), "an over-long prompt is refused");
+    Assert(refusal.Contains(WebChatProtocol.MaxPromptChars.ToString(), StringComparison.Ordinal),
+        "the refusal names the limit");
+
+    await client.SendAsync("{\"type\":\"ping\"}");
+    Assert((await client.ReceiveAsync()).Contains("\"pong\"", StringComparison.Ordinal),
+        "the connection survives a refused message");
+
+    // Larger than the frame limit: the server drops the connection rather than truncating.
+    var huge = new string('y', WebSocketFraming.MaxPayloadBytes + 1024);
+    var closed = false;
+    try
+    {
+        await client.SendUncheckedAsync($"{{\"type\":\"message\",\"text\":\"{huge}\"}}");
+        await client.ReceiveAsync();
+    }
+    catch (Exception ex) when (ex is IOException or SocketException or InvalidOperationException)
+    {
+        closed = true;
+    }
+
+    await WaitAsync(() => server.ClientCount == 0, 3000);
+    Assert(closed && server.ClientCount == 0, "an oversized frame ends the connection instead of being truncated");
+
+    server.Stop();
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
@@ -479,6 +529,41 @@ sealed class ChatClient : IDisposable
     }
 
     public Task SendAsync(string frame) => WebSocketFraming.WriteMaskedFrameAsync(_stream, frame);
+
+    /// <summary>
+    /// Writes a masked frame without the client-side size guard, so the server's own refusal can be
+    /// tested. Above 65535 bytes the length goes into the 64-bit form, which the server rejects.
+    /// </summary>
+    public async Task SendUncheckedAsync(string payload)
+    {
+        var bytes = Encoding.UTF8.GetBytes(payload);
+        var mask = new byte[] { 1, 2, 3, 4 };
+        byte[] frame;
+
+        if (bytes.Length > 65535)
+        {
+            frame = new byte[bytes.Length + 14];
+            frame[0] = 0x81;
+            frame[1] = 0x80 | 127;
+            var length = (ulong)bytes.Length;
+            for (var i = 0; i < 8; i++) frame[2 + i] = (byte)(length >> (56 - i * 8));
+            mask.CopyTo(frame, 10);
+            for (var i = 0; i < bytes.Length; i++) frame[14 + i] = (byte)(bytes[i] ^ mask[i % 4]);
+        }
+        else
+        {
+            frame = new byte[bytes.Length + 8];
+            frame[0] = 0x81;
+            frame[1] = 0x80 | 126;
+            frame[2] = (byte)(bytes.Length >> 8);
+            frame[3] = (byte)(bytes.Length & 0xFF);
+            mask.CopyTo(frame, 4);
+            for (var i = 0; i < bytes.Length; i++) frame[8 + i] = (byte)(bytes[i] ^ mask[i % 4]);
+        }
+
+        await _stream.WriteAsync(frame);
+        await _stream.FlushAsync();
+    }
 
     public async Task<string> ReceiveAsync()
     {
