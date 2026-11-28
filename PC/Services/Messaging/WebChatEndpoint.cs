@@ -262,7 +262,7 @@ public sealed class WebChatEndpoint : IDisposable
         history.Add(new ChatMessage { Role = "assistant", Content = reply.ToString() });
         TrimHistory(history);
 
-        await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.Done(reply.Length), token)
+        await WebSocketFraming.WriteFrameAsync(stream, WebChatProtocol.Done(WebChatProtocol.CountChars(reply.ToString())), token)
             .ConfigureAwait(false);
     }
 

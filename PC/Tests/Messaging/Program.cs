@@ -246,6 +246,12 @@ void Assert(bool condition, string name)
     Assert(WebChatProtocol.ResetAck().Contains("\"reset\"", StringComparison.Ordinal), "reset ack encodes");
     Assert(WebChatProtocol.Delta("你").Contains("\"delta\"", StringComparison.Ordinal), "delta encodes");
     Assert(WebChatProtocol.Done(3).Contains("\"chars\":3", StringComparison.Ordinal), "done carries the count");
+    Assert(WebChatProtocol.CountChars("你好") == 2, "two Chinese characters count as two");
+    Assert(WebChatProtocol.CountChars("👋") == 1, "one emoji counts as one, not two UTF-16 units");
+    Assert(WebChatProtocol.CountChars("👍🏽") == 1, "an emoji with a skin tone is still one character");
+    Assert(WebChatProtocol.CountChars("e\u0301") == 1, "a combining accent does not split a character");
+    Assert(WebChatProtocol.CountChars("") == 0, "empty text counts as zero");
+    Assert(WebChatProtocol.CountChars(null) == 0, "null counts as zero");
     Assert(WebChatProtocol.Welcome().Contains("\"protocol\":1", StringComparison.Ordinal), "welcome names the protocol version");
 }
 
@@ -521,6 +527,24 @@ void Assert(bool condition, string name)
     client.Dispose();
 }
 
+// --- 4i. done 帧的字数按"读者看到的字符"计 ---------------------------
+{
+    var port = FreePort();
+    using var server = new WebChatEndpoint(new FixedResponder("好", "的👋"));
+    server.Start(port);
+
+    using var client = await ChatClient.ConnectAsync(port);
+    await client.ReceiveAsync();                       // welcome
+    await client.SendAsync("{\"type\":\"message\",\"text\":\"打个招呼\"}");
+    var frame = await client.DrainUntilDoneAsync();
+
+    Assert(frame.Contains("\"chars\":3", StringComparison.Ordinal),
+        "the done frame counts 好 的 👋 as three characters, not four UTF-16 units: " + frame);
+
+    client.Dispose();
+    server.Stop();
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
@@ -766,6 +790,22 @@ sealed class SlowResponder : IChatResponder
             await Task.Delay(10, cancellationToken);
             Produced++;
             yield return "片";
+        }
+    }
+}
+
+/// <summary>Answers with a fixed set of chunks, for wire-level assertions.</summary>
+sealed class FixedResponder(params string[] chunks) : IChatResponder
+{
+    public async IAsyncEnumerable<string> RespondAsync(
+        IReadOnlyList<ChatMessage> history,
+        string prompt,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        foreach (var chunk in chunks)
+        {
+            await Task.Yield();
+            yield return chunk;
         }
     }
 }

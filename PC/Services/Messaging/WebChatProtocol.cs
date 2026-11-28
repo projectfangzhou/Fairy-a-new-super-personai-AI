@@ -100,6 +100,21 @@ public static class WebChatProtocol
 
     public static string Done(int chars) => Json(new { type = "done", chars });
 
+    /// <summary>
+    /// Counts what a reader would call characters, not UTF-16 code units. "👋" is one character to
+    /// the person reading it but two units in a .NET string, and the reply length is shown in the
+    /// UI — reporting 8 for a 5-character sentence reads like a bug in the transcript.
+    /// </summary>
+    public static int CountChars(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return 0;
+
+        var count = 0;
+        var enumerator = System.Globalization.StringInfo.GetTextElementEnumerator(text);
+        while (enumerator.MoveNext()) count++;
+        return count;
+    }
+
     public static string Pong() => Json(new { type = "pong" });
 
     public static string ResetAck() => Json(new { type = "reset" });
