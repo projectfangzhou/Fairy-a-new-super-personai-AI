@@ -59,19 +59,13 @@ public class OllamaService
     /// <summary>List models already pulled locally.</summary>
     public static async Task<List<string>> ListLocalModelsAsync()
     {
-        var result = new List<string>();
         try
         {
             var output = await RunOllamaAsync("list");
-            foreach (var line in output.Split('\n').Skip(1))
-            {
-                var name = line.Trim().Split(' ')[0];
-                if (!string.IsNullOrEmpty(name) && name != "NAME")
-                    result.Add(name);
-            }
+            return [.. OllamaListParser.Parse(output)];
         }
         catch (Exception ex) { Log($"list error: {ex.Message}"); }
-        return result;
+        return [];
     }
 
     /// <summary>Pull a model. Progress is reported as lines of ollama output.</summary>

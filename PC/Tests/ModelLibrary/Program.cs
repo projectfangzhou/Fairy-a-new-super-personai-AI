@@ -25,6 +25,7 @@ internal static class Program
         try
         {
             CatalogueChecks();
+            OllamaListChecks();
             WindowChecks(args.Length > 0 ? args[0] : null);
             Console.WriteLine($"All {_checks} model library checks passed.");
             return 0;
@@ -143,6 +144,55 @@ internal static class Program
         Assert(ModelLibraryCatalog.FormatSize(512) == "512 B", "bytes");
         Assert(ModelLibraryCatalog.FormatSize(1536) == "2 KB", "kilobytes round");
         Assert(ModelLibraryCatalog.FormatSize(4_400_000_000) == "4.1 GB", "gigabytes keep one decimal");
+    }
+
+    private static void OllamaListChecks()
+    {
+        // The samples below are the real shapes this machine produced during verification.
+
+        // 1. Fresh install: header only.
+        var empty = OllamaListParser.Parse("NAME    ID    SIZE    MODIFIED \n");
+        Assert(empty.Count == 0, "header only parses to nothing");
+
+        // 2. One model, padded columns.
+        var single = OllamaListParser.Parse(
+            "NAME                 ID              SIZE     MODIFIED               \n" +
+            "all-minilm:latest    1b226e2802db    45 MB    Less than a second ago    \n");
+        Assert(single.Count == 1 && single[0] == "all-minilm:latest", "one real row parses to one model");
+
+        // 3. Two models with different sizes and timestamps.
+        var two = OllamaListParser.Parse(
+            "NAME                 ID              SIZE      MODIFIED      \n" +
+            "llava-phi3:latest    c7edd7b87593    2.9 GB    3 weeks ago   \n" +
+            "gemma2:2b            8ccf136fdd52    1.6 GB    3 months ago  \n");
+        Assert(two.Count == 2, "two real rows parse to two models");
+        Assert(two[0] == "llava-phi3:latest" && two[1] == "gemma2:2b", "order and spelling are preserved");
+
+        // 4. Windows line endings must not leak a carriage return into the name.
+        var crlf = OllamaListParser.Parse("NAME  ID  SIZE  MODIFIED\r\nx:latest  aaa  1 GB  now\r\n");
+        Assert(crlf.Count == 1 && crlf[0] == "x:latest", "crlf input parses cleanly");
+
+        // 5. A warning printed before the table must not become a model, and must not eat a row.
+        var warned = OllamaListParser.Parse(
+            "Warning: could not connect to a running Ollama instance\n" +
+            "NAME                 ID              SIZE      MODIFIED   \n" +
+            "gemma2:2b            8ccf136fdd52    1.6 GB    3 months ago\n");
+        Assert(warned.Count == 1 && warned[0] == "gemma2:2b", "a warning line is ignored, the row survives");
+
+        // 6. Prose instead of a table (daemon down, unknown command) yields no models at all.
+        var prose = OllamaListParser.Parse("Error: could not connect to ollama server\n");
+        Assert(prose.Count == 0, "an error message produces no model");
+        Assert(OllamaListParser.Parse("").Count == 0, "empty output produces no model");
+        Assert(OllamaListParser.Parse(null).Count == 0, "null output produces no model");
+
+        // 7. Control codes from a terminal (spinners) must be stripped.
+        var ansi = OllamaListParser.Parse(
+            "\u001B[?25lNAME   ID   SIZE   MODIFIED\n\u001B[Kqwen2.5:3b   abc   1.9 GB   now\u001B[?25h\n");
+        Assert(ansi.Count == 1 && ansi[0] == "qwen2.5:3b", "ansi control codes are stripped");
+
+        // 8. Duplicates collapse instead of listing the same model twice.
+        var dupes = OllamaListParser.Parse("NAME  ID  SIZE  M\na:1  x  1 MB  now\na:1  x  1 MB  now\n");
+        Assert(dupes.Count == 1, "a repeated row is listed once");
     }
 
     private static void WindowChecks(string? shotPath)
