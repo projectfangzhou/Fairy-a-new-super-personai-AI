@@ -104,6 +104,13 @@ void Assert(bool condition, string name)
     Assert(live.State == PlatformProbeState.Ready, "running server passes a real ping round trip");
     Assert(live.Message.Contains("ws://127.0.0.1:", StringComparison.Ordinal), "readiness names the local url");
 
+    // The probe's own connection must not be reported as a client: the number is user-facing, and
+    // "1 个连接" on an idle server would be a lie the user cannot check.
+    Assert(!live.Message.Contains("个连接", StringComparison.Ordinal),
+        "an idle server reports no connections: " + live.Message);
+    await WaitAsync(() => endpoint.ClientCount == 0, 2000);
+    Assert(endpoint.ClientCount == 0, "the probe leaves no connection behind");
+
     // Second start of the same port must fail: only one server can own it.
     var control = new WebChatControl(endpoint);
     Assert(control.Status().Running, "control reports the server running");

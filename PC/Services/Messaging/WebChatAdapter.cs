@@ -32,10 +32,14 @@ public sealed class WebChatAdapter : IMessagingAdapter
             return new(PlatformProbeState.NeedsConfiguration,
                 $"WebChat 服务未启动。启动后本机客户端可连接 ws://127.0.0.1:{_port}/ 对话。");
 
+        // Read the count before the probe connects: the probe's own socket is a client too, and
+        // whether its teardown has been accounted for by the time the message is built is a race.
+        // Reading first makes "no clients" mean no clients, whatever the scheduler does.
+        var clients = _endpoint.ClientCount;
+
         var result = await _endpoint.SelfTestAsync(cancellationToken).ConfigureAwait(false);
         if (!result.Ok) return new(PlatformProbeState.Failed, result.Message);
 
-        var clients = _endpoint.ClientCount;
         return new(PlatformProbeState.Ready,
             clients == 0 ? result.Message : $"{result.Message}当前 {clients} 个连接。");
     }
