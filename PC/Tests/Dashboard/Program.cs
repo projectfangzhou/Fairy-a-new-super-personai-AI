@@ -2,6 +2,7 @@ using System.Text.Json;
 using MyAiAssistant.Services.AgentControl;
 using MyAiAssistant.Services;
 using MyAiAssistant.Services.Dashboard;
+using MyAiAssistant.Services.Messaging;
 using MyAiAssistant.Services.Pairing;
 using MyAiAssistant.Services.Permissions;
 
@@ -875,6 +876,56 @@ try
         {
             dashboard.Stop();
         }
+    }
+
+    // --- 消息平台账号：添加、启用/停用、删除 --------------------------------
+    {
+        var config = new AppConfig();
+        var accounts = new MessagingAccountStore(() => config, saved => config = saved);
+        var accountsApi = new DashboardApi(center, audit, token, store, accounts);
+
+        Assert(accountsApi.Get("/api/accounts", null).StatusCode == 401, "the account list needs the token");
+
+        var added = accountsApi.Post("/api/accounts", token,
+            "{\"platform\":\"WebChat\",\"displayName\":\"本机网页\",\"credentials\":{}}");
+        Assert(added.StatusCode == 200, "an account can be added");
+        var id = accounts.List().Single().Id;
+
+        using (var document = JsonDocument.Parse(accountsApi.Get("/api/accounts", token).Body))
+        {
+            var first = document.RootElement.GetProperty("accounts")[0];
+            Assert(first.GetProperty("displayName").GetString() == "本机网页", "the new account is listed");
+            Assert(!first.GetProperty("enabled").GetBoolean(), "a new account starts disabled");
+        }
+
+        // Enabling is what lets a capability run at launch, and until this endpoint existed the
+        // control centre had no way to reach that state at all.
+        Assert((await accountsApi.PostAsync($"/api/accounts/{id}/enable", null, null)).StatusCode == 401,
+            "enabling requires the token");
+
+        var enabled = await accountsApi.PostAsync($"/api/accounts/{id}/enable", token, null);
+        Assert(enabled.StatusCode == 200, "enabling is accepted");
+        Assert(accounts.Find(id)!.Enabled, "the stored account is really enabled");
+        using (var document = JsonDocument.Parse(accountsApi.Get("/api/accounts", token).Body))
+            Assert(document.RootElement.GetProperty("accounts")[0].GetProperty("enabled").GetBoolean(),
+                "the list reports it enabled");
+
+        // Idempotent: a refreshed page re-sending the same intent must not see a conflict.
+        var again = await accountsApi.PostAsync($"/api/accounts/{id}/enable", token, null);
+        Assert(again.StatusCode == 200, "enabling twice is not an error");
+        using (var document = JsonDocument.Parse(again.Body))
+            Assert(!document.RootElement.GetProperty("changed").GetBoolean(), "the second call reports no change");
+
+        Assert((await accountsApi.PostAsync($"/api/accounts/{id}/disable", token, null)).StatusCode == 200,
+            "disabling is accepted");
+        Assert(!accounts.Find(id)!.Enabled, "the stored account is really disabled");
+
+        Assert((await accountsApi.PostAsync("/api/accounts/missing/enable", token, null)).StatusCode == 400,
+            "enabling an unknown account is a client error, not a silent success");
+
+        Assert((await accountsApi.PostAsync($"/api/accounts/{id}/remove", token, null)).StatusCode == 200,
+            "removing is accepted");
+        Assert(accounts.List().Count == 0, "the account is gone");
     }
 
     Console.WriteLine($"All {checks} dashboard checks passed.");

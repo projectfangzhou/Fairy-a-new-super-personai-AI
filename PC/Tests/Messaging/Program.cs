@@ -128,6 +128,15 @@ void Assert(bool condition, string name)
     Assert(added.Ok, "web chat account adds with no credentials at all");
     Assert(added.Id is not null, "added account comes back with an id");
 
+    // Adding is not the same as turning the capability on: the flag decides whether a loopback
+    // port opens at launch, so it must start off and be flipped deliberately.
+    Assert(store.Find(added.Id!)!.Enabled == false, "a new account starts disabled");
+    Assert(store.SetEnabled(added.Id!, true), "enabling reports a change");
+    Assert(store.Find(added.Id!)!.Enabled, "the account is enabled after enabling");
+    Assert(!store.SetEnabled(added.Id!, true), "enabling again reports no change");
+    Assert(!store.SetEnabled("no-such-id", true), "an unknown account reports no change");
+    Assert(store.SetEnabled(added.Id!, false), "disabling reports a change");
+
     var viaService = await new MessagingAccountService(store, webChatEndpoint: endpoint).ProbeAsync(added.Id!);
     Assert(viaService.State == PlatformProbeState.Ready, "account probe path reports ready when the server runs");
 

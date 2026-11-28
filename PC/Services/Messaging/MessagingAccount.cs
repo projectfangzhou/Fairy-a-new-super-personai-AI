@@ -57,9 +57,12 @@ public sealed class MessagingAccountStore
             ciphers[field.Key] = ApiKeyProtector.Protect(credentials![field.Key].Trim());
 
         var id = Guid.NewGuid().ToString("N")[..12];
-        config.MessagingAccounts.Add(new MessagingAccount(id, platform, trimmedName, true, ciphers));
+        // Disabled on purpose: adding an account is not the same as turning its capability on.
+        // The WebChat server reads this flag to decide whether to open a loopback port that
+        // answers with the user's own model and key, so "added" must not mean "listening".
+        config.MessagingAccounts.Add(new MessagingAccount(id, platform, trimmedName, false, ciphers));
         _save(config);
-        return (true, "已添加。", id);
+        return (true, "已添加，尚未启用。", id);
     }
 
     public bool Remove(string id)
@@ -70,11 +73,19 @@ public sealed class MessagingAccountStore
         return removed;
     }
 
+    /// <summary>
+    /// Turns one account on or off. Returns whether the stored value actually changed — the control
+    /// surface reports that back, so a page that re-sends the same intent can say "already on"
+    /// instead of claiming it flipped something.
+    /// </summary>
     public bool SetEnabled(string id, bool enabled)
     {
         var config = _load();
         var index = config.MessagingAccounts.FindIndex(a => a.Id == id);
         if (index < 0) return false;
+
+        if (config.MessagingAccounts[index].Enabled == enabled) return false;
+
         config.MessagingAccounts[index] = config.MessagingAccounts[index] with { Enabled = enabled };
         _save(config);
         return true;

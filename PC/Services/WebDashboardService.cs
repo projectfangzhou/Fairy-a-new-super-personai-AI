@@ -401,7 +401,7 @@ label{display:block;font-size:11px;font-weight:600;color:var(--muted);margin:9px
     </div>
     <div id="credentialFields" class="grid2" style="margin-top:10px"></div>
     <p id="accountStatus" class="sub"></p>
-    <table><thead><tr><th>账号</th><th>平台</th><th>凭据</th><th>操作</th></tr></thead>
+    <table><thead><tr><th>账号</th><th>平台</th><th>凭据</th><th>状态</th><th>操作</th></tr></thead>
     <tbody id="accounts"></tbody></table>
     <div id="accountsEmpty" class="empty" hidden>还没有添加账号。</div>
   </section>
@@ -1284,7 +1284,12 @@ async function loadAccounts(){
     cell((a.missingFields || []).length
       ? '缺少：' + esc((a.missingFields || []).join('、'))
       : '已齐全'),
-    cell(`<button data-probe="${esc(a.id)}">检测</button><button class="danger" data-remove="${esc(a.id)}">删除</button>`)
+    cell(a.enabled ? '<span class="ok">已启用</span>' : '<span class="mono">已停用</span>'),
+    cell(`<button data-probe="${esc(a.id)}">检测</button>` +
+         (a.enabled
+           ? `<button data-disable="${esc(a.id)}">停用</button>`
+           : `<button class="primary" data-enable="${esc(a.id)}">启用</button>`) +
+         `<button class="danger" data-remove="${esc(a.id)}">删除</button>`)
   ])));
   $('accountsEmpty').hidden = accounts.length > 0;
 }
@@ -1322,6 +1327,14 @@ async function probeAccount(id){
 
 async function removeAccount(id){
   await post(`/api/accounts/${id}/remove`);
+  loadAccounts();
+}
+
+async function setAccountEnabled(id, enabled){
+  const { status, body } = await post(`/api/accounts/${id}/${enabled ? 'enable' : 'disable'}`);
+  const el = $('accountStatus');
+  el.className = status === 200 ? 'ok' : 'err';
+  el.textContent = body.message || (status === 200 ? '已更新' : ('失败（' + status + '）'));
   loadAccounts();
 }
 
@@ -1784,6 +1797,8 @@ document.addEventListener('click', ev => {
   if (b.dataset.act) post(`/api/tasks/${b.dataset.id}/${b.dataset.act}`).then(refresh);
   else if (b.dataset.answer) post(`/api/interactions/${b.dataset.answer}/answer`, { approved: b.dataset.approved === '1' }).then(refresh);
   else if (b.dataset.probe) probeAccount(b.dataset.probe);
+  else if (b.dataset.enable) setAccountEnabled(b.dataset.enable, true);
+  else if (b.dataset.disable) setAccountEnabled(b.dataset.disable, false);
   else if (b.dataset.remove) removeAccount(b.dataset.remove);
   else if (b.dataset.fcstop) stopFairyCode(b.dataset.fcstop);
   else if (b.dataset.lspeer) { selectedPeer = b.dataset.lspeer; loadLocalSend(); }

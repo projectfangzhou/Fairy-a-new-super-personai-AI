@@ -339,6 +339,8 @@ public sealed class DashboardApi
             {
                 "probe" => await ProbeAccountAsync(segments[2]).ConfigureAwait(false),
                 "remove" => RemoveAccount(segments[2]),
+                "enable" => SetAccountEnabled(segments[2], true),
+                "disable" => SetAccountEnabled(segments[2], false),
                 _ => NotFound()
             };
         }
@@ -820,6 +822,27 @@ public sealed class DashboardApi
             })
         });
         return DashboardResponse.Json(JsonSerializer.Serialize(new { platforms }, JsonOptions));
+    }
+
+    /// <summary>
+    /// Turns one account on or off. Enabling is what decides whether an account-bearing capability
+    /// runs at launch (the WebChat server is the first one that reads it), so this has to be
+    /// reachable from the control surface — otherwise the rule "an enabled account starts it" can
+    /// never be satisfied by a user.
+    /// </summary>
+    private DashboardResponse SetAccountEnabled(string id, bool enabled)
+    {
+        if (_accounts is null) return Unavailable("账号存储不可用");
+        if (_accounts.Find(id) is null) return BadRequest("账号不存在。");
+
+        var changed = _accounts.SetEnabled(id, enabled);
+        var message = changed
+            ? (enabled ? "账号已启用" : "账号已停用")
+            : (enabled ? "这个账号本来就是启用的" : "这个账号本来就是停用的");
+
+        // Enabling something already enabled is not an error: a page that refreshes and re-sends
+        // the same intent should not get a conflict.
+        return DashboardResponse.Json(JsonSerializer.Serialize(new { ok = true, changed, message }, JsonOptions));
     }
 
     private DashboardResponse Accounts()
