@@ -964,6 +964,34 @@ try
         Assert(accounts.List().Count == 0, "the account is gone");
     }
 
+    // --- 配置落盘：密钥不能被就地改成密文，也不能重复加密 -----------------
+    {
+        var config = new AppConfig();
+        config.LLM.Provider = "Kimi";
+        config.LLM.ApiKey = "sk-plain-roundtrip";
+
+        ConfigManager.Save(config);
+
+        // Saving is a side effect on the file, not on the caller's object: the app keeps using
+        // that object to talk to providers, and a ciphertext there would be sent as the key.
+        Assert(config.LLM.ApiKey == "sk-plain-roundtrip", "saving leaves the caller's key alone");
+
+        var storedPath = Path.Combine(AppContext.BaseDirectory, "config.json");
+        var stored = File.ReadAllText(storedPath);
+        Assert(!stored.Contains("sk-plain-roundtrip", StringComparison.Ordinal),
+            "the stored file does not contain the plaintext key");
+        Assert(stored.Contains("Kimi", StringComparison.Ordinal), "the rest of the config is written as-is");
+
+        var loaded = ConfigManager.Load();
+        Assert(loaded.LLM.ApiKey == "sk-plain-roundtrip", "loading decrypts the key back");
+
+        // Each Save protects again. If it protected the caller's object, a second save would
+        // encrypt the ciphertext and the key would be unrecoverable.
+        ConfigManager.Save(loaded);
+        ConfigManager.Save(loaded);
+        Assert(ConfigManager.Load().LLM.ApiKey == "sk-plain-roundtrip", "saving twice does not double-encrypt");
+    }
+
     Console.WriteLine($"All {checks} dashboard checks passed.");
 }
 finally

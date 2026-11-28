@@ -446,21 +446,29 @@ public static class ConfigManager
 
     public static void Save(AppConfig config)
     {
-        // Encrypt API keys before storing
-        config.LLM.ApiKey = ApiKeyProtector.Protect(config.LLM.ApiKey);
-        config.FallbackLLM.ApiKey = ApiKeyProtector.Protect(config.FallbackLLM.ApiKey);
-        config.ASR.ApiKey = ApiKeyProtector.Protect(config.ASR.ApiKey);
-        config.TTS.ApiKey = ApiKeyProtector.Protect(config.TTS.ApiKey);
-        config.Vision.ApiKey = ApiKeyProtector.Protect(config.Vision.ApiKey);
-        config.Tavily.ApiKey = ApiKeyProtector.Protect(config.Tavily.ApiKey);
-        config.CustomPlatform.TextApiKey = ApiKeyProtector.Protect(config.CustomPlatform.TextApiKey);
-        config.CustomPlatform.SpeechApiKey = ApiKeyProtector.Protect(config.CustomPlatform.SpeechApiKey);
-        config.CustomPlatform.VisionApiKey = ApiKeyProtector.Protect(config.CustomPlatform.VisionApiKey);
-        config.CustomPlatform.MultimodalApiKey = ApiKeyProtector.Protect(config.CustomPlatform.MultimodalApiKey);
+        // Encrypt a copy, never the caller's object. The app keeps using the object it passed in to
+        // talk to providers, so encrypting it in place would send a ciphertext as the key — and a
+        // second Save would encrypt the ciphertext again, which no Load could undo.
+        var stored = Snapshot(config);
 
-        var json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+        stored.LLM.ApiKey = ApiKeyProtector.Protect(stored.LLM.ApiKey);
+        stored.FallbackLLM.ApiKey = ApiKeyProtector.Protect(stored.FallbackLLM.ApiKey);
+        stored.ASR.ApiKey = ApiKeyProtector.Protect(stored.ASR.ApiKey);
+        stored.TTS.ApiKey = ApiKeyProtector.Protect(stored.TTS.ApiKey);
+        stored.Vision.ApiKey = ApiKeyProtector.Protect(stored.Vision.ApiKey);
+        stored.Tavily.ApiKey = ApiKeyProtector.Protect(stored.Tavily.ApiKey);
+        stored.CustomPlatform.TextApiKey = ApiKeyProtector.Protect(stored.CustomPlatform.TextApiKey);
+        stored.CustomPlatform.SpeechApiKey = ApiKeyProtector.Protect(stored.CustomPlatform.SpeechApiKey);
+        stored.CustomPlatform.VisionApiKey = ApiKeyProtector.Protect(stored.CustomPlatform.VisionApiKey);
+        stored.CustomPlatform.MultimodalApiKey = ApiKeyProtector.Protect(stored.CustomPlatform.MultimodalApiKey);
+
+        var json = JsonSerializer.Serialize(stored, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(ConfigPath, json);
     }
+
+    /// <summary>A detached copy, so protecting one of them cannot reach back into the caller.</summary>
+    private static AppConfig Snapshot(AppConfig config) =>
+        JsonSerializer.Deserialize<AppConfig>(JsonSerializer.Serialize(config)) ?? new AppConfig();
 
 
 
