@@ -145,6 +145,47 @@ void Assert(bool condition, string name)
         "account probe reports the server as not started");
 }
 
+// --- 4d. WebChat 启动规则（安全决策，必须有测试） ----------------------
+{
+    var config = new AppConfig();
+    var store = new MessagingAccountStore(() => config, saved => config = saved);
+
+    // Nothing configured: the port must stay closed.
+    Assert(!WebChatLaunch.ShouldStart(store.List()), "nothing configured means no server");
+
+    var account = store.Add(PlatformKind.WebChat, "本机网页", null);
+    Assert(!WebChatLaunch.ShouldStart(store.List()), "an added but disabled account does not start the server");
+
+    store.SetEnabled(account.Id!, true);
+    Assert(WebChatLaunch.ShouldStart(store.List()), "an enabled WebChat account starts it");
+
+    store.SetEnabled(account.Id!, false);
+    Assert(!WebChatLaunch.ShouldStart(store.List()), "disabling it stops it from starting");
+
+    // Another platform being enabled must not drag the WebChat server up with it.
+    var telegram = store.Add(PlatformKind.Telegram, "报信", new Dictionary<string, string> { ["token"] = "x" });
+    Assert(telegram.Ok, "a second account of another platform can be added");
+    store.SetEnabled(telegram.Id!, true);
+    Assert(!WebChatLaunch.ShouldStart(store.List()), "an enabled Telegram account does not start WebChat");
+
+    // The action half: it starts only when the rule allows it, and reports what the control said.
+    var control = new RecordingWebChatControl();
+    var blocked = WebChatLaunch.StartIfEnabled(store, control);
+    Assert(!blocked.Started && control.StartCalls == 0, "no start is attempted while the rule says no");
+    Assert(blocked.Message.Contains("端口保持关闭", StringComparison.Ordinal), "the message explains why nothing started");
+
+    store.SetEnabled(account.Id!, true);
+    var started = WebChatLaunch.StartIfEnabled(store, control);
+    Assert(started.Started && control.StartCalls == 1, "an enabled account starts the server once");
+
+    control.RefuseStart = true;
+    store.SetEnabled(account.Id!, false);
+    store.SetEnabled(account.Id!, true);
+    var refused = WebChatLaunch.StartIfEnabled(store, control);
+    Assert(!refused.Started && refused.Message.Contains("占用", StringComparison.Ordinal),
+        "a refused start is reported as not started");
+}
+
 // --- 4b. WebChat protocol (pure) ----------------------------------------
 {
     Assert(WebChatProtocol.Parse("{\"type\":\"ping\"}").Kind == WebChatMessageKind.Ping, "ping parses");
@@ -418,5 +459,31 @@ sealed class ChatClient : IDisposable
     public void Dispose()
     {
         try { _client.Dispose(); } catch { }
+    }
+}
+
+
+/// <summary>A web chat control that records calls instead of opening a socket.</summary>
+sealed class RecordingWebChatControl : MyAiAssistant.Services.Dashboard.IWebChatControl
+{
+    public int StartCalls { get; private set; }
+    public int StopCalls { get; private set; }
+    public bool RefuseStart { get; set; }
+
+    public MyAiAssistant.Services.Dashboard.WebChatStatus Status() =>
+        new(false, 9881, "ws://127.0.0.1:9881/", 0);
+
+    public (bool Ok, string Message) Start()
+    {
+        StartCalls++;
+        return RefuseStart
+            ? (false, "无法绑定端口 9881（AddressAlreadyInUse），端口可能已被占用。")
+            : (true, "WebChat 服务已启动：ws://127.0.0.1:9881/");
+    }
+
+    public (bool Ok, string Message) Stop()
+    {
+        StopCalls++;
+        return (true, "WebChat 服务已停止。");
     }
 }

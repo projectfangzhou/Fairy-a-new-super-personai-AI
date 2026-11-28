@@ -587,16 +587,13 @@ public partial class App : Application
     {
         try
         {
-            var store = _services.GetRequiredService<MessagingAccountStore>();
-            var enabled = store.List().Any(a => a.Platform == PlatformKind.WebChat && a.Enabled);
-            if (!enabled)
-            {
-                Log("WebChat：没有启用的账号，服务未启动");
-                return;
-            }
+            // The rule and the action both live in WebChatLaunch so they are tested without the
+            // app class; this method only resolves dependencies and logs the outcome.
+            var (started, message) = WebChatLaunch.StartIfEnabled(
+                _services.GetRequiredService<MessagingAccountStore>(),
+                _services.GetRequiredService<IWebChatControl>());
 
-            var (ok, message) = _services.GetRequiredService<IWebChatControl>().Start();
-            Log(ok ? $"WebChat：{message}" : $"WebChat 启动失败：{message}");
+            Log(started ? $"WebChat：{message}" : $"WebChat 未启动：{message}");
         }
         catch (Exception ex)
         {
