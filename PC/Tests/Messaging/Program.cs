@@ -545,6 +545,61 @@ void Assert(bool condition, string name)
     server.Stop();
 }
 
+// --- 4j. 非文本帧：二进制、分片、以及 ping 控制帧 ----------------------
+{
+    var responder = new FakeResponder();
+    var port = FreePort();
+    using var server = new WebChatEndpoint(responder);
+    server.Start(port);
+
+    // 0x9 is a protocol-level ping: the server must answer with a pong and keep the session.
+    using (var client = await ChatClient.ConnectAsync(port))
+    {
+        await client.ReceiveAsync();                    // welcome
+        await client.SendRawAsync(0x9, "are-you-there");
+        var (opcode, payload) = await client.ReceiveRawAsync();
+        Assert(opcode == 0xA, $"a websocket ping is answered with a pong (got opcode 0x{opcode:X})");
+        Assert(payload == "are-you-there", "the pong carries the ping's payload back");
+
+        await client.SendAsync("{\"type\":\"ping\"}");
+        Assert((await client.ReceiveAsync()).Contains("\"pong\"", StringComparison.Ordinal),
+            "the session survives a control frame");
+    }
+
+    // 0x2 (binary) and 0x0 (continuation) are not part of this protocol: the documented behaviour
+    // is to refuse the connection rather than to guess at the payload.
+    foreach (var (opcode, label) in new[] { ((byte)0x2, "binary"), ((byte)0x0, "continuation") })
+    {
+        using var client = await ChatClient.ConnectAsync(port);
+        await client.ReceiveAsync();                    // welcome
+
+        var closed = false;
+        try
+        {
+            await client.SendRawAsync(opcode, "{\"type\":\"message\",\"text\":\"hi\"}");
+            await client.ReceiveAsync();
+        }
+        catch (Exception ex) when (ex is IOException or SocketException or InvalidOperationException)
+        {
+            closed = true;
+        }
+
+        await WaitAsync(() => server.ClientCount == 0, 3000);
+        Assert(closed && server.ClientCount == 0, $"a {label} frame ends the connection instead of being guessed at");
+    }
+
+    // And the server still works afterwards.
+    using (var client = await ChatClient.ConnectAsync(port))
+    {
+        await client.ReceiveAsync();
+        await client.SendAsync("{\"type\":\"ping\"}");
+        Assert((await client.ReceiveAsync()).Contains("\"pong\"", StringComparison.Ordinal),
+            "the server is healthy after refusing two connections");
+    }
+
+    server.Stop();
+}
+
 // --- 5. Localisation ----------------------------------------------------
 {
     var zh = new Localizer("zh-CN");
@@ -687,6 +742,21 @@ sealed class ChatClient : IDisposable
 
     public Task SendAsync(string frame) => WebSocketFraming.WriteMaskedFrameAsync(_stream, frame);
 
+    /// <summary>Sends a masked frame with an arbitrary opcode, to exercise the non-text paths.</summary>
+    public async Task SendRawAsync(byte opcode, string payload)
+    {
+        var bytes = Encoding.UTF8.GetBytes(payload);
+        var mask = new byte[] { 5, 6, 7, 8 };
+        var frame = new byte[bytes.Length + 6];
+        frame[0] = (byte)(0x80 | opcode);
+        frame[1] = (byte)(0x80 | bytes.Length);
+        mask.CopyTo(frame, 2);
+        for (var i = 0; i < bytes.Length; i++) frame[6 + i] = (byte)(bytes[i] ^ mask[i % 4]);
+
+        await _stream.WriteAsync(frame);
+        await _stream.FlushAsync();
+    }
+
     /// <summary>
     /// Writes a masked frame without the client-side size guard, so the server's own refusal can be
     /// tested. Above 65535 bytes the length goes into the 64-bit form, which the server rejects.
@@ -722,10 +792,56 @@ sealed class ChatClient : IDisposable
         await _stream.FlushAsync();
     }
 
+    /// <summary>
+    /// Reads one frame with its opcode, without filtering. The shared reader used by
+    /// <see cref="ReceiveAsync"/> is written for the server's side and refuses non-text frames, so a
+    /// client that wants to look at a pong needs this.
+    /// </summary>
+    public async Task<(int Opcode, string Payload)> ReceiveRawAsync()
+    {
+        var header = new byte[2];
+        if (!await ReadExactlyAsync(header)) throw new InvalidOperationException("connection closed before a frame arrived");
+
+        var opcode = header[0] & 0x0F;
+        long length = header[1] & 0x7F;
+        var masked = (header[1] & 0x80) != 0;
+
+        if (length == 126)
+        {
+            var extended = new byte[2];
+            if (!await ReadExactlyAsync(extended)) throw new InvalidOperationException("connection closed mid-frame");
+            length = (extended[0] << 8) | extended[1];
+        }
+
+        var mask = new byte[4];
+        if (masked && !await ReadExactlyAsync(mask)) throw new InvalidOperationException("connection closed mid-frame");
+
+        var payload = new byte[length];
+        if (length > 0 && !await ReadExactlyAsync(payload)) throw new InvalidOperationException("connection closed mid-frame");
+
+        if (masked)
+            for (var i = 0; i < payload.Length; i++) payload[i] ^= mask[i % 4];
+
+        return (opcode, Encoding.UTF8.GetString(payload));
+    }
+
+    private async Task<bool> ReadExactlyAsync(byte[] target)
+    {
+        var offset = 0;
+        while (offset < target.Length)
+        {
+            var read = await _stream.ReadAsync(target.AsMemory(offset, target.Length - offset));
+            if (read == 0) return false;
+            offset += read;
+        }
+
+        return true;
+    }
+
     public async Task<string> ReceiveAsync()
     {
         return await WebSocketFraming.ReadTextFrameAsync(_stream)
-               ?? throw new Exception("connection closed before a frame arrived");
+               ?? throw new InvalidOperationException("connection closed before a frame arrived");
     }
 
     /// <summary>Reads deltas until the turn ends with done or error.</summary>
