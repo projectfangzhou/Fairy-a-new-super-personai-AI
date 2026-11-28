@@ -27,6 +27,7 @@ internal static class Program
             CatalogueChecks();
             OllamaListChecks();
             OllamaFailureChecks();
+            OllamaMissingChecks().GetAwaiter().GetResult();
             WindowChecks(args.Length > 0 ? args[0] : null);
             Console.WriteLine($"All {_checks} model library checks passed.");
             return 0;
@@ -158,6 +159,46 @@ internal static class Program
         Assert(ModelLibraryCatalog.FormatSize(512) == "512 B", "bytes");
         Assert(ModelLibraryCatalog.FormatSize(1536) == "2 KB", "kilobytes round");
         Assert(ModelLibraryCatalog.FormatSize(4_400_000_000) == "4.1 GB", "gigabytes keep one decimal");
+    }
+
+    /// <summary>
+    /// The fallback for "the ollama executable cannot be started at all". It is the branch that turns
+    /// a missing tool into a truthful message instead of an empty model list, and it had never been
+    /// executed: the machine that runs these tests has ollama on PATH.
+    ///
+    /// PATH is cleared for the duration of the call and restored immediately afterwards, because
+    /// process resolution reads the current process environment.
+    /// </summary>
+    private static async Task OllamaMissingChecks()
+    {
+        var originalPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+        var emptyDir = Path.Combine(Path.GetTempPath(), "fairy-empty-path-" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(emptyDir);
+
+        try
+        {
+            Environment.SetEnvironmentVariable("PATH", emptyDir);
+
+            var (models, error) = await OllamaService.TryListLocalModelsAsync();
+            Assert(models.Count == 0, "with no executable there are no models");
+            Assert(error is not null, "a missing executable is reported as an error, not as an empty library");
+            Assert(error!.Contains("ollama", StringComparison.OrdinalIgnoreCase), "the error names what is missing");
+
+            var legacy = await OllamaService.ListLocalModelsAsync();
+            Assert(legacy.Count == 0, "the old entry point stays empty rather than throwing");
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("PATH", originalPath);
+            try { Directory.Delete(emptyDir, true); } catch (IOException) { }
+        }
+
+        // Restored: the real daemon still answers when it is running.
+        if (await OllamaService.IsOllamaRunningAsync())
+        {
+            var (_, error) = await OllamaService.TryListLocalModelsAsync();
+            Assert(error is null, "after restoring PATH the real command succeeds again");
+        }
     }
 
     private static void OllamaListChecks()
